@@ -109,3 +109,12 @@ Proves addicionals: `node tests/traffic.cjs`.
 La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre local de locomotores i accessoris amb exportació/importació JSON. Admet fitxes DCC, MM2 i mfx per UID; tipus d'accessori: desviaments, senyals, llums, desacobladors, relés i altres. Consulta [docs/marklin-multiprotocol.md](docs/marklin-multiprotocol.md).
 
 **Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC via JMRI JSON, pendent d'integració i prova física. No s'ha provat amb una CS2 real.
+
+
+## Validació i bloqueig de seguretat (1.2.1 · en revisió)
+
+El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una llista explícita de validacions, confirmació física de l'operador, JMRI connectat, alimentació ON, pont WiThrottle connectat i sensors vàlids abans de permetre armar el control DCC. La interfície de circulacions, les ordres manuals i l'inici de circulacions passen per aquesta porta. El pont local exigeix també `JMRI_TC_SAFETY_VALIDATED=1` a més de `JMRI_TC_ENABLE_DCC=1`.
+
+La confirmació és una declaració de l'operador, no una certificació ni una lectura del circuit d'emergència. Cal mantenir una parada física independent que talli la tracció; el programari no substitueix proteccions elèctriques ni un enclavament ferroviari certificat. Consulta `docs/safety-validation.md`.
+
+Prova específica: `node tests/safety.cjs`. La suite completa inclou aquesta prova amb `npm test`.
