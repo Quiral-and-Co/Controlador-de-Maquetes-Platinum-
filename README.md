@@ -102,3 +102,10 @@ El panell de circulacions incorpora registre de locomotores DCC, itineraris, mod
 **Seguretat per defecte:** el pont DCC està desactivat. Per provar només la interfície, executa `npm install` i `npm start` i obre `http://127.0.0.1:3000`. Les ordres reals exigeixen `JMRI_TC_ENABLE_DCC=1` i armar el control. L'automàtic rebutja rutes amb desviaments no verificats i atura davant lectures desconegudes. No és un enclavament ferroviari certificat.
 
 Proves addicionals: `node tests/traffic.cjs`.
+
+
+## Catàleg digital Märklin DCC / MM2 / mfx
+
+La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre local de locomotores i accessoris amb exportació/importació JSON. Admet fitxes DCC, MM2 i mfx per UID; tipus d'accessori: desviaments, senyals, llums, desacobladors, relés i altres. Consulta [docs/marklin-multiprotocol.md](docs/marklin-multiprotocol.md).
+
+**Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC via JMRI JSON, pendent d'integració i prova física. No s'ha provat amb una CS2 real.
