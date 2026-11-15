@@ -1,5 +1,10 @@
 # Canvis
 
+## 1.0.0 — en desenvolupament
+- Obert el full de ruta 1.0 amb fites alpha, beta i RC.
+- Documentats els criteris d'acceptació, l'arquitectura objectiu i les condicions de seguretat per al futur control real.
+- JMRI continua en mode només lectura fins a superar les proves d'integració i seguretat.
+
 ## 0.7.1 — reforç de la connexió manual
 - Els ports SVG ara són accessibles amb teclat: focus, Enter i barra espaiadora.
 - Etiquetes accessibles per identificar el port i la peça.
