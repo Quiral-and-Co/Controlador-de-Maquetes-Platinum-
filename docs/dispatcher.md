@@ -30,3 +30,8 @@ El Dispatcher calcula l'ocupació a partir dels sensors rebuts pel WebSocket JSO
 5. Desconnecta JMRI: el bloc ha de passar a Desconegut.
 6. Comprova que cap ruta amb aquest bloc es pot reservar mentre l'estat no sigui Lliure.
 7. Valida el comportament de cada detector i cablejat abans de qualsevol ús operatiu.
+
+
+## Gestió de circulacions
+
+Consulta [traffic-management.md](traffic-management.md) per al registre de locomotores Märklin DCC, mode manual/automàtic, pont WiThrottle i interbloqueigs de circulació. Una reserva de tràfic pot incloure el bloc inicial ocupat pel tren; aquest estat ocupat es conserva mentre la circulació és activa. Si un bloc passa a desconegut, s'allibera la reserva i la circulació entra en estat de fallada.
