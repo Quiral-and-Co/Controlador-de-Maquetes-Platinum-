@@ -37,4 +37,11 @@ const cycleA={...signal,id:'A',nextSignalId:'B'},cycleB={...signal,id:'B',nextSi
 const cyclic=bridge.evaluateAll({config,signals:[cycleA,cycleB],snapshot,telemetry,signallingCore:signalling,now});
 assert.equal(cyclic.A.aspect,'PARADA','signal dependency cycle fails safe');
 const brokenNext={...signal,nextSignalId:'MISSING'};assert.equal(bridge.evaluateAll({config,signals:[brokenNext],snapshot,telemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','missing next signal reference fails safe');
+const routeConfig={...config,levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']}],tracks:[{id:'T2',type:'turnout',blockId:'B2',turnoutSystemName:'LT2'}]}],dispatcher:{routes:[{id:'R1',blockIds:['B1','B2']}]}};
+const routeSnapshot={...snapshot,blocks:[...snapshot.blocks,{id:'B2',verified:true,sensorIds:['S1']}],routes:[{id:'R1',blockIds:['B1','B2']}],reservations:{B1:'R1',B2:'R1'}};
+global.JMRI_TC_DIGITAL_CATALOGUE={getDatabase:()=>({accessories:[{type:'TURNOUT',systemName:'LT1',verified:true},{type:'TURNOUT',systemName:'LT2',verified:true}]})};
+const routeSignal={...signal,turnoutRequirements:[{systemName:'LT1',expectedState:2},{systemName:'LT2',expectedState:4}]};
+const routeTelemetry={...telemetry,turnouts:{LT1:2,LT2:4},turnoutUpdatedAt:{LT1:now,LT2:now}};
+assert.equal(bridge.evaluateAll({config:routeConfig,signals:[routeSignal],snapshot:routeSnapshot,telemetry:routeTelemetry,signallingCore:signalling,now}).SIG1.aspect,'VIA_LIBRE','turnout on a later route block is checked and aligned');
+assert.equal(bridge.evaluateAll({config:routeConfig,signals:[routeSignal],snapshot:routeSnapshot,telemetry:{...routeTelemetry,turnouts:{LT1:2}},signallingCore:signalling,now}).SIG1.aspect,'PARADA','missing later-route turnout feedback forces stop');
 console.log('PASS: signalling SVG/Dispatcher integration fail-safe core');
