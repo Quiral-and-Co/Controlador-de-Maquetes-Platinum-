@@ -13,6 +13,8 @@ server.on('upgrade',(req,socket,head)=>{const origin=req.headers.origin||'';if(r
 function send(ws,obj){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(obj));}
 function validHost(host){return typeof host==='string'&&host.length<=253&&!/[\s/\\]/.test(host);}
 wss.on('connection',ws=>{
+ if(activeController&&activeController.readyState===WebSocket.OPEN){ws.close(1013,'Another local dispatcher is already connected.');return;}
+ activeController=ws;
  let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map();
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,host:tcp?.remoteAddress||null});
  const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
