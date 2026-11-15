@@ -17,7 +17,7 @@ wss.on('connection',ws=>{
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,host:tcp?.remoteAddress||null});
  const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
  const disarm=()=>{armed=false;report();};
- const closeTcp=()=>{stopHeartbeat();if(tcp){try{tcp.write('M0*<;>r\nQ\n');}catch{}tcp.destroy();tcp=null;}connected=false;acquired.clear();for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();disarm();};
+ const closeTcp=()=>{stopHeartbeat();if(tcp){try{tcp.write('M0-*<;>r\nQ\n');}catch{}tcp.destroy();tcp=null;}connected=false;acquired.clear();for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();disarm();};
  const write=line=>{if(!connected||!tcp||tcp.destroyed)throw new Error('WiThrottle no està connectat.');tcp.write(line+'\n');};
  const requireArmed=()=>{if(!DCC_ENABLED||!armed)throw new Error('Control DCC bloquejat. Activa JMRI_TC_ENABLE_DCC=1 i arma el control de seguretat.');if(!connected)throw new Error('WiThrottle desconnectat.');};
  ws.on('message',raw=>{let m;try{m=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Missatge JSON invàlid.'});}
@@ -28,7 +28,7 @@ wss.on('connection',ws=>{
    tcp.on('connect',()=>{connected=true;tcp.write('NJMRI-TC Gold Custom\n');tcp.write('HUJMRI-TC-'+process.pid+'\n');tcp.write('*+\n');heartbeat=setInterval(()=>{if(connected)tcp.write('*\n');},5000);send(ws,{type:'connected'});report();});
    tcp.on('data',chunk=>{buffer+=chunk.toString('utf8');let i;while((i=buffer.search(/[\r\n]/))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1).replace(/^\n/,'');if(line){send(ws,{type:'jmri',line});for(const [id,timer] of pendingAcquire){if(line.startsWith('M0A'+id)){clearTimeout(timer);pendingAcquire.delete(id);acquired.add(id);send(ws,{type:'acquired',locoId:id});}}}}});
    tcp.on('error',err=>send(ws,{type:'error',message:'WiThrottle: '+err.message}));
-   tcp.on('close',()=>{connected=false;acquired.clear();disarm();send(ws,{type:'disconnected'});});
+   tcp.on('close',()=>{connected=false;acquired.clear();for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();disarm();send(ws,{type:'disconnected'});});
   }else if(m.type==='arm'){
    if(!DCC_ENABLED)throw new Error('DCC desactivat per defecte. Cal iniciar el pont amb JMRI_TC_ENABLE_DCC=1.');
    if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
