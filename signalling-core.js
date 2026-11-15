@@ -31,8 +31,8 @@
   function allowedAspects(signal, infrastructure={}) {
     if (!signal || !BASE[signal.type]) return [];
     let ids = [...BASE[signal.type]];
-    const vmax = Number(infrastructure.vmax ?? signal.vmax ?? 0);
-    const block = String(infrastructure.blockSystem || signal.blockSystem || 'BA').toUpperCase();
+    const vmax = Number(signal.vmax ?? infrastructure.vmax ?? 0);
+    const block = String(signal.blockSystem || infrastructure.blockSystem || 'BA').toUpperCase();
     if (ids.includes('VIA_LIBRE_CONDICIONAL')) {
       const valid = vmax > 160 && (block === 'BA' || block === 'BLA');
       if (!valid) ids = ids.filter(x => x !== 'VIA_LIBRE_CONDICIONAL');
