@@ -25,8 +25,9 @@
   }
   function turnoutChecks(signal,config,telemetry,now,maxAge){
     const requirements=Array.isArray(signal.turnoutRequirements)?signal.turnoutRequirements:[];
-    const allTracks=(config.levels||[]).flatMap(l=>l.tracks||[]);
-    const blockTurnouts=allTracks.filter(p=>p.blockId===signal.protectedBlockId&&p.type==='turnout'&&p.turnoutSystemName);
+    const allTracks=(config.levels||[]).flatMap(l=>l.tracks||[]),route=(config.dispatcher?.routes||[]).find(r=>r.id===signal.routeId);
+    const routeBlocks=new Set(route?.blockIds||[signal.protectedBlockId]);
+    const blockTurnouts=allTracks.filter(p=>routeBlocks.has(p.blockId)&&p.type==='turnout');
     if(blockTurnouts.length&&!requirements.length)return{verified:false,aligned:false,reverse:false,reason:'Hi ha desviaments al bloc protegit però la senyal no té posicions requerides configurades.'};
     const mappedNames=new Set(blockTurnouts.map(p=>p.turnoutSystemName));
     if(requirements.some(r=>!mappedNames.has(r.systemName))||blockTurnouts.some(p=>!requirements.some(r=>r.systemName===p.turnoutSystemName)))return{verified:false,aligned:false,reverse:false,reason:'Les posicions requerides no coincideixen exactament amb els desviaments assignats al bloc protegit.'};
