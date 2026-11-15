@@ -38,6 +38,9 @@ global.window = {
 };
 require('../dispatcher.js');
 
+const originalNow = Date.now;
+Date.now = () => 123456789;
+
 const $ = id => document.getElementById(id);
 const blockRows = () => $('dispatcherBlocks').children;
 function setBlock(id, status) {
@@ -68,7 +71,9 @@ routeRow('Ruta nord').children[1].children[0].click();
 assert.equal($('dispatcherReservedCount').textContent, 2);
 
 createRoute('Ruta sud', 'B02, B03');
+Date.now = originalNow;
 assert.equal(config.dispatcher.routes.length, 2);
+assert.notEqual(config.dispatcher.routes[0].id, config.dispatcher.routes[1].id, 'route IDs must remain unique within the same millisecond');
 assert.equal(routeRow('Ruta sud').children[1].children[0].disabled, true, 'overlapping route must be blocked');
 
 setBlock('B02', 'OCCUPIED');
