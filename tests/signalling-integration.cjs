@@ -37,7 +37,7 @@ const cycleA={...signal,id:'A',nextSignalId:'B'},cycleB={...signal,id:'B',nextSi
 const cyclic=bridge.evaluateAll({config,signals:[cycleA,cycleB],snapshot,telemetry,signallingCore:signalling,now});
 assert.equal(cyclic.A.aspect,'PARADA','signal dependency cycle fails safe');
 const brokenNext={...signal,nextSignalId:'MISSING'};assert.equal(bridge.evaluateAll({config,signals:[brokenNext],snapshot,telemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','missing next signal reference fails safe');
-const routeConfig={...config,levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']}],tracks:[{id:'T2',type:'turnout',blockId:'B2',turnoutSystemName:'LT2'}]}],dispatcher:{routes:[{id:'R1',blockIds:['B1','B2']}]}};
+const routeConfig={...config,levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']}],tracks:[{id:'T1',type:'turnout',blockId:'B1',turnoutSystemName:'LT1'},{id:'T2',type:'turnout',blockId:'B2',turnoutSystemName:'LT2'}]}],dispatcher:{routes:[{id:'R1',blockIds:['B1','B2']}]}};
 const routeSnapshot={...snapshot,blocks:[...snapshot.blocks,{id:'B2',verified:true,sensorIds:['S1']}],routes:[{id:'R1',blockIds:['B1','B2']}],reservations:{B1:'R1',B2:'R1'}};
 global.JMRI_TC_DIGITAL_CATALOGUE={getDatabase:()=>({accessories:[{type:'TURNOUT',systemName:'LT1',verified:true},{type:'TURNOUT',systemName:'LT2',verified:true}]})};
 const routeSignal={...signal,turnoutRequirements:[{systemName:'LT1',expectedState:2},{systemName:'LT2',expectedState:4}]};
