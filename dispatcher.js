@@ -1,75 +1,19 @@
 (() => {
-  'use strict';
-  const core=window.JMRI_TC_DispatcherCore;
-  if(!core)return;
-  const $=id=>document.getElementById(id),runtime=core.createState();
-  let initialized=false;
-  function getConfig(){return window.JMRI_TC_DISPATCHER?.getConfig?.();}
-  function allBlocks(){const c=getConfig();return(c?.levels||[]).flatMap(l=>(l.blocks||[]).map(b=>({...b,levelName:l.name,levelId:l.id})));}
-  function sync(){const blocks=allBlocks(),c=getConfig();core.ensureBlocks(runtime,blocks.map(b=>b.id));core.setRoutes(runtime,c?.dispatcher?.routes||[]);return blocks;}
-  function routeStatus(route){
-    const statuses=route.blockIds.map(id=>runtime.blockStates[id]||'UNKNOWN');
-    if(statuses.some(s=>s==='OCCUPIED'))return'OCCUPIED';
-    if(statuses.some(s=>s!=='FREE'))return'UNKNOWN';
-    if(route.blockIds.some(id=>runtime.reservations[id]&&runtime.reservations[id]!==route.id))return'CONFLICT';
-    return route.blockIds.every(id=>runtime.reservations[id]===route.id)?'RESERVED':'READY';
-  }
-  function el(tag,cls,txt){const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;}
-  function statusLabel(s){return({UNKNOWN:'Desconegut',FREE:'Lliure',OCCUPIED:'Ocupat'})[s]||s;}
-  function routeStatusLabel(s){return({UNKNOWN:'Bloquejat · estat desconegut',OCCUPIED:'Bloquejat · bloc ocupat',CONFLICT:'Conflicte de reserva',READY:'Preparat per reservar',RESERVED:'Reservat (simulació)'})[s]||s;}
-  function announce(message){$('dispatcherMessage').textContent=message;window.JMRI_TC_DISPATCHER?.log?.('[Dispatcher] '+message);}
-  function refresh(){
-    if(!initialized)return;
-    const blocks=sync(),list=$('dispatcherBlocks');list.replaceChildren();
-    if(!blocks.length)list.append(el('p','dispatcher-empty','Encara no hi ha blocs. Crea blocs al panell de recursos abans de planificar itineraris.'));
-    blocks.forEach(block=>{
-      const status=runtime.blockStates[block.id]||'UNKNOWN',row=el('article','dispatcher-block'),details=el('div','dispatcher-block-info');
-      details.append(el('strong','',block.name||block.id));
-      details.append(el('small','',block.levelName+' · '+(block.trackIds||[]).length+' peça/es · '+(block.sensorIds||[]).length+' sensor(s)'));
-      details.append(el('span','dispatcher-state state-'+status.toLowerCase(),statusLabel(status)));
-      const select=el('select','dispatcher-state-select');select.setAttribute('aria-label','Estat simulat del bloc '+(block.name||block.id));
-      [['UNKNOWN','Desconegut'],['FREE','Lliure'],['OCCUPIED','Ocupat']].forEach(([v,label])=>{const option=el('option','',label);option.value=v;select.append(option);});
-      select.value=status;select.addEventListener('change',()=>{
-        const result=core.setBlockState(runtime,block.id,select.value);
-        if(result.ok&&result.releasedRoutes.length)announce('Bloc '+block.name+' ha canviat d’estat; s’han alliberat els itineraris afectats.');
-        else announce('Estat simulat del bloc '+block.name+': '+statusLabel(select.value)+'.');
-        refresh();
-      });
-      row.append(details,select);
-      const owner=runtime.reservations[block.id];
-      if(owner)row.append(el('span','dispatcher-reservation','Reservat: '+(runtime.routes.find(r=>r.id===owner)?.name||owner)));
-      list.append(row);
-    });
-    const routesList=$('dispatcherRoutes');routesList.replaceChildren();
-    if(!runtime.routes.length)routesList.append(el('p','dispatcher-empty','No hi ha itineraris definits.'));
-    runtime.routes.forEach(route=>{
-      const status=routeStatus(route),row=el('article','dispatcher-route'),info=el('div','dispatcher-route-info'),actions=el('div','dispatcher-route-actions');
-      info.append(el('strong','',route.name),el('small','',route.blockIds.join(' → ')),el('span','dispatcher-state state-'+status.toLowerCase(),routeStatusLabel(status)));
-      const reserve=el('button','primary','Reservar');reserve.type='button';reserve.disabled=status!=='READY'&&status!=='RESERVED';
-      reserve.addEventListener('click',()=>{const result=core.reserveRoute(runtime,route.id);announce(result.ok?'Itinerari '+route.name+' reservat (simulació).':result.error);refresh();});
-      const release=el('button','','Alliberar');release.type='button';release.disabled=!route.blockIds.some(id=>runtime.reservations[id]===route.id);
-      release.addEventListener('click',()=>{core.releaseRoute(runtime,route.id);announce('Itinerari '+route.name+' alliberat (simulació).');refresh();});
-      const remove=el('button','danger','Eliminar');remove.type='button';
-      remove.addEventListener('click',()=>{core.releaseRoute(runtime,route.id);const c=getConfig();c.dispatcher.routes=c.dispatcher.routes.filter(r=>r.id!==route.id);announce('Itinerari '+route.name+' eliminat del projecte.');refresh();});
-      actions.append(reserve,release,remove);row.append(info,actions);routesList.append(row);
-    });
-    $('dispatcherFreeCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='FREE').length;
-    $('dispatcherOccupiedCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='OCCUPIED').length;
-    $('dispatcherUnknownCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='UNKNOWN').length;
-    $('dispatcherReservedCount').textContent=Object.keys(runtime.reservations).length;
-  }
-  function createRoute(){
-    const c=getConfig();c.dispatcher=c.dispatcher||{};c.dispatcher.routes=c.dispatcher.routes||[];
-    const blockIds=$('dispatcherRouteBlocks').value.split(',').map(v=>v.trim()).filter(Boolean);
-    const existingIds=new Set(c.dispatcher.routes.map(route=>String(route.id)));
-    const baseId='R-'+Date.now();let routeId=baseId,suffix=2;
-    while(existingIds.has(routeId))routeId=baseId+'-'+suffix++;
-    const result=core.addRoute(runtime,{id:routeId,name:$('dispatcherRouteName').value,blockIds},allBlocks().map(b=>b.id));
-    if(!result.ok){announce(result.error);return;}
-    c.dispatcher.routes.push(result.route);$('dispatcherRouteName').value='';$('dispatcherRouteBlocks').value='';
-    announce('Itinerari creat. Per defecte no està reservat.');refresh();
-  }
-  function initialize(){if(initialized)return;initialized=true;$('dispatcherCreateRoute').addEventListener('click',createRoute);refresh();}
-  window.JMRI_TC_DISPATCHER_UI={refresh,initialize};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
+'use strict';const core=window.JMRI_TC_DispatcherCore;if(!core)return;const $=id=>document.getElementById(id),runtime=core.createState();let initialized=false;
+function getConfig(){return window.JMRI_TC_DISPATCHER?.getConfig?.();}
+function allBlocks(){const c=getConfig();return(c?.levels||[]).flatMap(l=>(l.blocks||[]).map(b=>({...b,levelName:l.name,levelId:l.id})));}
+function sync(){const blocks=allBlocks(),c=getConfig();core.ensureBlocks(runtime,blocks.map(b=>b.id));core.setRoutes(runtime,c?.dispatcher?.routes||[]);const sensors=(c?.levels||[]).flatMap(l=>l.sensors||[]),readings=window.JMRI_TC_DISPATCHER?.getSensorStates?.()||{};for(const b of blocks)if((b.sensorIds||[]).length)core.setBlockState(runtime,b.id,core.deriveBlockState(b,sensors,readings));return blocks;}
+function routeStatus(r){const ss=r.blockIds.map(id=>runtime.blockStates[id]||'UNKNOWN');if(ss.some(s=>s==='OCCUPIED'))return'OCCUPIED';if(ss.some(s=>s!=='FREE'))return'UNKNOWN';if(r.blockIds.some(id=>runtime.reservations[id]&&runtime.reservations[id]!==r.id))return'CONFLICT';return r.blockIds.every(id=>runtime.reservations[id]===r.id)?'RESERVED':'READY';}
+function el(tag,cls,txt){const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;}
+function statusLabel(s){return({UNKNOWN:'Desconegut',FREE:'Lliure',OCCUPIED:'Ocupat'})[s]||s;}
+function routeStatusLabel(s){return({UNKNOWN:'Bloquejat · estat desconegut',OCCUPIED:'Bloquejat · bloc ocupat',CONFLICT:'Conflicte de reserva',READY:'Preparat per reservar',RESERVED:'Reservat (simulació)'})[s]||s;}
+function announce(m){$('dispatcherMessage').textContent=m;window.JMRI_TC_DISPATCHER?.log?.('[Dispatcher] '+m);}
+function refresh(){if(!initialized)return;const blocks=sync(),list=$('dispatcherBlocks');list.replaceChildren();if(!blocks.length)list.append(el('p','dispatcher-empty','Encara no hi ha blocs. Crea blocs al panell de recursos abans de planificar itineraris.'));
+blocks.forEach(b=>{const status=runtime.blockStates[b.id]||'UNKNOWN',row=el('article','dispatcher-block'),details=el('div','dispatcher-block-info');details.append(el('strong','',b.name||b.id),el('small','',b.levelName+' · '+(b.trackIds||[]).length+' peça/es · '+(b.sensorIds||[]).length+' sensor(s)'),el('span','dispatcher-state state-'+status.toLowerCase(),statusLabel(status)));const select=el('select','dispatcher-state-select');select.setAttribute('aria-label','Estat simulat del bloc '+(b.name||b.id));[['UNKNOWN','Desconegut'],['FREE','Lliure'],['OCCUPIED','Ocupat']].forEach(([v,label])=>{const o=el('option','',label);o.value=v;select.append(o);});select.value=status;const sensorDriven=(b.sensorIds||[]).length>0;select.disabled=sensorDriven;if(sensorDriven)select.title='Estat calculat pels sensors JMRI verificats; sense lectura vàlida el bloc queda desconegut.';select.addEventListener('change',()=>{if(sensorDriven)return;const result=core.setBlockState(runtime,b.id,select.value);if(result.ok&&result.releasedRoutes.length)announce('Bloc '+b.name+' ha canviat d’estat; s’han alliberat els itineraris afectats.');else announce('Estat simulat del bloc '+b.name+': '+statusLabel(select.value)+'.');refresh();});row.append(details,select);const owner=runtime.reservations[b.id];if(owner)row.append(el('span','dispatcher-reservation','Reservat: '+(runtime.routes.find(r=>r.id===owner)?.name||owner)));list.append(row);});
+const routes=$('dispatcherRoutes');routes.replaceChildren();if(!runtime.routes.length)routes.append(el('p','dispatcher-empty','No hi ha itineraris definits.'));
+runtime.routes.forEach(r=>{const status=routeStatus(r),row=el('article','dispatcher-route'),info=el('div','dispatcher-route-info'),actions=el('div','dispatcher-route-actions');info.append(el('strong','',r.name),el('small','',r.blockIds.join(' → ')),el('span','dispatcher-state state-'+status.toLowerCase(),routeStatusLabel(status)));const reserve=el('button','primary','Reservar');reserve.type='button';reserve.disabled=status!=='READY'&&status!=='RESERVED';reserve.addEventListener('click',()=>{const result=core.reserveRoute(runtime,r.id);announce(result.ok?'Itinerari '+r.name+' reservat (simulació).':result.error);refresh();});const release=el('button','','Alliberar');release.type='button';release.disabled=!r.blockIds.some(id=>runtime.reservations[id]===r.id);release.addEventListener('click',()=>{core.releaseRoute(runtime,r.id);announce('Itinerari '+r.name+' alliberat (simulació).');refresh();});const remove=el('button','danger','Eliminar');remove.type='button';remove.addEventListener('click',()=>{core.releaseRoute(runtime,r.id);const c=getConfig();c.dispatcher.routes=c.dispatcher.routes.filter(x=>x.id!==r.id);announce('Itinerari '+r.name+' eliminat del projecte.');refresh();});actions.append(reserve,release,remove);row.append(info,actions);routes.append(row);});
+$('dispatcherFreeCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='FREE').length;$('dispatcherOccupiedCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='OCCUPIED').length;$('dispatcherUnknownCount').textContent=blocks.filter(b=>runtime.blockStates[b.id]==='UNKNOWN').length;$('dispatcherReservedCount').textContent=Object.keys(runtime.reservations).length;}
+function createRoute(){const c=getConfig();c.dispatcher=c.dispatcher||{};c.dispatcher.routes=c.dispatcher.routes||[];const ids=$('dispatcherRouteBlocks').value.split(',').map(v=>v.trim()).filter(Boolean),existing=new Set(c.dispatcher.routes.map(r=>String(r.id))),base='R-'+Date.now();let id=base,suffix=2;while(existing.has(id))id=base+'-'+suffix++;const result=core.addRoute(runtime,{id,name:$('dispatcherRouteName').value,blockIds:ids},allBlocks().map(b=>b.id));if(!result.ok){announce(result.error);return;}c.dispatcher.routes.push(result.route);$('dispatcherRouteName').value='';$('dispatcherRouteBlocks').value='';announce('Itinerari creat. Per defecte no està reservat.');refresh();}
+function initialize(){if(initialized)return;initialized=true;$('dispatcherCreateRoute').addEventListener('click',createRoute);refresh();}
+window.JMRI_TC_DISPATCHER_UI={refresh,initialize};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
 })();
