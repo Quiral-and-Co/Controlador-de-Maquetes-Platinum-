@@ -1,35 +1,32 @@
-# Dispatcher — JMRI TC Gold Custom 1.0 alpha
+# Dispatcher — JMRI TC Gold Custom 1.1
 
-## Què incorpora
+## Ocupació automàtica amb sensors JMRI
 
-El Dispatcher alpha és un despatxador de proves sobre els blocs lògics definits al projecte. Mostra els blocs agrupats per nivell i permet assignar-los un estat simulat:
-- **Desconegut:** estat inicial i estat segur per defecte; no es pot reservar.
-- **Lliure:** l'usuari el marca manualment com a lliure per a proves.
-- **Ocupat:** el bloc no es pot reservar i qualsevol itinerari que el tingui reservat s'allibera.
+El Dispatcher calcula l'ocupació a partir dels sensors rebuts pel WebSocket JSON de JMRI. Per declarar un bloc Lliure o Ocupat cal registrar el system name exacte, assignar el sensor a una peça del bloc, verificar físicament el sensor i verificar el bloc. Els blocs amb sensors assignats no es poden canviar manualment. Si falta una lectura, es perd la connexió, un sensor no està verificat o l'estat no es reconeix, el bloc passa a Desconegut i no es pot reservar.
 
-Els itineraris són seqüències ordenades d'identificadors de bloc. Per crear-ne un, introdueix el nom i els IDs separats per comes, per exemple `B01, B02, B03`.
+## Interpretació
 
-## Regles de reserva
+- JMRI ACTIVE (2) → Ocupat.
+- JMRI INACTIVE (4) → Lliure.
+- Valors nuls, desconeguts o no reconeguts → Desconegut.
+- Amb diversos sensors: qualsevol sensor actiu fa el bloc Ocupat; només quan tots són inactius és Lliure.
+- L'opció invert d'un sensor verificat inverteix ACTIVE/INACTIVE.
+- La pèrdua de connexió buida les lectures i posa a Desconegut els blocs dependents de sensors.
 
-1. Tots els blocs de l'itinerari han d'existir.
-2. Tots els blocs han d'estar en estat **Lliure**.
-3. Un bloc no pot estar reservat per un altre itinerari.
-4. La reserva s'aplica a tots els blocs de la ruta o no s'aplica a cap.
-5. Quan un bloc reservat passa a **Ocupat** o **Desconegut**, el simulador allibera la reserva de l'itinerari afectat.
-6. Les definicions de rutes es desen a `dispatcher.routes` en el JSON de maqueta. Els estats i reserves són volàtils i es reinicien en recarregar.
+## Proteccions
 
-## Prova manual
+- No es reserva cap bloc UNKNOWN o OCCUPIED.
+- Quan un bloc reservat deixa d'estar FREE, s'allibera tota la ruta afectada.
+- Els blocs amb sensors assignats no accepten estats manuals.
+- No s'envien ordres DCC, locomotores, desviaments, senyals ni activació de rutes a JMRI. La reserva és local i no és un interbloqueig ferroviari certificat.
+- Aquest mòdul no substitueix una parada d'emergència física independent.
 
-1. Obre l'editor i crea dos o tres blocs a la secció **Blocs lògics**.
-2. A Dispatcher, canvia'ls a **Lliure**.
-3. Crea una ruta, per exemple `Prova estació` amb `B01, B02`.
-4. Prem **Reservar**. Els blocs apareixeran amb la reserva associada.
-5. Crea una segona ruta que comparteixi `B02`. La reserva ha de fallar per conflicte.
-6. Canvia `B02` a **Ocupat**. La ruta reservada s'ha d'alliberar automàticament.
-7. Torna `B02` a **Desconegut** i comprova que no es pot reservar cap ruta que el contingui.
+## Prova recomanada
 
-## Límits de seguretat i propera integració
-
-Aquesta versió no llegeix els sensors JMRI per calcular ocupació i no envia ordres a la central DCC, locomotores, desviaments ni senyals. L'estat manual és exclusivament de simulació i no s'ha d'utilitzar per circular trens.
-
-La següent fase ha d'afegir una capa d'ocupació real que només accepti sensors i blocs verificats, tracti els estats desconeguts com a bloquejats i mantingui el Dispatcher en mode de supervisió fins que s'hagin provat interbloquejos, pèrdua de comunicació i parada d'emergència física independent.
+1. Amb la maqueta aturada, registra i verifica un sensor.
+2. Assigna'l a una peça i al bloc corresponent; verifica també el bloc.
+3. Connecta JMRI i comprova que el sensor inactiu dona Lliure.
+4. Activa físicament el detector: el bloc ha de passar a Ocupat.
+5. Desconnecta JMRI: el bloc ha de passar a Desconegut.
+6. Comprova que cap ruta amb aquest bloc es pot reservar mentre l'estat no sigui Lliure.
+7. Valida el comportament de cada detector i cablejat abans de qualsevol ús operatiu.
