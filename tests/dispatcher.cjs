@@ -32,4 +32,22 @@ core.ensureBlocks(state,['B01','B03']);
 assert.equal(state.blockStates.B02,undefined);
 assert.equal(state.blockStates.B03,'FREE');
 assert.equal(state.reservations.B03,undefined,'removing one block must release the route reservation on every other block');
-console.log('PASS: dispatcher core state safety, route creation, reservations, conflicts, occupied/unknown block protection, auto-release, explicit release and stale-block cleanup');
+
+const sensorDefs=[
+ {id:'S1',systemName:'LS101',verified:true,invert:false},
+ {id:'S2',systemName:'LS102',verified:true,invert:false}
+];
+const sensorBlock={id:'B-SENSOR',verified:true,sensorIds:['S1','S2']};
+assert.equal(core.normalizeSensorState(2),'OCCUPIED');
+assert.equal(core.normalizeSensorState('ACTIVE'),'OCCUPIED');
+assert.equal(core.normalizeSensorState(4),'FREE');
+assert.equal(core.normalizeSensorState('INACTIVE'),'FREE');
+assert.equal(core.normalizeSensorState('not-a-state'),'UNKNOWN');
+assert.equal(core.normalizeSensorState(4,true),'OCCUPIED');
+assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:4,LS102:4}),'FREE','all verified inactive sensors mean free');
+assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:2,LS102:4}),'OCCUPIED','any active sensor means occupied');
+assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:4}),'UNKNOWN','missing sensor reading fails closed');
+assert.equal(core.deriveBlockState({...sensorBlock,verified:false},sensorDefs,{LS101:4,LS102:4}),'UNKNOWN','unverified block fails closed');
+assert.equal(core.deriveBlockState(sensorBlock,[{...sensorDefs[0],verified:false},sensorDefs[1]],{LS101:4,LS102:4}),'UNKNOWN','unverified sensor fails closed');
+assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:4,LS102:'bad'}),'UNKNOWN','invalid sensor state fails closed');
+console.log('PASS: dispatcher core, route interlocking, JMRI sensor state mapping and fail-safe unknown handling');
