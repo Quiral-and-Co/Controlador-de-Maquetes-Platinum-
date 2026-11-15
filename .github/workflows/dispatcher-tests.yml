@@ -51,3 +51,6 @@ jobs:
         run: node tests/smoke.cjs
       - name: Validate example JSON syntax
         run: node -e "JSON.parse(require('fs').readFileSync('config/layout.example.json', 'utf8')); console.log('PASS example JSON')"
+
+      - name: ADIF signalling aspect tests
+        run: node tests/signalling.cjs
