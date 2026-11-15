@@ -78,7 +78,7 @@
       <section class="dispatcher-subpanel">
         <h3>Conducció manual</h3>
         <p class="dispatcher-help">Disponible quan una circulació manual està iniciada, la locomotora està adquirida i el DCC està armat.</p>
-        <div class="traffic-controls"><label><input id="deadmanEnabled" type="checkbox" checked> Home mort activat</label><button id="deadmanHold" type="button" class="primary">MANTÉN PREMUT PER CONDUIR</button><span id="deadmanStatus" role="status">Protecció activa · mantén premut per conduir</span>
+        <div class="traffic-controls"><label><input id="deadmanEnabled" type="checkbox" checked> Home mort activat</label><button id="deadmanHold" type="button" class="primary">PEDAL · MANTÉN PREMUT</button><span id="deadmanStatus" role="status">Prem el pedal per iniciar la vigilància</span><div class="deadman-lamps"><span id="deadmanBlue" class="deadman-lamp blue" title="Avís blau 30 s"></span><span id="deadmanOrange" class="deadman-lamp orange" title="Avís taronja 33 s"></span><span id="deadmanRed" class="deadman-lamp red" title="Frenat d’emergència 36 s"></span></div><label class="deadman-audio">MP3 del timbre/brunzit <input id="deadmanMp3" type="file" accept="audio/mpeg,.mp3"></label><audio id="deadmanAudio" preload="auto"></audio>
           <button id="trafficReverse" type="button">◀ Marxa enrere</button>
           <button id="trafficForward" type="button">Marxa endavant ▶</button>
           <button id="trafficStop" type="button" class="danger">Aturar / E-STOP</button>
