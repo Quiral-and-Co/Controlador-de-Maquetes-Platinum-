@@ -49,7 +49,7 @@
     function calculate(signal){
       if(!signal)return{aspect:'PARADA',reason:'Senyal següent inexistent: criteri restrictiu.'};
       if(results[signal.id])return results[signal.id];
-      if(visiting.has(signal.id))return{aspect:'PARADA',reason:'Cicle de dependències entre senyals: criteri restrictiu.'};
+      if(visiting.has(signal.id))return{aspect:'PARADA',reason:'Cicle de dependències entre senyals: criteri restrictiu.',cycle:true};
       visiting.add(signal.id);
       const blockId=signal.protectedBlockId||'',block=(snapshot.blocks||[]).find(b=>b.id===blockId);
       const blockState=communication?sensorBlockState(block,config,telemetry,now,maxAge):'UNKNOWN';
@@ -67,7 +67,8 @@
         protectionChecks:signal.protectionChecks===true
       };
       const derived=core.deriveAspect(signal,conditions,config.signallingInfrastructure||{});
-      const result={aspect:derived.aspect,reason:!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
+      const cycle=nextResult?.cycle===true;
+      const result={aspect:cycle?'PARADA':derived.aspect,cycle,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
       visiting.delete(signal.id);results[signal.id]=result;return result;
     }
     for(const signal of signals)calculate(signal);
