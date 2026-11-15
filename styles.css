@@ -31,3 +31,9 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 
 /* Gestió de circulacions Märklin DCC */
 .traffic-panel{margin-top:18px}.traffic-connection,.traffic-form,.traffic-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:12px 0}.traffic-connection label,.traffic-form label{display:flex;flex-direction:column;gap:5px;color:#b8c8d8;font-size:11px}.traffic-panel input,.traffic-panel select{min-width:110px;background:#0f1824;border:1px solid #3b4d62;border-radius:6px;color:#fff;padding:9px}.traffic-form input:first-child{flex:1}.traffic-form button{white-space:nowrap}.traffic-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.traffic-speed{display:flex;align-items:center;gap:12px;margin-top:14px}.traffic-speed input{flex:1}.traffic-controls button{flex:1}.traffic-panel .dispatcher-route{align-items:center}@media(max-width:850px){.traffic-columns{grid-template-columns:1fr}.traffic-connection>*{flex:1 1 130px}.traffic-form>*{flex:1 1 140px}}
+
+/* Indicadors de telemetria al tauler gràfic · només lectura */
+.sensor-indicator circle,.turnout-indicator circle{stroke:#101b28;stroke-width:4}
+.sensor-indicator text,.turnout-indicator text{font-size:19px;font-weight:700;fill:#f4f7fb;paint-order:stroke;stroke:#101b28;stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+.sensor-indicator.free circle{fill:#42c58b}.sensor-indicator.occupied circle{fill:#ed626c}.sensor-indicator.unknown circle{fill:#e7ad45}
+.turnout-indicator.closed circle{fill:#42c58b}.turnout-indicator.thrown circle{fill:#55a9ed}.turnout-indicator.unknown circle{fill:#e7ad45}
