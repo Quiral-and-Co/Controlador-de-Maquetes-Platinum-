@@ -91,7 +91,12 @@
     <p id="trafficMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Registra locomotores i itineraris abans de començar.</p>
   </section>
   <section class="signalling-panel">
-    <h2>Senyalització ferroviària ADIF</h2><p class="small muted">Deu aspectes fonamentals amb disponibilitat condicionada al tipus de senyal i a la infraestructura. Simulació de maqueta; no és un enclavament homologat.</p>
+    <h2>Senyalització ferroviària ADIF</h2><div class="signalling-grid">
+      <label><input id="signalHighSpeed" type="checkbox"> Línia d'alta velocitat</label><label><input id="signalErtms" type="checkbox"> ERTMS instal·lat</label><label>Nivell ERTMS <select id="signalErtmsLevel"><option value="">No configurat</option><option value="BCA">BCA</option><option value="N2">Nivell 2</option></select></label>
+      <label><input id="signalNextCanStop" type="checkbox" checked> Senyal següent pot ordenar parada</label><label><input id="signalFollowingEntryReverse" type="checkbox"> Agulles desviades després de l'entrada següent</label><label><input id="signalDepartureReverse" type="checkbox"> Agulles desviades després d'aquesta entrada/sortida</label>
+      <label><input id="signalAlsoPreadvanced" type="checkbox"> També preavançada de l'estació següent</label><label><input id="signalAlsoAdvancedGlobal" type="checkbox"> També avançada de l'estació següent</label><label><input id="signalReleaseEquipped" type="checkbox"> Estació amb senyal d'alliberament</label>
+      <label><input id="signalPrecededStop" type="checkbox"> Precedida per senyals que poden indicar parada</label><label><input id="signalFromMainTrack" type="checkbox"> Sortida des de via general</label>
+    </div><p class="small muted">Deu aspectes fonamentals amb disponibilitat condicionada al tipus de senyal i a la infraestructura. Simulació de maqueta; no és un enclavament homologat.</p>
     <div class="signalling-grid">
       <label>Identificador <input id="signalId" value="S-001"></label><label>Nom <input id="signalName" value="Senyal nova"></label><label>Funció / ubicació <select id="signalType"></select></label>
       <label>Disseny físic <select id="signalHead"><option value="HIGH">Alta</option><option value="LOW">Baixa</option><option value="SINGLE">Mono cap</option><option value="MULTI">Múltiples caps</option></select></label>
