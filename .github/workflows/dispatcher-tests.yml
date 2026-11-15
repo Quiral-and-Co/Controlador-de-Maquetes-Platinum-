@@ -35,6 +35,8 @@ jobs:
           node --check signalling-ui.js
           node --check signalling-integration-core.js
           node --check signalling-integration.js
+          node --check signalling-topology-core.js
+          node --check signalling-topology-ui.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Safety core tests
@@ -56,5 +58,7 @@ jobs:
       - name: Validate example JSON syntax
         run: node -e "JSON.parse(require('fs').readFileSync('config/layout.example.json', 'utf8')); console.log('PASS example JSON')"
 
+      - name: Signal topology mapping tests
+        run: node tests/signalling-topology.cjs
       - name: Full regression and fail-safe suite
         run: npm test
