@@ -118,3 +118,12 @@ El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una ll
 La confirmació és una declaració de l'operador, no una certificació ni una lectura del circuit d'emergència. Cal mantenir una parada física independent que talli la tracció; el programari no substitueix proteccions elèctriques ni un enclavament ferroviari certificat. Consulta `docs/safety-validation.md`.
 
 Prova específica: `node tests/safety.cjs`. La suite completa inclou aquesta prova amb `npm test`.
+
+
+## Planificació supervisada d’horaris (1.3.0)
+
+El motor `automation-core.js` valida horaris, dies, finestres d’inici i velocitats limitades a 20 passos. El preflight exigeix explícitament la validació de seguretat de PR #7, JMRI i WiThrottle connectats, alimentació ON, DCC armat, sensors vàlids, primer bloc ocupat, blocs següents lliures, absència de conflictes de reserva i feedback verificat dels desviaments requerits (`CLOSED` o `THROWN`). La protecció contra execucions duplicades impedeix reclamar el mateix horari dues vegades el mateix dia.
+
+**Límit deliberat:** el planificador només valida i registra; no envia ordres físiques ni inicia trens. `safetyValidated` s’ha de derivar de l’estat actual de `JMRI_TC_SAFETY.canEnablePhysical(runtime)`, mai d’un valor persistent. La parada d’emergència física independent i les proteccions elèctriques continuen sent obligatòries. Consulta `docs/automation-1.3.md`.
+
+Proves: `node tests/automation.cjs` i `npm test`.
