@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "description": "Plantilla editable; no és una base de dades oficial/exhaustiva Märklin. Verifica dades i adreces a la CS2.",
+  "protocols": {
+    "DCC": {
+      "locomotiveShort": [
+        1,
+        127
+      ],
+      "locomotiveLong": [
+        128,
+        10239
+      ],
+      "accessory": [
+        1,
+        2044
+      ]
+    },
+    "MM2": {
+      "locomotive": [
+        1,
+        255
+      ],
+      "accessory": [
+        1,
+        320
+      ]
+    },
+    "MFX": {
+      "identity": "UID assignat per la CS2; no adreça fixa"
+    }
+  },
+  "accessoryTypes": [
+    "TURNOUT",
+    "SIGNAL",
+    "LIGHT",
+    "UNCOUPLER",
+    "RELAY",
+    "OTHER"
+  ],
+  "locomotiveFields": [
+    "name",
+    "manufacturer",
+    "model",
+    "protocol",
+    "address",
+    "addressType",
+    "mfxUid",
+    "rosterId",
+    "functions",
+    "verified"
+  ],
+  "accessoryFields": [
+    "name",
+    "type",
+    "protocol",
+    "address",
+    "mfxUid",
+    "systemName",
+    "feedbackSystemName",
+    "levelId",
+    "verified",
+    "notes"
+  ]
+}
