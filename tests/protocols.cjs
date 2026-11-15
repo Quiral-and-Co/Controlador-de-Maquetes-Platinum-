@@ -7,7 +7,7 @@ assert.equal(c.addLocomotive(db,{id:'bad',name:'mfx sense UID',protocol:'MFX',ad
 assert.equal(c.addAccessory(db,{id:'t1',name:'Desviament 1',protocol:'DCC',type:'TURNOUT',address:1,systemName:'LT1'}).ok,true);
 assert.equal(c.addAccessory(db,{id:'s1',name:'Senyal 1',protocol:'MM2',type:'SIGNAL',address:12,systemName:'LT2'}).ok,true);
 assert.equal(c.addAccessory(db,{id:'a1',name:'Senyal mfx',protocol:'MFX',type:'SIGNAL',mfxUid:'AABBCCDDEEFF',systemName:'IF$mfxSignal:1'}).ok,true);
-const t=db.accessories[0];assert.equal(c.canOperateAccessory(t,{jmriConnected:true,power:'ON',armed:true}).ok,true);
+const t=db.accessories[0];assert.equal(c.canOperateAccessory(t,{jmriConnected:true,power:'ON',armed:true}).ok,false);t.verified=true;assert.equal(c.canOperateAccessory(t,{jmriConnected:true,power:'ON',armed:true}).ok,true);
 assert.equal(c.canOperateAccessory({...t,verified:false},{jmriConnected:true,power:'ON',armed:true}).ok,false);
 assert.deepEqual(c.buildTurnoutJson(t,'THROWN'),{type:'turnout',method:'post',data:{name:'LT1',state:4}});
 assert.equal(c.canOperateAccessory(db.accessories[1],{jmriConnected:true,power:'ON',armed:true}).ok,false);

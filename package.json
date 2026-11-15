@@ -5,7 +5,7 @@
   "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
   "scripts": {
     "start": "node traffic-bridge.js",
-    "test": "node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs"
+    "test": "node --check app.js && node --check signalling-core.js && node --check signalling-ui.js && node --check signalling-integration-core.js && node --check signalling-integration.js && node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs && node tests/signalling-integration.cjs"
   },
   "engines": {
     "node": ">=20"
