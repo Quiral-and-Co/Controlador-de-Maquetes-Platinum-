@@ -13,7 +13,7 @@
     MOVIMIENTO_AUTORIZADO: { id:'MOVIMIENTO_AUTORIZADO', label:'Moviment autoritzat', code:'M', color:'white', order:'Autorització limitada segons la funció de la senyal interior; no autoritza circular fins a l’estació següent.' }
   });
   const TYPES = Object.freeze({
-    PREADVANCED:'Preavançada', ADVANCED:'Avançada', INTERMEDIATE:'Intermèdia', PROTECTION:'Protecció', ENTRY:'Entrada', INTERIOR:'Interior', DESTINATION:'Destí / interior', EXIT:'Sortida', RELEASE:'Alliberament', MANEUVER:'Maniobres (senyal baixa/interior)'
+    PREADVANCED:'Preavançada', ADVANCED:'Avançada', INTERMEDIATE:'Intermèdia / plena via', PROTECTION:'Protecció', ENTRY:'Entrada', INTERIOR:'Interior', DESTINATION:'Destí / interior', EXIT:'Sortida', RELEASE:'Alliberament', MANEUVER:'Maniobres (senyal baixa/interior)'
   });
   const BASE = {
     PREADVANCED: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL'],
