@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const dm=require('../deadman-core.js');
+const s=dm.createState();
+assert.equal(s.enabled,true);assert.deepEqual(dm.evaluate(s,10000),{action:'NONE'});
+assert.equal(dm.engage(s,1000).ok,true);assert.deepEqual(dm.evaluate(s,2500),{action:'NONE'});
+assert.equal(dm.heartbeat(s,2800).ok,true);assert.deepEqual(dm.evaluate(s,4700),{action:'NONE'});
+assert.equal(dm.evaluate(s,4801).action,'TRIP');assert.equal(s.tripped,true);
+assert.equal(dm.engage(s,5000).ok,false);assert.equal(dm.rearm(s).ok,true);
+assert.equal(dm.engage(s,6000).ok,true);assert.equal(dm.configure(s,false).ok,true);
+assert.deepEqual(dm.evaluate(s,999999),{action:'NONE'});assert.equal(dm.configure(s,true,500).ok,false);
+assert.equal(dm.configure(s,true,3000).ok,true);assert.equal(dm.engage(s,10000).ok,true);
+assert.equal(dm.release(s).ok,true);assert.deepEqual(dm.evaluate(s,50000),{action:'NONE'});
+console.log('PASS: manual dead-man watchdog defaults, heartbeat, timeout trip, rearm, disable and configuration bounds');
