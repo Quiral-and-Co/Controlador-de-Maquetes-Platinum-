@@ -16,7 +16,7 @@
     PREADVANCED:'Preavançada', ADVANCED:'Avançada', INTERMEDIATE:'Intermèdia', PROTECTION:'Protecció', ENTRY:'Entrada', INTERIOR:'Interior', DESTINATION:'Destí / interior', EXIT:'Sortida', RELEASE:'Alliberament', MANEUVER:'Maniobres (senyal baixa/interior)'
   });
   const BASE = {
-    PREADVANCED: ['VIA_LIBRE'],
+    PREADVANCED: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL'],
     ADVANCED: ['VIA_LIBRE','ANUNCIO_PRECAUCION','PREANUNCIO_PARADA','ANUNCIO_PARADA','PARADA'],
     INTERMEDIATE: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL','PREANUNCIO_PARADA','ANUNCIO_PARADA','PARADA'],
     PROTECTION: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL','ANUNCIO_PRECAUCION','PREANUNCIO_PARADA','ANUNCIO_PARADA','PARADA','REBASE_AUTORIZADO'],
@@ -77,7 +77,7 @@
   }
   function deriveAspect(signal, conditions={}, infrastructure={}) {
     const allowed=allowedAspects(signal,infrastructure);
-    const stop=()=>({aspect:allowed.includes('PARADA')?'PARADA':(allowed[0]||'PARADA'),reason:'Estat desconegut, conflicte o protecció no confirmada: criteri restrictiu.'});
+    const stop=()=>({aspect:allowed.includes('PARADA')?'PARADA':'NO_ASPECT',reason:'Estat desconegut, conflicte o protecció no confirmada: criteri restrictiu. La senyal queda sense indicació permissiva.'});
     if (!signal || signal.enabled===false) return stop();
     if (conditions.emergency===true || conditions.occupied===true || conditions.blockState!=='FREE' || conditions.routeReserved!==true || conditions.turnoutsVerified!==true || conditions.turnoutsAligned!==true) return stop();
     if (conditions.authorisation==='REBASE' && allowed.includes('REBASE_AUTORIZADO') && conditions.explicitAuthorisation===true && conditions.protectionChecks===true) return {aspect:'REBASE_AUTORIZADO',reason:'Autorització explícita i comprovacions de protecció confirmades.'};
