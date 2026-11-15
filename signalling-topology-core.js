@@ -20,13 +20,14 @@
       const blockTracks=block?list(block.trackIds).map(tid=>tracks.find(t=>id(t.id)===id(tid))).filter(Boolean):[];
       if(block&&list(block.trackIds).length===0)issues.push('El bloc no té peces de via assignades.');
       if(block&&blockTracks.length!==list(block.trackIds).length)issues.push('El bloc conté identificadors de via inexistents.');
+      if(block&&blockTracks.some(t=>id(t.blockId)!==id(block.id)))issues.push('Hi ha peces del bloc amb una assignació blockId inconsistent.');
       const selectedTrack=id(signal.trackId);
       const anchorTrack=selectedTrack?tracks.find(t=>id(t.id)===selectedTrack):blockTracks[0];
       if(selectedTrack&&!anchorTrack)issues.push('La peça de via seleccionada per a la senyal no existeix.');
       if(selectedTrack&&block&&!list(block.trackIds).map(id).includes(selectedTrack))issues.push('La peça de via de la senyal no pertany al bloc protegit.');
       if(!selectedTrack&&anchorTrack)warnings.push('Punt de senyal inferit de la primera peça del bloc; convé seleccionar-lo explícitament.');
       if(!anchorTrack&&block)issues.push('No hi ha cap peça de via per ancorar visualment la senyal.');
-      const routeTracks=routeBlockIds.flatMap(bid=>{const b=blocks.find(x=>id(x.id)===bid);return b?list(b.trackIds).map(tid=>tracks.find(t=>id(t.id)===id(tid))).filter(Boolean):[];});
+      const routeTracks=routeBlockIds.flatMap(bid=>{const b=blocks.find(x=>id(x.id)===bid);if(!b)return[];const ids=list(b.trackIds);if(!ids.length)issues.push('El bloc '+bid+' de l’itinerari no té peces de via assignades.');const resolved=ids.map(tid=>tracks.find(t=>id(t.id)===id(tid)));if(resolved.some(t=>!t))issues.push('El bloc '+bid+' conté peces de via inexistents.');if(resolved.filter(Boolean).some(t=>id(t.blockId)!==bid))issues.push('Assignació blockId inconsistent al bloc '+bid+'.');return resolved.filter(Boolean);});
       const routeTurnouts=routeTracks.filter(t=>t.type==='turnout');
       const requirements=list(signal.turnoutRequirements);
       const reqByName=new Map(requirements.map(r=>[id(r.systemName),Number(r.expectedState)]));
