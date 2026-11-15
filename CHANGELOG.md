@@ -59,3 +59,12 @@
 - Conservades les primitives lliures per a peces encara no incorporades al catàleg.
 - Documentada cobertura inicial i procediment d'ampliació. No es declara exhaustivitat del catàleg complet fins a contrastar totes les referències i fitxes tècniques.
 - JMRI continua exclusivament en mode monitorització/només lectura; cap ordre de locomotora, desviament o ruta.
+
+
+## 1.3.0 — planificació supervisada i preflight
+- Afegit `automation-core.js` per validar horaris, dies, finestres i velocitat màxima de 20 passos.
+- Integrada com a requisit la porta de seguretat PR #7 (`safetyValidated`) abans de donar estat READY.
+- Preflight reforçat amb estat dels blocs, conflictes de reserva i feedback verificat dels desviaments `CLOSED`/`THROWN`.
+- Afegida protecció contra execucions duplicades per horari i dia.
+- Afegides proves unitàries i execució a GitHub Actions.
+- Sense ordres físiques ni inici automàtic de trens; continua pendent la validació real de la maqueta.
