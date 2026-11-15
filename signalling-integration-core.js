@@ -57,6 +57,7 @@
       const routeReserved=!!route&&route.blockIds?.length>0&&route.blockIds.includes(blockId)&&route.blockIds.every(id=>snapshot.reservations?.[id]===route.id);
       const turnouts=communication?turnoutChecks(signal,config,telemetry,now,maxAge):{verified:false,aligned:false,reverse:false,reason:'Comunicació JMRI absent o heartbeat obsolet.'};
       const next=signals.find(s=>s.id===signal.nextSignalId);
+      const missingNext=!!signal.nextSignalId&&!next;
       const nextResult=next?calculate(next):null;
       const conditions={
         blockState,occupied:blockState==='OCCUPIED',routeReserved,
@@ -68,7 +69,7 @@
       };
       const derived=core.deriveAspect(signal,conditions,config.signallingInfrastructure||{});
       const cycle=nextResult?.cycle===true;
-      const result={aspect:cycle?'PARADA':derived.aspect,cycle,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
+      const result={aspect:cycle||missingNext?'PARADA':derived.aspect,cycle:cycle||missingNext,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':missingNext?'Senyal següent configurada però inexistent: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
       visiting.delete(signal.id);results[signal.id]=result;return result;
     }
     for(const signal of signals)calculate(signal);
