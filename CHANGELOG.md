@@ -1,5 +1,14 @@
 # Canvis
 
+## 1.0 alpha — Dispatcher / despatxador
+- Afegit panell de supervisió de blocs amb estats simulats desconegut, lliure i ocupat.
+- Afegida definició d'itineraris per seqüències de blocs, reserves i alliberaments.
+- Bloqueig de reserves amb blocs desconeguts o ocupats i detecció de conflictes entre itineraris.
+- Alliberament automàtic de les reserves afectades quan un bloc deixa d'estar lliure.
+- Les rutes es desen al projecte; els estats simulats i les reserves no persisteixen.
+- Integració estrictament de simulació: cap ordre operativa s'envia a JMRI.
+- Afegides proves unitàries del motor Dispatcher.
+
 ## 1.0.0 — en desenvolupament
 - Obert el full de ruta 1.0 amb fites alpha, beta i RC.
 - Documentats els criteris d'acceptació, l'arquitectura objectiu i les condicions de seguretat per al futur control real.
