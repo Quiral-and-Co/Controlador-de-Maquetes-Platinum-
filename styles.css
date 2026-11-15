@@ -37,3 +37,6 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 .sensor-indicator text,.turnout-indicator text{font-size:19px;font-weight:700;fill:#f4f7fb;paint-order:stroke;stroke:#101b28;stroke-width:5px;stroke-linejoin:round;pointer-events:none}
 .sensor-indicator.free circle{fill:#42c58b}.sensor-indicator.occupied circle{fill:#ed626c}.sensor-indicator.unknown circle{fill:#e7ad45}
 .turnout-indicator.closed circle{fill:#42c58b}.turnout-indicator.thrown circle{fill:#55a9ed}.turnout-indicator.unknown circle{fill:#e7ad45}
+
+/* Safety validation panel */
+.safety-panel{margin-top:16px;border:1px solid #765d35}.safety-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.safety-check,.safety-physical{display:flex!important;align-items:flex-start;gap:9px;padding:9px;background:#172230;border:1px solid #34465c;border-radius:7px;color:#d5dfeb;font-size:12px}.safety-check input,.safety-physical input{margin-top:2px;accent-color:#3ca77c}.safety-state{padding:10px;border-radius:7px;font-weight:700;font-size:12px}.safety-state.locked{background:#40272b;color:#ffc2c5}.safety-state.ready{background:#173b31;color:#a8f0d1}@media(max-width:700px){.safety-checks{grid-template-columns:1fr}}
