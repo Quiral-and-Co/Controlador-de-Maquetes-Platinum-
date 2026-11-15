@@ -75,7 +75,7 @@ Aquesta variable només afecta la finestra PowerShell actual. Reinicia el servid
 - Arribada al bloc final: envia velocitat 0 i manté la reserva fins que el bloc final estigui confirmat lliure.
 - Temps d'entrada excedit, bloc desconegut, pèrdua de comunicació o bloc anterior que no s'allibera: E-STOP i estat FAULT; la ruta queda bloquejada fins a inspecció manual.
 
-**Limitació deliberada:** el mode automàtic queda bloquejat si el plànol conté qualsevol peça de tipus desviament, perquè encara no hi ha verificació d'alineació/feedback. Encara no hi ha interbloqueig de senyals, control de cantons amb distància de frenada, perfil de frenada per locomotora, horaris ni coordinació completa de trens en rutes diferents. La velocitat automàtica està limitada a 20 passos, però això no garanteix una distància de frenada segura. Aquesta versió és alpha de proves: no utilitzis el mode automàtic per a circulació real fins a implementar i validar els elements de seguretat i frenada a la maqueta.
+**Limitació deliberada:** el mode automàtic queda bloquejat si el plànol conté qualsevol peça de tipus desviament, perquè encara no hi ha verificació d'alineació/feedback ni interbloqueig de senyals, control de cantons amb distància de frenada, perfil de frenada per locomotora, horaris ni coordinació completa de trens en rutes diferents. La velocitat automàtica està limitada a 20 passos, però això no garanteix una distància de frenada segura. Aquesta versió és alpha de proves: no utilitzis el mode automàtic per a circulació real fins a implementar i validar els elements de seguretat i frenada a la maqueta.
 
 ## Proteccions i límits
 
