@@ -17,3 +17,7 @@
 .dispatcher-create{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:12px}.dispatcher-create input{min-width:0;background:#0f1824;border:1px solid #3b4d62;color:#fff;border-radius:7px;padding:9px}
 .dispatcher-empty{color:#aebdce;font-size:12px}.dispatcher-message{min-height:20px;color:#b9d8f2;font-size:12px;margin:10px 0 0}
 @media(max-width:850px){.dispatcher-columns{grid-template-columns:1fr}.dispatcher-metrics{grid-template-columns:repeat(2,minmax(100px,1fr))}.dispatcher-create{grid-template-columns:1fr}}
+
+.deadman-lamps{display:flex;align-items:center;gap:12px;padding:8px 4px}.deadman-lamp{display:inline-block;width:22px;height:22px;border-radius:50%;background:#303b49;border:2px solid #627184;box-shadow:inset 0 0 5px #0008}.deadman-lamp.blue.active{background:#168bff;box-shadow:0 0 12px #168bff}.deadman-lamp.orange.active{background:#ff9800;box-shadow:0 0 12px #ff9800}.deadman-lamp.red.active{background:#f52222;box-shadow:0 0 12px #f52222}.deadman-lamp.blink{animation:deadmanBlink .5s steps(2,end) infinite}@keyframes deadmanBlink{to{opacity:.18}}.deadman-audio{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+
+.deadman-key-config{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0}.deadman-key-config strong{display:inline-block;min-width:52px;padding:4px 10px;border:1px solid #627184;border-radius:6px;background:#0f1824;text-align:center}
