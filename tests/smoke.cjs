@@ -49,6 +49,11 @@ if(!window.JMRI_TC_BOARD||window.JMRI_TC_BOARD.getSensorState({sensorName:'LS101
 window.JMRI_TC_BOARD.applySensorReading('LS101',4);
 if(window.JMRI_TC_BOARD.getSensorState({sensorName:'LS101'}).code!=='UNKNOWN')throw Error('Unverified sensor must remain unknown on the board');
 if(!els.pieceLayer.children[0].innerHTML.includes('sensor-indicator'))throw Error('Assigned sensor indicator missing from SVG piece');
+palette[2].onclick();
+els.propTurnout.value='LT1';els.propTurnout.handlers.change({target:els.propTurnout});
+window.JMRI_TC_BOARD.applyTurnoutReading('LT1',2);
+if(window.JMRI_TC_BOARD.getTurnoutState({type:'turnout',turnoutSystemName:'LT1'}).code!=='CLOSED')throw Error('JMRI turnout CLOSED state was not mapped');
+if(!els.pieceLayer.children[0].innerHTML.includes('turnout-indicator'))throw Error('Assigned turnout indicator missing from SVG piece');
 // Level move is blocked until level-local block and sensor assignments are cleared
 els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.textContent!=='Nivell 1')throw Error('Unsafe move with assigned block/sensor was not blocked');
 els.propBlock.value='';els.propBlock.handlers.change({target:els.propBlock});
