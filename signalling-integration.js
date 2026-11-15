@@ -8,7 +8,7 @@ let installed=false,timer=null;
 function config(){return root.JMRI_TC_DISPATCHER?.getConfig?.()||{};}
 function snapshot(){return root.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{blocks:[],blockStates:{},reservations:{},routes:[]};}
 function telemetry(){return root.JMRI_TC_BOARD?.getTelemetry?.()||{};}
-function emergency(){return root.JMRI_TC_SAFETY?.isEmergencyActive?.()===true;}
+function emergency(){return !!root.JMRI_TC_SAFETY?.state?.fault;}
 function compute(){
  const c=config(),signals=Array.isArray(c.signals)?c.signals:[];
  const result=bridge.evaluateAll({config:c,signals,snapshot:snapshot(),telemetry:telemetry(),signallingCore:core,emergency:emergency()});
