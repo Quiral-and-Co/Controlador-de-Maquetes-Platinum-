@@ -7,7 +7,7 @@
 <body>
 <header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>JMRI TC Gold Custom</strong><small>Editor de maqueta · versió 0.9</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn active">Mode clàssic</button><button id="modeModern" class="mode-btn">Mode modern</button></div></header>
 <main>
-  <section class="notice"><strong>Biblioteca de catàleg Märklin C · versió 0.9.</strong> Les referències amb geometria parcial o no verificada es dibuixen esquemàticament i no s’utilitzen per certificar connexions físiques. No s'envien ordres de moviment, desviaments ni rutes a JMRI.</section>
+  <section class="notice"><strong>Biblioteca de catàleg Märklin C · versió 0.9.</strong> Les referències amb geometria parcial o no verificada es dibuixen esquemàticament i no s’utilitzen per certificar connexions físiques. El control DCC utilitza el pont WiThrottle local i queda desarmat per defecte.</section>
   <section class="toolbar"><label>Servidor JMRI<input id="host" value="127.0.0.1"></label><label>Port Web Server<input id="port" type="number" value="12080"></label><button id="connectBtn" class="primary">Connectar</button><button id="disconnectBtn" disabled>Desconnectar</button><label class="file-label">Importar JSON<input id="configFile" type="file" accept=".json,application/json"></label><button id="exportBtn">Exportar JSON</button><button id="undoBtn" disabled>↶ Desfer</button><button id="redoBtn" disabled>↷ Refer</button><button id="measureBtn">Mesurar distància</button><button id="validateTopologyBtn">Validar topologia</button><span id="configName" class="muted">Projecte base · sense vies reals</span></section>
   <section class="summary-grid"><article class="metric"><span>Nivells</span><strong id="levelCount">5</strong></article><article class="metric"><span>Peces dibuixades</span><strong id="pieceCount">0</strong></article><article class="metric"><span>Connexions</span><strong id="connectionCount">0</strong></article><article class="metric"><span>Blocs</span><strong id="blockCount">0</strong></article><article class="metric"><span>Sensors desconeguts</span><strong id="unknownCount">0</strong></article></section>
   <section class="editor-shell">
@@ -37,11 +37,56 @@
     </div>
     <p id="dispatcherMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Crea blocs al registre de recursos per començar.</p>
   </section>
+  <section class="dispatcher-panel traffic-panel" aria-labelledby="trafficTitle">
+    <div class="dispatcher-header"><div><h2 id="trafficTitle">Gestió de circulacions · Märklin DCC</h2><p>Conducció manual i circulacions automàtiques supervisades pel Dispatcher.</p></div><span id="trafficBridgeStatus" class="badge offline">WiThrottle desconnectat</span></div>
+    <div class="dispatcher-warning"><strong>Seguretat:</strong> el control DCC real està desactivat per defecte. L'automàtic només admet rutes sense desviaments fins que existeixi una comprovació d'alineació i bloqueig de desviaments. En qualsevol estat desconegut es demana aturada d'emergència. La reserva no és un enclavament ferroviari certificat.</div>
+    <div class="traffic-connection">
+      <label>Host WiThrottle <input id="trafficHost" value="127.0.0.1"></label>
+      <label>Port WiThrottle <input id="trafficPort" type="number" value="12090"></label>
+      <button id="trafficConnect" type="button">Connectar pont</button>
+      <button id="trafficArm" type="button" disabled>Armar DCC</button>
+      <button id="trafficEmergencyAll" type="button" class="danger">EMERGÈNCIA GLOBAL</button>
+    </div>
+    <p id="trafficDccNote" class="dispatcher-help">DCC desactivat al pont local. La maqueta no rebrà ordres de moviment.</p>
+    <div class="traffic-columns">
+      <section class="dispatcher-subpanel">
+        <h3>Locomotores Märklin DCC</h3>
+        <div class="traffic-form">
+          <input id="trafficLocoName" placeholder="Nom de la locomotora" aria-label="Nom de la locomotora">
+          <select id="trafficLocoType" aria-label="Tipus d'adreça"><option value="S">Adreça curta</option><option value="L">Adreça llarga</option></select>
+          <input id="trafficLocoAddress" type="number" min="1" max="10239" placeholder="Adreça DCC" aria-label="Adreça DCC">
+          <button id="trafficAddLoco" type="button">Afegir locomotora</button>
+        </div>
+        <p class="dispatcher-help">Adreça curta: 1–127. Adreça llarga: 128–10239. El protocol de descodificador s'ha de configurar i provar prèviament a JMRI.</p>
+        <p><strong>Locomotores registrades: <span id="trafficLocoCount">0</span></strong></p>
+        <div class="traffic-form">
+          <select id="trafficLoco" aria-label="Locomotora"></select>
+          <select id="trafficRoute" aria-label="Itinerari"></select>
+          <select id="trafficMode" aria-label="Mode de circulació"><option value="MANUAL">Manual</option><option value="AUTO">Automàtic</option></select>
+          <label>Velocitat màxima (1–126) <input id="trafficMaxSpeed" type="number" min="1" max="126" value="20"></label>
+          <button id="trafficCreateRun" class="primary" type="button">Planificar circulació</button>
+        </div>
+      </section>
+      <section class="dispatcher-subpanel">
+        <h3>Conducció manual</h3>
+        <p class="dispatcher-help">Disponible quan una circulació manual està iniciada, la locomotora està adquirida i el DCC està armat.</p>
+        <div class="traffic-controls">
+          <button id="trafficReverse" type="button">◀ Marxa enrere</button>
+          <button id="trafficForward" type="button">Marxa endavant ▶</button>
+          <button id="trafficStop" type="button" class="danger">Aturar / E-STOP</button>
+        </div>
+        <label class="traffic-speed">Velocitat <strong id="trafficSpeedValue">0</strong><input id="trafficSpeed" type="range" min="0" max="126" value="0"></label>
+      </section>
+    </div>
+    <h3>Circulacions planificades i actives</h3>
+    <div id="trafficRunList" class="dispatcher-route-list"><p class="dispatcher-empty">Encara no hi ha circulacions planificades.</p></div>
+    <p id="trafficMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Registra locomotores i itineraris abans de començar.</p>
+  </section>
   <section class="resource-grid">
     <article class="panel-card resource-card"><h3>Blocs lògics · nivell actual</h3><p class="small muted">Els blocs són agrupacions de disseny; no reserven trens ni activen automatismes.</p><div class="resource-create"><input id="newBlockName" placeholder="Nom del bloc (p. ex. B01)" aria-label="Nom del bloc"><button id="addBlockBtn">Crear bloc</button></div><div id="blockRegistry" class="resource-list">Sense blocs definits.</div></article>
     <article class="panel-card resource-card"><h3>Sensors JMRI · nivell actual</h3><p class="small muted">System name JMRI únic. Cada sensor nou queda no verificat fins a contrastar-lo amb el maquinari.</p><div class="resource-create"><input id="newSensorSystemName" placeholder="System name (p. ex. LS101)" aria-label="System name del sensor"><input id="newSensorUserName" placeholder="Nom visible (opcional)" aria-label="Nom visible del sensor"><button id="addSensorBtn">Registrar sensor</button></div><div id="sensorRegistry" class="resource-list">Sense sensors registrats.</div></article>
   </section>
   <section class="monitor-grid"><div class="panel-card"><h3>Connexió JMRI · només lectura</h3><p id="connectionText" class="muted">No hi ha cap sessió activa.</p><p class="small">WebSocket: <code id="endpointText">ws://127.0.0.1:12080/json/</code></p></div><div class="panel-card"><h3>Estat dels sensors assignats</h3><div id="sensorSummary" class="muted small">Encara no hi ha sensors assignats a peces.</div></div><div class="panel-card"><h3>Registre</h3><ol id="eventLog" class="event-log"><li>Editor 0.6 iniciat.</li></ol></div></section>
   <section id="modernPanel" class="modern-panel hidden"><h2>Vista moderna · resum de peces i sensors</h2><div id="modernBlocks" class="modern-blocks"></div></section>
-</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="dispatcher-core.js"></script><script src="app.js"></script><script src="dispatcher.js"></script>
+</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="dispatcher-core.js"></script><script src="traffic-core.js"></script><script src="app.js"></script><script src="dispatcher.js"></script><script src="traffic.js"></script>
 </body></html>
