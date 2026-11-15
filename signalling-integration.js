@@ -34,7 +34,7 @@ function renderSvg(){
  layer.replaceChildren();
  const signals=Array.isArray(c.signals)?c.signals:[];
  for(const s of signals){
-  const pos=anchor(s,c);if(!pos||Number(pos.levelId)!==Number(c.selectedLevel??1))continue;
+  const pos=anchor(s,c);if(!pos||Number(pos.levelId)!==Number(root.JMRI_TC_BOARD?.getSelectedLevel?.()??1))continue;
   const aspect=s.computedAspect||'PARADA',meta=core.ASPECTS[aspect]||{label:'Sense aspecte',color:'red'};
   const g=document.createElementNS(NS,'g');g.setAttribute('class','signal-marker signal-'+String(aspect).toLowerCase());g.setAttribute('transform',`translate(${pos.x} ${pos.y})`);g.setAttribute('role','img');g.setAttribute('aria-label',s.name+' · '+meta.label);
   const stem=document.createElementNS(NS,'path');stem.setAttribute('d','M0 8 V34');stem.setAttribute('stroke','#d6dee8');stem.setAttribute('stroke-width','4');g.append(stem);
