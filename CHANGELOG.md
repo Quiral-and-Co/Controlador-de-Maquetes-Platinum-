@@ -69,3 +69,4 @@
 - Afegides proves unitàries i execució a GitHub Actions.
 - Sense ordres físiques ni inici automàtic de trens; continua pendent la validació real de la maqueta.
 \n## Home mort · conducció manual\n- Watchdog de presència activat per defecte per a locomotores adquirides en mode manual.\n- Control de conducció amb manteniment premut; en deixar-lo anar, s'envia velocitat zero.\n- El pont local dispara una ordre d'emergència i desarma el DCC si no rep heartbeat en 2 segons.\n- Opció explícita per desactivar només el watchdog; la porta general de seguretat continua activa.\n- Proves unitàries de timeout, rearmament, desactivació i límits de configuració.\n
+- Home mort amb tecla de teclat configurable per l'usuari; tecla per defecte Espai, configuració desada localment i alliberament automàtic en perdre el focus de la finestra.
