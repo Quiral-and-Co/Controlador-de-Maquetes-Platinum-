@@ -9,7 +9,7 @@ assert.equal(r.ok,true);assert.deepEqual(r.routeBlockIds,['B1','B2']);assert.dee
 r=core.inspect(config,[{...signal,trackId:'T3'}])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('no pertany')));
 r=core.inspect(config,[{...signal,routeId:'missing'}])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('Itinerari')));
 r=core.inspect(config,[{...signal,turnoutRequirements:[]}])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('sense posició requerida')));
-r=core.inspect(config,[{...signal,turnoutRequirements:[{systemName:'LT2',expectedState:4}]}])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('no pertany')));
+r=core.inspect(config,[{...signal,turnoutRequirements:[{systemName:'LT3',expectedState:4}]}])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('no pertany')));
 const broken={...config,levels:[{...config.levels[0],blocks:[{...config.levels[0].blocks[0],trackIds:['missing']}]}]};
 r=core.inspect(broken,[signal])['S1'];assert.equal(r.ok,false);assert.ok(r.issues.some(x=>x.includes('inexistents')));
 assert.deepEqual(core.summarize(core.inspect(config,[signal])),{total:1,valid:1,invalid:0,warnings:0});
