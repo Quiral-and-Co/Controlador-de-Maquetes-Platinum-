@@ -33,7 +33,7 @@ function validHost(host){return typeof host==='string'&&host.length<=253&&!/[\s/
 wss.on('connection',ws=>{
  if(activeController&&activeController.readyState===WebSocket.OPEN){ws.close(1013,'Another local dispatcher is already connected.');return;}
  activeController=ws;
- let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map(),manualLocos=new Set(),deadmanEnabled=true,deadmanActive=false,deadmanLast=0,deadmanTimer=null;
+ let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map(),manualLocos=new Set();
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,safetyValidated:SAFETY_VALIDATED,host:tcp?.remoteAddress||null});
  const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
  const deadman=DeadmanCore.createState();let deadmanMonitor=null,deadmanLastHeartbeat=0;
@@ -83,7 +83,7 @@ wss.on('connection',ws=>{
     if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
     armed=m.enabled===true;report();send(ws,{type:'armed',armed});
    }else if(m.type==='deadmanConfigure'){const result=DeadmanCore.configure(deadman,m.enabled===true);if(!result.ok)throw new Error(result.error);publishDeadman();
-   }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
+   }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(result.action==='TRIP'||deadman.tripped){emergencyDeadman();throw new Error('Temps de resposta exhaurit: frenat d’emergència activat.');}if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
    }else if(m.type==='deadmanRelease'){if(!deadman.enabled)throw new Error('Home mort no disponible.');DeadmanCore.release(deadman,Date.now());deadmanLastHeartbeat=Date.now();publishDeadman();
    }else if(m.type==='deadmanRearm'){if(!deadman.tripped)throw new Error('No cal rearmament: el watchdog no està disparat.');DeadmanCore.rearm(deadman);publishDeadman();}else if(m.type==='deadmanHeartbeat'){if(deadman.enabled&&deadman.pressed)deadmanLastHeartbeat=Date.now();
    }else if(m.type==='acquire'){
@@ -102,6 +102,7 @@ wss.on('connection',ws=>{
    }else if(m.type==='direction'){
     requireArmed();const id=String(m.locoId||''),direction=Number(m.direction);
     if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');
+    if(manualLocos.has(id)&&deadman.enabled&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per canviar el sentit.');
     if(manualLocos.has(id)&&deadmanEnabled&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de canviar el sentit.');
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
