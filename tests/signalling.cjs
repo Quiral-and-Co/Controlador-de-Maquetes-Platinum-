@@ -13,7 +13,7 @@ assert.ok(!c.allowedAspects({type:'ADVANCED',blockSystem:'BA',vmax:200},{...infr
 assert.ok(!c.allowedAspects({type:'INTERMEDIATE',blockSystem:'BT',vmax:200},infra).includes('PARADA'));
 assert.ok(!c.allowedAspects({type:'INTERMEDIATE',blockSystem:'BA',vmax:160},infra).includes('VIA_LIBRE_CONDICIONAL'));
 assert.ok(c.allowedAspects({type:'RELEASE',blockSystem:'BA',vmax:120},infra).includes('PARADA'));
-const persisted=c.validateSignal({id:'S4',name:'Senyal vinculada',type:'ENTRY',blockSystem:'BA',vmax:120,protectedBlockId:'B01',routeId:'R01',nextSignalId:'S2'},infra);assert.equal(persisted.signal.protectedBlockId,'B01');assert.equal(persisted.signal.routeId,'R01');assert.equal(persisted.signal.nextSignalId,'S2');
+const persisted=c.validateSignal({id:'S4',name:'Senyal vinculada',type:'ENTRY',blockSystem:'BA',vmax:120,protectedBlockId:'B01',routeId:'R01',nextSignalId:'S2'},infra);assert.equal(persisted.signal.protectedBlockId,'B01');assert.equal(persisted.signal.routeId,'R01');assert.equal(persisted.signal.nextSignalId,'S2');assert.equal(c.validateSignal({id:'S5',name:'Senyal ancorada',type:'ENTRY',trackId:'T01'},infra).signal.trackId,'T01');
 const s={id:'S1',name:'Entrada',type:'ENTRY',blockSystem:'BA',vmax:120,aspect:'PARADA'};
 assert.equal(c.setAspect(s,'MOVIMIENTO_AUTORIZADO',infra).ok,false);
 assert.equal(c.setAspect(s,'VIA_LIBRE',infra).ok,true);
