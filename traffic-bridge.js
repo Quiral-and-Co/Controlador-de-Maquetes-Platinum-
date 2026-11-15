@@ -13,11 +13,11 @@ server.on('upgrade',(req,socket,head)=>{const origin=req.headers.origin||'';if(r
 function send(ws,obj){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(obj));}
 function validHost(host){return typeof host==='string'&&host.length<=253&&!/[\s/\\]/.test(host);}
 wss.on('connection',ws=>{
- let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set();
+ let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map();
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,host:tcp?.remoteAddress||null});
  const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
  const disarm=()=>{armed=false;report();};
- const closeTcp=()=>{stopHeartbeat();if(tcp){try{tcp.write('M0*<;>r\nQ\n');}catch{}tcp.destroy();tcp=null;}connected=false;acquired.clear();disarm();};
+ const closeTcp=()=>{stopHeartbeat();if(tcp){try{tcp.write('M0*<;>r\nQ\n');}catch{}tcp.destroy();tcp=null;}connected=false;acquired.clear();for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();disarm();};
  const write=line=>{if(!connected||!tcp||tcp.destroyed)throw new Error('WiThrottle no està connectat.');tcp.write(line+'\n');};
  const requireArmed=()=>{if(!DCC_ENABLED||!armed)throw new Error('Control DCC bloquejat. Activa JMRI_TC_ENABLE_DCC=1 i arma el control de seguretat.');if(!connected)throw new Error('WiThrottle desconnectat.');};
  ws.on('message',raw=>{let m;try{m=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Missatge JSON invàlid.'});}
@@ -26,7 +26,7 @@ wss.on('connection',ws=>{
    if(tcp)closeTcp();const host=String(m.host||'127.0.0.1'),port=Number(m.port||12090);if(!validHost(host)||!Number.isInteger(port)||port<1||port>65535)throw new Error('Host o port WiThrottle invàlid.');
    tcp=net.createConnection({host,port});tcp.setKeepAlive(true,10000);tcp.setNoDelay(true);
    tcp.on('connect',()=>{connected=true;tcp.write('NJMRI-TC Gold Custom\n');tcp.write('HUJMRI-TC-'+process.pid+'\n');tcp.write('*+\n');heartbeat=setInterval(()=>{if(connected)tcp.write('*\n');},5000);send(ws,{type:'connected'});report();});
-   tcp.on('data',chunk=>{buffer+=chunk.toString('utf8');let i;while((i=buffer.search(/[\r\n]/))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1).replace(/^\n/,'');if(line)send(ws,{type:'jmri',line});}});
+   tcp.on('data',chunk=>{buffer+=chunk.toString('utf8');let i;while((i=buffer.search(/[\r\n]/))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1).replace(/^\n/,'');if(line){send(ws,{type:'jmri',line});for(const [id,timer] of pendingAcquire){if(line.startsWith('M0A'+id)){clearTimeout(timer);pendingAcquire.delete(id);acquired.add(id);send(ws,{type:'acquired',locoId:id});}}}}});
    tcp.on('error',err=>send(ws,{type:'error',message:'WiThrottle: '+err.message}));
    tcp.on('close',()=>{connected=false;acquired.clear();disarm();send(ws,{type:'disconnected'});});
   }else if(m.type==='arm'){
