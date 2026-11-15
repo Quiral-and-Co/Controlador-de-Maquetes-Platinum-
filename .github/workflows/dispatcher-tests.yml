@@ -27,6 +27,7 @@ jobs:
           node --check dispatcher.js
           node --check traffic-core.js
           node --check safety-core.js
+          node --check automation-core.js
           node --check traffic.js
           node --check traffic-bridge.js
       - name: Install local bridge dependencies
@@ -35,6 +36,8 @@ jobs:
         run: node tests/safety.cjs
       - name: Safety bridge integration tests
         run: node tests/safety-bridge.cjs
+      - name: Supervised timetable tests
+        run: node tests/automation.cjs
       - name: Traffic state-machine tests
         run: node tests/traffic.cjs
       - name: Dispatcher unit tests
