@@ -61,7 +61,7 @@ function renderSelection(c,t){
  const p=document.createElement('p');p.textContent=signal.name+' · Bloc: '+(r.blockName||r.blockId||'—')+' · Itinerari: '+(r.routeName||r.routeId||'—');host.append(p);
  const details=document.createElement('p');details.textContent='Blocs: '+(r.routeBlockIds||[]).join(' → ')+' · Peces: '+(r.trackIds||[]).join(', ')+' · Desviaments: '+(r.turnoutNames||[]).join(', ');host.append(details);
 }
-function refresh(){const c=config(),t=topologyResults(c),fingerprint=JSON.stringify({signals:c.signals||[],levels:(c.levels||[]).map(l=>({id:l.id,blocks:l.blocks||[],sensors:l.sensors||[],tracks:(l.tracks||[]).filter(p=>p.type==='turnout'||p.blockId)})),matrix:c.validationMatrix||{},topology:t});if(fingerprint!==lastFingerprint){lastFingerprint=fingerprint;renderLevelDiagnostics(c,t);renderMatrix(c);renderSelection(c,t);highlight(c,t);}return{levels:core.levelDiagnostics(c,t),matrix:core.inspect(c)};}
+function refresh(){const c=config(),t=topologyResults(c),fingerprint=JSON.stringify({selectedSignalId,signals:c.signals||[],levels:(c.levels||[]).map(l=>({id:l.id,blocks:l.blocks||[],sensors:l.sensors||[],tracks:(l.tracks||[]).filter(p=>p.type==='turnout'||p.blockId)})),matrix:c.validationMatrix||{},topology:t});if(fingerprint!==lastFingerprint){lastFingerprint=fingerprint;renderLevelDiagnostics(c,t);renderMatrix(c);renderSelection(c,t);highlight(c,t);}return{levels:core.levelDiagnostics(c,t),matrix:core.inspect(c)};}
 function install(){
  if(installed||!$('signalRegistry'))return;installed=true;
  $('signalRegistry').addEventListener('click',e=>{const row=e.target.closest('button.signal-row');if(!row)return;const id=row.dataset.signalId;if(id)selectSignal(id);});
