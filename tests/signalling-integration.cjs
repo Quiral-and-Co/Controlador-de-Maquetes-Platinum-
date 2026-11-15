@@ -5,12 +5,13 @@ const now=100000;
 const config={signallingInfrastructure:{blockSystem:'BA',vmax:200},levels:[{blocks:[{id:'B1',verified:true,sensorIds:['S1']}],sensors:[{id:'S1',systemName:'LS1',verified:true,invert:false}],tracks:[]} ]};
 const signal={id:'SIG1',name:'Entrada',type:'ENTRY',blockSystem:'BA',vmax:120,aspect:'PARADA',protectedBlockId:'B1',routeId:'R1',turnoutRequirements:[]};
 const snapshot={blocks:[{id:'B1',verified:true,sensorIds:['S1']}],blockStates:{B1:'FREE'},routes:[{id:'R1',blockIds:['B1'] }],reservations:{B1:'R1'}};
-const telemetry={connected:true,lastHeartbeatAt:now,power:'ON',sensors:{LS1:4},sensorUpdatedAt:{LS1:now},turnouts:{},turnoutUpdatedAt:{}};
+const telemetry={connected:true,lastHeartbeatAt:now,power:'ON',powerUpdatedAt:now,sensors:{LS1:4},sensorUpdatedAt:{LS1:now},turnouts:{},turnoutUpdatedAt:{}};
 function evaluate(overrides={}){return bridge.evaluateAll({config,signals:[signal],snapshot,telemetry,signallingCore:signalling,now,...overrides}).SIG1;}
 assert.equal(evaluate().aspect,'VIA_LIBRE','fresh, verified, free and reserved block permits normal aspect');
 assert.equal(evaluate({telemetry:{...telemetry,connected:false}}).aspect,'PARADA','lost JMRI connection fails safe');
 assert.equal(evaluate({telemetry:{...telemetry,power:'OFF'}}).aspect,'PARADA','JMRI track power off fails safe');
 assert.equal(evaluate({telemetry:{...telemetry,power:'UNKNOWN'}}).aspect,'PARADA','unknown JMRI power state fails safe');
+assert.equal(evaluate({telemetry:{...telemetry,powerUpdatedAt:now-16000}}).aspect,'PARADA','stale JMRI power state fails safe');
 assert.equal(evaluate({telemetry:{...telemetry,lastHeartbeatAt:now-16000}}).aspect,'PARADA','stale heartbeat fails safe');
 assert.equal(evaluate({telemetry:{...telemetry,sensorUpdatedAt:{LS1:now-16000}}}).blockState,'UNKNOWN','stale sensor reading becomes unknown');
 assert.equal(evaluate({telemetry:{...telemetry,sensorUpdatedAt:{}}}).aspect,'PARADA','missing sensor timestamp fails safe');
