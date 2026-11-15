@@ -109,3 +109,8 @@ Proves addicionals: `node tests/traffic.cjs`.
 La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre local de locomotores i accessoris amb exportació/importació JSON. Admet fitxes DCC, MM2 i mfx per UID; tipus d'accessori: desviaments, senyals, llums, desacobladors, relés i altres. Consulta [docs/marklin-multiprotocol.md](docs/marklin-multiprotocol.md).
 
 **Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC via JMRI JSON, pendent d'integració i prova física. No s'ha provat amb una CS2 real.
+
+
+## Planificació d'horaris (1.3.0)
+
+La branca 1.3.0 afegeix el motor de planificació supervisada `automation-core.js`, amb validació d'horaris, dies, finestra d'inici, preflight de blocs/sensors i verificació d'alineació dels desviaments requerits. No envia ordres físiques ni inicia circulacions automàticament. Consulta `docs/automation-1.3.md` i executa `npm test`.
