@@ -20,8 +20,8 @@
   </section>
   <section class="panel-card topology-card"><h3>Diagnòstic topològic</h3><p id="topologyReport" class="small muted">Encara no s’ha executat la validació. Les boques obertes són informatives mentre el traçat no estigui definit.</p></section>
   <section class="dispatcher-panel" aria-labelledby="dispatcherTitle">
-    <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Dispatcher · despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Simulació local</span></div>
-    <div class="dispatcher-warning"><strong>Mode segur:</strong> aquest mòdul només simula ocupació i reserves. No envia ordres a locomotores, desviaments ni rutes de JMRI. Un bloc desconegut mai no es considera lliure.</div>
+    <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Dispatcher · despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Sensors JMRI + simulació</span></div>
+    <div class="dispatcher-warning"><strong>Mode segur:</strong> els blocs amb sensors verificats calculen l’ocupació des de JMRI; els blocs sense sensors continuen en simulació. La reserva és local i no envia ordres a locomotores, desviaments ni rutes. Un bloc desconegut mai no es considera lliure.</div>
     <div class="dispatcher-metrics">
       <article class="dispatcher-metric"><span>Blocs lliures</span><strong id="dispatcherFreeCount">0</strong></article>
       <article class="dispatcher-metric"><span>Blocs ocupats</span><strong id="dispatcherOccupiedCount">0</strong></article>
@@ -29,7 +29,7 @@
       <article class="dispatcher-metric"><span>Blocs reservats</span><strong id="dispatcherReservedCount">0</strong></article>
     </div>
     <div class="dispatcher-columns">
-      <section class="dispatcher-subpanel"><h3>Estat dels blocs</h3><p class="dispatcher-help">Canvia l’estat manualment per provar la lògica del despatxador. És una simulació, no una lectura certificada del maquinari.</p><div id="dispatcherBlocks" class="dispatcher-block-list"></div></section>
+      <section class="dispatcher-subpanel"><h3>Estat dels blocs</h3><p class="dispatcher-help">Els blocs amb sensors assignats es calculen automàticament; els altres es poden simular manualment. Verifica físicament cada sensor i bloc abans d’utilitzar les lectures.</p><div id="dispatcherBlocks" class="dispatcher-block-list"></div></section>
       <section class="dispatcher-subpanel"><h3>Itineraris</h3><p class="dispatcher-help">Escriu els identificadors dels blocs en ordre, separats per comes. Exemple: B01, B02, B03.</p>
         <div class="dispatcher-create"><input id="dispatcherRouteName" placeholder="Nom de l’itinerari" aria-label="Nom de l’itinerari"><input id="dispatcherRouteBlocks" placeholder="B01, B02" aria-label="Identificadors dels blocs"><button id="dispatcherCreateRoute" class="primary" type="button">Crear</button></div>
         <div id="dispatcherRoutes" class="dispatcher-route-list"></div>
