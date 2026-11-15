@@ -5,7 +5,7 @@ const MAX_SCHEDULE_SPEED = 20;
 const TURNOUT_STATES = Object.freeze(['CLOSED', 'THROWN']);
 
 function parseClock(value) {
-  const match = /^(\\d{2}):(\\d{2})$/.exec(String(value || ''));
+  const match = /^(\d{2}):(\d{2})$/.exec(String(value || ''));
   if (!match) return null;
   const hours = Number(match[1]), minutes = Number(match[2]);
   return hours <= 23 && minutes <= 59 ? hours * 60 + minutes : null;
