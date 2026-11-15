@@ -19,4 +19,4 @@ Per permetre l'activació, totes les comprovacions han d'estar marcades, l'opera
 El bloqueig de programari no substitueix un tall físic d'alimentació, un relé de seguretat ni una parada d'emergència cablejada independentment. No s'ha d'utilitzar aquest mòdul com a enclavament ferroviari certificat. Les proves automàtiques no validen el cablejat ni el comportament real de la maqueta.
 
 ## Proves
-`node tests/safety.cjs`
+`node tests/safety.cjs` i `node tests/safety-bridge.cjs`
