@@ -70,11 +70,11 @@ Aquesta variable només afecta la finestra PowerShell actual. Reinicia el servid
 
 - Crea una circulació en mode **Automàtic**.
 - El tren ha d'estar detectat al primer bloc; els blocs següents han d'estar lliures.
-- El programa inicia a la velocitat màxima configurada (rang WiThrottle 1–126), avança la posició lògica quan el sensor del bloc següent detecta el tren i espera que el bloc anterior quedi lliure.
+- El programa inicia a la velocitat màxima configurada (rang automàtic limitat a 1–20 passos WiThrottle), avança la posició lògica quan el sensor del bloc següent detecta el tren i espera que el bloc anterior quedi lliure.
 - Arribada al bloc final: envia velocitat 0 i manté la reserva fins que el bloc final estigui confirmat lliure.
 - Temps d'entrada excedit, bloc desconegut, pèrdua de comunicació o bloc anterior que no s'allibera: E-STOP i estat FAULT; la ruta queda bloquejada fins a inspecció manual.
 
-**Limitació deliberada:** el mode automàtic rebutja rutes que continguin peces de tipus desviament. Encara no hi ha verificació d'alineació/feedback de desviaments, interbloqueig de senyals, control de cantons amb distància de frenada, perfil de velocitat per locomotora, horaris ni coordinació simultània de trens en rutes diferents. No utilitzis l'automàtic per a circulació real fins a implementar i validar aquests elements a la maqueta.
+**Limitació deliberada:** el mode automàtic queda bloquejat si el plànol conté qualsevol peça de tipus desviament, perquè encara no hi ha verificació d'alineació/feedback. Encara no hi ha verificació d'alineació/feedback de desviaments, interbloqueig de senyals, control de cantons amb distància de frenada, perfil de frenada per locomotora, horaris ni coordinació completa de trens en rutes diferents. La velocitat automàtica està limitada a 20 passos fins que es validin perfils de frenada. No utilitzis l'automàtic per a circulació real fins a implementar i validar aquests elements a la maqueta.
 
 ## Proteccions i límits
 
