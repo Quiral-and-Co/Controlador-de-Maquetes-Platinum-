@@ -27,14 +27,20 @@ const config = {
   levels: [{ id: 1, name: 'Nivell 1', blocks: [
     { id: 'B01', name: 'B01', trackIds: ['T1'], sensorIds: [] },
     { id: 'B02', name: 'B02', trackIds: ['T2'], sensorIds: [] },
-    { id: 'B03', name: 'B03', trackIds: ['T3'], sensorIds: [] }
+    { id: 'B03', name: 'B03', trackIds: ['T3'], sensorIds: ['S1'], verified: true }
   ] }],
+  levels: [{ id: 1, name: 'Nivell 1', blocks: [
+    { id: 'B01', name: 'B01', trackIds: ['T1'], sensorIds: [] },
+    { id: 'B02', name: 'B02', trackIds: ['T2'], sensorIds: [] },
+    { id: 'B03', name: 'B03', trackIds: ['T3'], sensorIds: ['S1'], verified: true }
+  ], sensors: [{ id: 'S1', systemName: 'LS101', verified: false, invert: false }] }],
   dispatcher: { routes: [] }
 };
+let sensorReadings = {};
 global.document = document;
 global.window = {
   JMRI_TC_DispatcherCore: require('../dispatcher-core.js'),
-  JMRI_TC_DISPATCHER: { getConfig: () => config, log: () => {} }
+  JMRI_TC_DISPATCHER: { getConfig: () => config, getSensorStates: () => ({ ...sensorReadings }), isConnected: () => true, log: () => {} }
 };
 require('../dispatcher.js');
 
@@ -80,5 +86,27 @@ setBlock('B02', 'OCCUPIED');
 assert.equal($('dispatcherOccupiedCount').textContent, 1);
 assert.equal($('dispatcherReservedCount').textContent, 0, 'occupied block releases complete route reservation');
 assert.equal(routeRow('Ruta sud').children[1].children[0].disabled, true);
+
+// Sensor-driven blocks are read-only and fail closed until both sensor and block are verified.
+let b03 = blockRows().find(row => row.children[0].children[0].textContent === 'B03');
+assert.equal(b03.children.find(item => item.handlers.change).disabled, true);
+assert.equal(b03.children[0].children[2].textContent, 'Desconegut');
+config.levels[0].sensors[0].verified = true;
+sensorReadings = { LS101: 4 };
+window.JMRI_TC_DISPATCHER_UI.refresh();
+b03 = blockRows().find(row => row.children[0].children[0].textContent === 'B03');
+assert.equal(b03.children[0].children[2].textContent, 'Lliure');
+createRoute('Ruta sensor', 'B03');
+routeRow('Ruta sensor').children[1].children[0].click();
+assert.equal($('dispatcherReservedCount').textContent, 1);
+sensorReadings = { LS101: 2 };
+window.JMRI_TC_DISPATCHER_UI.refresh();
+b03 = blockRows().find(row => row.children[0].children[0].textContent === 'B03');
+assert.equal(b03.children[0].children[2].textContent, 'Ocupat');
+assert.equal($('dispatcherReservedCount').textContent, 0, 'active sensor releases the route reservation');
+sensorReadings = {};
+window.JMRI_TC_DISPATCHER_UI.refresh();
+b03 = blockRows().find(row => row.children[0].children[0].textContent === 'B03');
+assert.equal(b03.children[0].children[2].textContent, 'Desconegut', 'lost sensor reading fails closed');
 
 console.log('PASS: dispatcher UI integration, route persistence in project model, block state changes, reservation actions and overlapping-route protection');
