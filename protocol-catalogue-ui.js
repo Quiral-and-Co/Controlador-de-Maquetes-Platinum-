@@ -19,4 +19,5 @@ $('dcExport').onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type
 $('dcImport').onclick=()=>$('dcImportFile').click();
 $('dcImportFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const candidate=JSON.parse(await f.text()),check=core.validateDatabase(candidate);if(!check.ok)throw new Error(check.error);db=candidate;save();message('Base de dades importada i validada.');}catch(err){message('Importació rebutjada: '+err.message);}e.target.value='';};
 render();
+window.JMRI_TC_DIGITAL_CATALOGUE={getDatabase:()=>db};
 })();
