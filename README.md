@@ -49,6 +49,7 @@ Les definicions dels itineraris es desen a `dispatcher.routes` dins del projecte
 Proves del motor:
 ```bash
 node tests/dispatcher.cjs
+node tests/dispatcher-ui.cjs
 ```
 
 ## Context de maquetisme i límits de seguretat
