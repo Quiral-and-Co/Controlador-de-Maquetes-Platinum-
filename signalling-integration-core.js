@@ -61,7 +61,7 @@
       const conditions={
         blockState,occupied:blockState==='OCCUPIED',routeReserved,
         turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,
-        emergency:input.emergency===true,nextAspect:nextResult?.aspect||'PARADA',
+        emergency:input.emergency===true||telemetry.power!=='ON',nextAspect:nextResult?.aspect||'PARADA',
         turnoutReverse:turnouts.reverse,shortBrakingDistance:signal.shortBrakingDistance===true,
         authorisation:signal.authorisation||'',explicitAuthorisation:signal.explicitAuthorisation===true,
         protectionChecks:signal.protectionChecks===true
