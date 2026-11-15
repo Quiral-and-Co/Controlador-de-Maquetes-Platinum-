@@ -43,7 +43,7 @@
         if(!routeTurnouts.some(t=>id(t.turnoutSystemName)===id(req.systemName)))issues.push('El desviament '+id(req.systemName)+' no pertany a cap peça de l’itinerari.');
       }
       const uniqueIssues=[...new Set(issues)],uniqueWarnings=[...new Set(warnings)];
-      results[id(signal.id)]={signalId:id(signal.id),blockId:block?id(block.id):'',blockName:block?.name||'',routeId:route?id(route.id):'',routeName:route?.name||'',routeBlockIds,trackIds:routeTracks.map(t=>id(t.id)),protectedTrackIds:blockTracks.map(t=>id(t.id)),turnoutNames:routeTurnouts.map(t=>id(t.turnoutSystemName)).filter(Boolean),anchorTrackId:anchorTrack?id(anchorTrack.id):'',anchorTrack,levelId:anchorTrack?anchorTrack._levelId:null,ok:uniqueIssues.length===0,issues:uniqueIssues,warnings:uniqueWarnings};
+      results[id(signal.id)]={signalId:id(signal.id),blockId:block?id(block.id):'',blockName:block?.name||'',routeId:route?id(route.id):'',routeName:route?.name||'',routeBlockIds,trackIds:routeTracks.map(t=>id(t.id)),protectedTrackIds:blockTracks.map(t=>id(t.id)),turnoutNames:routeTurnouts.map(t=>id(t.turnoutSystemName)).filter(Boolean),turnoutRequirements:requirements.map(r=>({systemName:id(r.systemName),expectedState:Number(r.expectedState)})),anchorTrackId:anchorTrack?id(anchorTrack.id):'',anchorTrack,levelId:anchorTrack?anchorTrack._levelId:null,ok:uniqueIssues.length===0,issues:uniqueIssues,warnings:uniqueWarnings};
     }
     return results;
   }
