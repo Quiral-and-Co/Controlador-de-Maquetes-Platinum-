@@ -3,7 +3,7 @@
 const root=window,core=root.JMRI_TC_PhysicalValidationCore,topology=root.JMRI_TC_SignallingTopologyCore;
 if(!core)return;
 const $=id=>document.getElementById(id);
-let selectedSignalId=null,installed=false,timer=null;
+let selectedSignalId=null,installed=false,timer=null,lastFingerprint='';
 function config(){return root.JMRI_TC_DISPATCHER?.getConfig?.()||{};}
 function topologyResults(c){return topology?topology.inspect(c,c.signals||[],root.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{}):{};}
 function selectSignal(id){selectedSignalId=id;refresh();}
@@ -61,10 +61,10 @@ function renderSelection(c,t){
  const p=document.createElement('p');p.textContent=signal.name+' · Bloc: '+(r.blockName||r.blockId||'—')+' · Itinerari: '+(r.routeName||r.routeId||'—');host.append(p);
  const details=document.createElement('p');details.textContent='Blocs: '+(r.routeBlockIds||[]).join(' → ')+' · Peces: '+(r.trackIds||[]).join(', ')+' · Desviaments: '+(r.turnoutNames||[]).join(', ');host.append(details);
 }
-function refresh(){const c=config(),t=topologyResults(c);renderLevelDiagnostics(c,t);renderMatrix(c);renderSelection(c,t);highlight(c,t);return{levels:core.levelDiagnostics(c,t),matrix:core.inspect(c)};}
+function refresh(){const c=config(),t=topologyResults(c),fingerprint=JSON.stringify({signals:c.signals||[],levels:(c.levels||[]).map(l=>({id:l.id,blocks:l.blocks||[],sensors:l.sensors||[],tracks:(l.tracks||[]).filter(p=>p.type==='turnout'||p.blockId)})),matrix:c.validationMatrix||{},topology:t});if(fingerprint!==lastFingerprint){lastFingerprint=fingerprint;renderLevelDiagnostics(c,t);renderMatrix(c);renderSelection(c,t);highlight(c,t);}return{levels:core.levelDiagnostics(c,t),matrix:core.inspect(c)};}
 function install(){
  if(installed||!$('signalRegistry'))return;installed=true;
- $('signalRegistry').addEventListener('click',e=>{const row=e.target.closest('button.signal-row');if(!row)return;const signals=config().signals||[],label=row.textContent||'';const match=signals.find(s=>label.startsWith(s.name+' ·')||label.startsWith(s.id+' ·'));if(match)selectSignal(match.id);});
+ $('signalRegistry').addEventListener('click',e=>{const row=e.target.closest('button.signal-row');if(!row)return;const id=row.dataset.signalId;if(id)selectSignal(id);});
  refresh();timer=setInterval(refresh,1000);
 }
 root.JMRI_TC_PHYSICAL_VALIDATION_UI={refresh,selectSignal,stop(){if(timer)clearInterval(timer);timer=null;}};
