@@ -2,10 +2,10 @@
 <html lang="ca">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JMRI TC Gold Custom · Editor 0.9</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dispatcher.css">
+  <title>JMRI TC Gold Custom · Circulacions 1.2 alpha</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dispatcher.css">
 </head>
 <body>
-<header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>JMRI TC Gold Custom</strong><small>Editor de maqueta · versió 0.9</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn active">Mode clàssic</button><button id="modeModern" class="mode-btn">Mode modern</button></div></header>
+<header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>JMRI TC Gold Custom</strong><small>Gestió de maqueta · versió 1.2 alpha</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn active">Mode clàssic</button><button id="modeModern" class="mode-btn">Mode modern</button></div></header>
 <main>
   <section class="notice"><strong>Biblioteca de catàleg Märklin C · versió 0.9.</strong> Les referències amb geometria parcial o no verificada es dibuixen esquemàticament i no s’utilitzen per certificar connexions físiques. El control DCC utilitza el pont WiThrottle local i queda desarmat per defecte.</section>
   <section class="toolbar"><label>Servidor JMRI<input id="host" value="127.0.0.1"></label><label>Port Web Server<input id="port" type="number" value="12080"></label><button id="connectBtn" class="primary">Connectar</button><button id="disconnectBtn" disabled>Desconnectar</button><label class="file-label">Importar JSON<input id="configFile" type="file" accept=".json,application/json"></label><button id="exportBtn">Exportar JSON</button><button id="undoBtn" disabled>↶ Desfer</button><button id="redoBtn" disabled>↷ Refer</button><button id="measureBtn">Mesurar distància</button><button id="validateTopologyBtn">Validar topologia</button><span id="configName" class="muted">Projecte base · sense vies reals</span></section>
