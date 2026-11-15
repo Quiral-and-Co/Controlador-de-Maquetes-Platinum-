@@ -11,7 +11,7 @@ class El {
   remove(){}
   closest(){return null;}
 }
-const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propLevel','moveLevelBtn','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList'];
+const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propTurnout','propLevel','moveLevelBtn','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList'];
 const els=Object.fromEntries(ids.map(x=>[x,new El(x)]));els.host.value='127.0.0.1';els.port.value='12080';
 const palette=['straight','curve','turnout','block'].map(type=>{const e=new El();e.dataset.piece=type;return e;});
 const shell=new El('shell');
@@ -32,6 +32,10 @@ if(els.pieceLayer.children.length!==1)throw Error('SVG piece not rendered');
 els.propLength.value='240';els.propLength.handlers.change({target:els.propLength});
 if(els.pieceLayer.children.length!==1)throw Error('Geometry edit broke SVG render');
 if(els.propLength.value!==240)throw Error('Length property was not applied');
+if(!window.JMRI_TC_BOARD||window.JMRI_TC_BOARD.getSensorState({sensorName:'LS101'}).code!=='UNKNOWN')throw Error('Board sensor should fail closed when reading/verification is missing');
+window.JMRI_TC_BOARD.applySensorReading('LS101',4);
+if(window.JMRI_TC_BOARD.getSensorState({sensorName:'LS101'}).code!=='UNKNOWN')throw Error('Unverified sensor must remain unknown on the board');
+if(!els.pieceLayer.children[0].innerHTML.includes('sensor-indicator'))throw Error('Assigned sensor indicator missing from SVG piece');
 els.duplicateBtn.onclick();if(els.pieceCount.textContent!==2)throw Error('Duplicate action failed');
 els.undoBtn.onclick();if(els.pieceCount.textContent!==1)throw Error('Undo failed to restore piece count');
 els.redoBtn.onclick();if(els.pieceCount.textContent!==2)throw Error('Redo failed to restore duplicated piece');
