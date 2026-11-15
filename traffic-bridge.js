@@ -89,7 +89,7 @@ wss.on('connection',ws=>{
     write('M0A'+id+'<;>V'+speed);send(ws,{type:'command',command:'speed',locoId:id,speed});
    }else if(m.type==='direction'){
     requireArmed();const id=String(m.locoId||''),direction=Number(m.direction);
-    if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');
+    if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');\n    if(manualLocos.has(id)&&deadmanEnabled&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de canviar el sentit.');
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
     requireArmed();const id=String(m.locoId||''),fn=Number(m.fn);
