@@ -61,6 +61,7 @@ Aquesta variable només afecta la finestra PowerShell actual. Reinicia el servid
 
 ## Mode manual
 
+- L'operador ha de comprovar físicament l'alineació dels desviaments i que la via estigui lliure abans de donar velocitat; el sistema encara no interbloqueja desviaments.
 - Crea una circulació en mode **Manual** i prem **Iniciar**.
 - Després que JMRI confirmi l'adquisició de la locomotora, utilitza velocitat, sentit i E-STOP.
 - Si es perd la connexió JMRI/WiThrottle, l'alimentació deixa d'estar ON o un bloc passa a desconegut, el programa bloqueja noves ordres i demana E-STOP.
@@ -74,12 +75,12 @@ Aquesta variable només afecta la finestra PowerShell actual. Reinicia el servid
 - Arribada al bloc final: envia velocitat 0 i manté la reserva fins que el bloc final estigui confirmat lliure.
 - Temps d'entrada excedit, bloc desconegut, pèrdua de comunicació o bloc anterior que no s'allibera: E-STOP i estat FAULT; la ruta queda bloquejada fins a inspecció manual.
 
-**Limitació deliberada:** el mode automàtic queda bloquejat si el plànol conté qualsevol peça de tipus desviament, perquè encara no hi ha verificació d'alineació/feedback. Encara no hi ha verificació d'alineació/feedback de desviaments, interbloqueig de senyals, control de cantons amb distància de frenada, perfil de frenada per locomotora, horaris ni coordinació completa de trens en rutes diferents. La velocitat automàtica està limitada a 20 passos fins que es validin perfils de frenada. No utilitzis l'automàtic per a circulació real fins a implementar i validar aquests elements a la maqueta.
+**Limitació deliberada:** el mode automàtic queda bloquejat si el plànol conté qualsevol peça de tipus desviament, perquè encara no hi ha verificació d'alineació/feedback. Encara no hi ha interbloqueig de senyals, control de cantons amb distància de frenada, perfil de frenada per locomotora, horaris ni coordinació completa de trens en rutes diferents. La velocitat automàtica està limitada a 20 passos, però això no garanteix una distància de frenada segura. Aquesta versió és alpha de proves: no utilitzis el mode automàtic per a circulació real fins a implementar i validar els elements de seguretat i frenada a la maqueta.
 
 ## Proteccions i límits
 
 - DCC està desactivat per defecte; el servidor local ha d'iniciar-se explícitament amb `JMRI_TC_ENABLE_DCC=1` i l'operador ha d'armar-lo.
-- El pont només escolta a `127.0.0.1`; no exposis el port a Internet ni a la xarxa local.
+- El pont només escolta a `127.0.0.1`; no exposis el port a Internet ni a la xarxa local. En tancar la finestra o perdre el client, el pont intenta enviar E-STOP abans d'alliberar els throttles.
 - Només s'accepten ordres WiThrottle per a velocitat, sentit, funcions, adquisició i alliberament. No hi ha ordres de desviaments.
 - E-STOP es pot enviar encara que el control estigui desarmat, sempre que la connexió WiThrottle continuï activa. Si la xarxa o JMRI fallen, no es pot garantir que l'ordre arribi: mantén un botó d'emergència físic independent.
 - La supervisió de blocs i les reserves del projecte no són un enclavament ferroviari certificat. La maqueta ha de tenir proteccions elèctriques i de seguretat independents.
