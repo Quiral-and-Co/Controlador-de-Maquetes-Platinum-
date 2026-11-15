@@ -93,3 +93,19 @@ Els marcadors de ports accepten focus de teclat i es poden activar amb **Enter**
 La paleta ara és una biblioteca filtrable per categoria i cercable per referència o nom. Les dades viuen a `catalogue-marklin-c.json` i es carreguen des de `catalogue.js`; afegir referències no requereix modificar el motor. La càrrega inicial inclou 68 referències trobades en documentació pública Märklin (rectes, corbes R1–R5, desviaments, creuaments i accessoris). Les dimensions confirmades i les geometries parcials/no verificades estan diferenciades explícitament. No es declara encara exhaustivitat del catàleg històric o comercial complet. Consulta `docs/catalogue-c-track.md` abans d'utilitzar la geometria per construir o validar encaixos.
 
 El tipus `special` s'afegeix al model v3 i es manté compatible amb projectes antics. La importació/exportació JSON conserva les metadades de referència. La geometria esquemàtica de desviaments i peces especials no valida encaixos físics.
+
+
+## Gestió de circulacions Märklin DCC (1.2 alpha)
+
+El panell de circulacions incorpora registre de locomotores DCC, itineraris, mode manual i mode automàtic supervisat. La lectura de sensors/alimentació continua al JSON WebSocket JMRI; les ordres de locomotora passen pel pont local WiThrottle TCP. Consulta [docs/traffic-management.md](docs/traffic-management.md) per instal·lació, configuració Märklin, ports, seguretat i limitacions.
+
+**Seguretat per defecte:** el pont DCC està desactivat. Per provar només la interfície, executa `npm install` i `npm start` i obre `http://127.0.0.1:3000`. Les ordres reals exigeixen `JMRI_TC_ENABLE_DCC=1` i armar el control. L'automàtic rebutja rutes amb desviaments no verificats i atura davant lectures desconegudes. No és un enclavament ferroviari certificat.
+
+Proves addicionals: `node tests/traffic.cjs`.
+
+
+## Catàleg digital Märklin DCC / MM2 / mfx
+
+La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre local de locomotores i accessoris amb exportació/importació JSON. Admet fitxes DCC, MM2 i mfx per UID; tipus d'accessori: desviaments, senyals, llums, desacobladors, relés i altres. Consulta [docs/marklin-multiprotocol.md](docs/marklin-multiprotocol.md).
+
+**Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC via JMRI JSON, pendent d'integració i prova física. No s'ha provat amb una CS2 real.

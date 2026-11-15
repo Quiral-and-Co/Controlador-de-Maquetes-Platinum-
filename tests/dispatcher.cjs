@@ -50,4 +50,16 @@ assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:4}),'UNKNOWN','
 assert.equal(core.deriveBlockState({...sensorBlock,verified:false},sensorDefs,{LS101:4,LS102:4}),'UNKNOWN','unverified block fails closed');
 assert.equal(core.deriveBlockState(sensorBlock,[{...sensorDefs[0],verified:false},sensorDefs[1]],{LS101:4,LS102:4}),'UNKNOWN','unverified sensor fails closed');
 assert.equal(core.deriveBlockState(sensorBlock,sensorDefs,{LS101:4,LS102:'bad'}),'UNKNOWN','invalid sensor state fails closed');
+// A train may reserve an occupied first block while every following block is confirmed free.
+const trafficState=core.createState();
+core.ensureBlocks(trafficState,['B01','B02']);
+core.addRoute(trafficState,{id:'TR1',name:'Train route',blockIds:['B01','B02']},['B01','B02']);
+core.setBlockState(trafficState,'B01','OCCUPIED');
+core.setBlockState(trafficState,'B02','FREE');
+assert.equal(core.reserveRoute(trafficState,'TR1').ok,false,'ordinary route reservation still rejects occupied blocks');
+assert.equal(core.reserveRoute(trafficState,'TR1',{allowOccupiedFirst:true}).ok,true,'traffic reservation accepts only the occupied first block');
+assert.equal(core.setBlockState(trafficState,'B01','OCCUPIED',{preserveReservation:true}).ok,true);
+assert.equal(trafficState.reservations.B01,'TR1','occupied train block retains route protection');
+core.setBlockState(trafficState,'B02','UNKNOWN');
+assert.equal(trafficState.reservations.B01,undefined,'unknown next block releases the full route reservation');
 console.log('PASS: dispatcher core, route interlocking, JMRI sensor state mapping and fail-safe unknown handling');

@@ -1,0 +1,16 @@
+{
+  "name": "jmri-tc-gold-custom",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Local JMRI-TC Gold Custom traffic dispatcher and Märklin WiThrottle bridge",
+  "scripts": {
+    "start": "node traffic-bridge.js",
+    "test": "node tests/traffic.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}
