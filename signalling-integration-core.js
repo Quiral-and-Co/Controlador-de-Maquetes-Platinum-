@@ -28,6 +28,8 @@
     const allTracks=(config.levels||[]).flatMap(l=>l.tracks||[]);
     const blockTurnouts=allTracks.filter(p=>p.blockId===signal.protectedBlockId&&p.type==='turnout'&&p.turnoutSystemName);
     if(blockTurnouts.length&&!requirements.length)return{verified:false,aligned:false,reverse:false,reason:'Hi ha desviaments al bloc protegit però la senyal no té posicions requerides configurades.'};
+    const mappedNames=new Set(blockTurnouts.map(p=>p.turnoutSystemName));
+    if(requirements.some(r=>!mappedNames.has(r.systemName))||blockTurnouts.some(p=>!requirements.some(r=>r.systemName===p.turnoutSystemName)))return{verified:false,aligned:false,reverse:false,reason:'Les posicions requerides no coincideixen exactament amb els desviaments assignats al bloc protegit.'};
     const catalogue=root.JMRI_TC_DIGITAL_CATALOGUE?.getDatabase?.().accessories||[];
     for(const req of requirements){
       const accessory=catalogue.find(a=>a.type==='TURNOUT'&&a.systemName===req.systemName);
