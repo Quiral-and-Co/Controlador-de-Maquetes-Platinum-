@@ -8,7 +8,7 @@ const ROOT=__dirname,HOST='127.0.0.1',HTTP_PORT=Number(process.env.PORT||3000);
 const DCC_ENABLED=process.env.JMRI_TC_ENABLE_DCC==='1';
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{res.writeHead(400).end('Bad request');return;}const rel=pathname==='/'?'index.html':pathname.replace(/^\/+/,''),file=path.resolve(ROOT,rel);if(!file.startsWith(ROOT+path.sep)){res.writeHead(403).end('Forbidden');return;}fs.readFile(file,(err,data)=>{if(err){res.writeHead(err.code==='ENOENT'?404:500).end('Not found');return;}res.writeHead(200,{'Content-Type':MIME[path.extname(file)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});res.end(data);});});
-const wss=new WebSocketServer({noServer:true,maxPayload:8192});
+const wss=new WebSocketServer({noServer:true,maxPayload:8192});\nlet activeController=null;
 server.on('upgrade',(req,socket,head)=>{const origin=req.headers.origin||'';if(req.url!=='/traffic-ws'||!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)){socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');socket.destroy();return;}wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws,req));});
 function send(ws,obj){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(obj));}
 function validHost(host){return typeof host==='string'&&host.length<=253&&!/[\s/\\]/.test(host);}
@@ -51,7 +51,7 @@ wss.on('connection',ws=>{
   else throw new Error('Acció no admesa pel pont.');
  }catch(err){send(ws,{type:'error',message:err.message});}
  });
- ws.on('close',closeTcp);ws.on('error',closeTcp);report();
+ ws.on('close',()=>{closeTcp();if(activeController===ws)activeController=null;});ws.on('error',closeTcp);report();
 });
 server.listen(HTTP_PORT,HOST,()=>{console.log('JMRI-TC local: http://'+HOST+':'+HTTP_PORT);console.log('WiThrottle bridge: ws://'+HOST+':'+HTTP_PORT+'/traffic-ws');console.log('DCC commands enabled: '+DCC_ENABLED);});
 process.on('SIGINT',()=>{for(const client of wss.clients)client.close();server.close(()=>process.exit(0));});
