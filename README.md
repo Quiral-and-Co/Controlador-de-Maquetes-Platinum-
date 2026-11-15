@@ -32,11 +32,12 @@ python3 -m json.tool config/layout.example.json
 El fitxer `config/layout.example.json` ha de validar contra `schema/layout-v3.schema.json` (JSON Schema Draft 2020-12).
 
 
-## Dispatcher · despatxador (1.0 alpha)
+## Dispatcher · despatxador (1.1)
 
 El panell Dispatcher permet:
 - Consultar els blocs lògics creats al projecte i el nivell al qual pertanyen.
-- Simular els estats **Desconegut**, **Lliure** i **Ocupat**.
+- Calcular automàticament l'ocupació dels blocs a partir de sensors JMRI verificats.
+- Simular els estats **Desconegut**, **Lliure** i **Ocupat** només als blocs sense sensors assignats.
 - Definir itineraris com una seqüència de blocs (identificadors separats per comes).
 - Reservar i alliberar itineraris de manera atòmica dins del simulador.
 - Detectar conflictes quan dos itineraris comparteixen blocs.
@@ -44,12 +45,16 @@ El panell Dispatcher permet:
 
 Les definicions dels itineraris es desen a `dispatcher.routes` dins del projecte JSON. Els estats simulats i les reserves són temporals i es reinicien en tornar a carregar la pàgina.
 
-**Límit important:** l'estat dels blocs és manual i exclusivament simulat. No s'infereix ocupació real a partir dels sensors ni s'envien ordres a JMRI, locomotores o desviaments. Els blocs desconeguts no es poden reservar. Consulta [docs/dispatcher.md](docs/dispatcher.md).
+**Integració JMRI:** els sensors es llegeixen pel WebSocket JSON en mode només lectura. ACTIVE (2) significa ocupat i INACTIVE (4) significa lliure. Cal marcar sensor i bloc com a verificats físicament des dels registres de recursos. Si falta una lectura, el valor és invàlid o es perd el heartbeat/connexió, el bloc passa a desconegut; els blocs amb sensors no accepten canvis manuals. No s'envien ordres a locomotores, desviaments ni rutes. La reserva continua sent local i no és un interbloqueig ferroviari certificat. Consulta [docs/dispatcher.md](docs/dispatcher.md).
 
-Proves del motor:
+Proves del motor i de la integració de sensors:
 ```bash
+node --check app.js
+node --check dispatcher-core.js
+node --check dispatcher.js
 node tests/dispatcher.cjs
 node tests/dispatcher-ui.cjs
+node tests/smoke.cjs
 ```
 
 ## Context de maquetisme i límits de seguretat
