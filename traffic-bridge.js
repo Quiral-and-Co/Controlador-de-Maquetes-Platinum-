@@ -34,8 +34,8 @@ wss.on('connection',ws=>{
    if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
    armed=m.enabled===true;report();send(ws,{type:'armed',armed});
   }else if(m.type==='acquire'){
-   requireArmed();const id=String(m.locoId||'');if(!/^(S[1-9]\d{0,2}|L(?:12[89]|1[3-9]\d|[2-9]\d{2}|\d{4}|10\d{3}|102[0-3]\d))$/.test(id))throw new Error('Adreça DCC no vàlida.');
-   write('M0+'+id+'<;>'+id);acquired.add(id);send(ws,{type:'acquiring',locoId:id});
+   requireArmed();const id=String(m.locoId||''),match=/^([SL])(\\d+)$/.exec(id),n=match?Number(match[2]):NaN;if(!match||(match[1]==='S'&&(n<1||n>127))||(match[1]==='L'&&(n<128||n>10239)))throw new Error('Adreça DCC no vàlida.');
+   write('M0+'+id+'<;>'+id);const timer=setTimeout(()=>{pendingAcquire.delete(id);send(ws,{type:'acquireTimeout',locoId:id,message:'JMRI no ha confirmat l’adquisició de la locomotora.'});},5000);pendingAcquire.set(id,timer);send(ws,{type:'acquiring',locoId:id});
   }else if(m.type==='speed'){
    requireArmed();const id=String(m.locoId||''),speed=Number(m.speed);if(!acquired.has(id))throw new Error('La locomotora no està adquirida.');if(!Number.isInteger(speed)||speed<0||speed>126)throw new Error('Velocitat fora del rang 0–126.');write('M0A'+id+'<;>V'+speed);send(ws,{type:'command',command:'speed',locoId:id,speed});
   }else if(m.type==='direction'){
