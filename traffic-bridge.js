@@ -39,7 +39,7 @@ wss.on('connection',ws=>{
  const deadman=DeadmanCore.createState();let deadmanMonitor=null,deadmanLastHeartbeat=0;
  const publishDeadman=()=>send(ws,{type:'deadmanState',phase:deadman.phase,pressed:deadman.pressed,tripped:deadman.tripped});
  const stopDeadmanMonitor=()=>{if(deadmanMonitor)clearInterval(deadmanMonitor);deadmanMonitor=null;};
- const emergencyDeadman=()=>{if(deadman.tripped)return;for(const id of manualLocos){if(connected&&tcp&&!tcp.destroyed)tcp.write('M0A'+id+'<;>X\\n');}deadman.tripped=true;deadman.pressed=false;deadman.phase='TRIPPED';deadman.releasedAt=null;armed=false;report();publishDeadman();send(ws,{type:'deadmanTrip',message:'Home mort: ordre d’emergència WiThrottle enviada. Comprova físicament la parada del tren.'});};
+ const emergencyDeadman=()=>{if(deadman.tripped)return;for(const id of manualLocos){if(connected&&tcp&&!tcp.destroyed)tcp.write('M0A'+id+'<;>X\n');}deadman.tripped=true;deadman.pressed=false;deadman.phase='TRIPPED';deadman.releasedAt=null;armed=false;report();publishDeadman();send(ws,{type:'deadmanTrip',message:'Home mort: ordre d’emergència WiThrottle enviada. Comprova físicament la parada del tren.'});};
  const monitorDeadman=()=>{if(!deadman.enabled||deadman.tripped)return;if(deadman.pressed&&Date.now()-deadmanLastHeartbeat>2000){emergencyDeadman();return;}const result=DeadmanCore.evaluate(deadman,Date.now());if(result.action==='TRIP'){emergencyDeadman();return;}if(result.phase!==deadman.phase)publishDeadman();};
  const startDeadmanMonitor=()=>{if(!deadmanMonitor)deadmanMonitor=setInterval(monitorDeadman,100);};
  const disarm=()=>{armed=false;report();};
