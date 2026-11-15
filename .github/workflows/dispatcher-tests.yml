@@ -36,7 +36,7 @@ jobs:
           node --check signalling-integration-core.js
           node --check signalling-integration.js
           node --check signalling-topology-core.js
-          node --check signalling-topology-ui.js
+          node --check signalling-topology-ui.js\n          node --check physical-validation-core.js\n          node --check physical-validation-ui.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Safety core tests
@@ -60,5 +60,5 @@ jobs:
 
       - name: Signal topology mapping tests
         run: node tests/signalling-topology.cjs
-      - name: Full regression and fail-safe suite
+      - name: Physical validation matrix tests\n        run: node tests/physical-validation.cjs\n      - name: Full regression and fail-safe suite
         run: npm test
