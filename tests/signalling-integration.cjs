@@ -24,13 +24,14 @@ const checkedTurnout=signalling.validateSignal({...signal,turnoutRequirements:[{
 assert.equal(signalling.validateSignal({...signal,turnoutRequirements:[{systemName:'LT1',expectedState:3}]},config.signallingInfrastructure).ok,false,'invalid turnout positions are rejected');
 const turnoutConfig={...config,levels:[{...config.levels[0],tracks:[{id:'T1',type:'turnout',blockId:'B1',turnoutSystemName:'LT1'}]}]};
 assert.equal(bridge.evaluateAll({config:turnoutConfig,signals:[signal],snapshot,telemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','unmapped turnout in protected block fails safe');
+const mappedConfig={...config,levels:[{...config.levels[0],tracks:[{id:'T1',type:'turnout',blockId:'B1',turnoutSystemName:'LT1'}]}]};
 const reqSignal={...signal,turnoutRequirements:[{systemName:'LT1',expectedState:2}]};
 const catalogue={getDatabase:()=>({accessories:[{type:'TURNOUT',systemName:'LT1',verified:true}]})};
 global.JMRI_TC_DIGITAL_CATALOGUE=catalogue;
 const turnoutTelemetry={...telemetry,turnouts:{LT1:4},turnoutUpdatedAt:{LT1:now}};
-assert.equal(bridge.evaluateAll({config,signals:[reqSignal],snapshot,telemetry:turnoutTelemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','misaligned turnout fails safe');
+assert.equal(bridge.evaluateAll({config:mappedConfig,signals:[reqSignal],snapshot,telemetry:turnoutTelemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','misaligned turnout fails safe');
 const aligned={...turnoutTelemetry,turnouts:{LT1:2}};
-assert.equal(bridge.evaluateAll({config,signals:[reqSignal],snapshot,telemetry:aligned,signallingCore:signalling,now}).SIG1.aspect,'VIA_LIBRE','verified aligned turnout permits aspect');
+assert.equal(bridge.evaluateAll({config:mappedConfig,signals:[reqSignal],snapshot,telemetry:aligned,signallingCore:signalling,now}).SIG1.aspect,'VIA_LIBRE','verified aligned turnout permits aspect');
 assert.equal(bridge.evaluateAll({config,signals:[signal],snapshot,telemetry,signallingCore:signalling,now,emergency:true}).SIG1.aspect,'PARADA','emergency forces stop');
 const cycleA={...signal,id:'A',nextSignalId:'B'},cycleB={...signal,id:'B',nextSignalId:'A'};
 const cyclic=bridge.evaluateAll({config,signals:[cycleA,cycleB],snapshot,telemetry,signallingCore:signalling,now});
