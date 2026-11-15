@@ -27,6 +27,8 @@ jobs:
           node --check dispatcher.js
       - name: Dispatcher unit tests
         run: node tests/dispatcher.cjs
+      - name: Dispatcher UI integration tests
+        run: node tests/dispatcher-ui.cjs
       - name: Editor regression tests
         run: node tests/smoke.cjs
       - name: Validate example JSON syntax
