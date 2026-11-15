@@ -34,7 +34,7 @@
     const vmax = Number(signal.vmax ?? infrastructure.vmax ?? 0);
     const block = String(signal.blockSystem || infrastructure.blockSystem || 'BA').toUpperCase();
     if (ids.includes('VIA_LIBRE_CONDICIONAL')) {
-      let valid = vmax > 160 && block === 'BA';
+      let valid = vmax > 160 && block === 'BA' && signal.type !== 'PREADVANCED';
       if (block === 'BLA') valid = vmax > 160 && (
         signal.type === 'PREADVANCED' || signal.type === 'ADVANCED' ||
         (signal.type === 'ENTRY' && infrastructure.alsoPreadvancedOfNextStation === true) ||
