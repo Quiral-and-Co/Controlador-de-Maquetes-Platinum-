@@ -31,6 +31,26 @@ python3 -m json.tool config/layout.example.json
 
 El fitxer `config/layout.example.json` ha de validar contra `schema/layout-v3.schema.json` (JSON Schema Draft 2020-12).
 
+
+## Dispatcher · despatxador (1.0 alpha)
+
+El panell Dispatcher permet:
+- Consultar els blocs lògics creats al projecte i el nivell al qual pertanyen.
+- Simular els estats **Desconegut**, **Lliure** i **Ocupat**.
+- Definir itineraris com una seqüència de blocs (identificadors separats per comes).
+- Reservar i alliberar itineraris de manera atòmica dins del simulador.
+- Detectar conflictes quan dos itineraris comparteixen blocs.
+- Alliberar automàticament les reserves afectades quan un bloc passa a ocupat o desconegut.
+
+Les definicions dels itineraris es desen a `dispatcher.routes` dins del projecte JSON. Els estats simulats i les reserves són temporals i es reinicien en tornar a carregar la pàgina.
+
+**Límit important:** l'estat dels blocs és manual i exclusivament simulat. No s'infereix ocupació real a partir dels sensors ni s'envien ordres a JMRI, locomotores o desviaments. Els blocs desconeguts no es poden reservar. Consulta [docs/dispatcher.md](docs/dispatcher.md).
+
+Proves del motor:
+```bash
+node tests/dispatcher.cjs
+```
+
 ## Context de maquetisme i límits de seguretat
 
 - Märklin H0, via C, cinc nivells, superfície 3000 × 1800 mm; separació vertical prevista de 110 mm. Les cotes s'han de contrastar amb l'estructura física.
