@@ -1,0 +1,47 @@
+# Canvis
+
+## 0.7.1 — reforç de la connexió manual
+- Els ports SVG ara són accessibles amb teclat: focus, Enter i barra espaiadora.
+- Etiquetes accessibles per identificar el port i la peça.
+- Proves ampliades: activació per teclat, rebuig d’autoconnexions, ports ocupats i separacions superiors a 1 mm.
+- Verificat que una connexió rebutjada no desplaça peces ni altera el model.
+
+## 0.7
+- Marcadors SVG interactius per als ports A/B/C de cada peça.
+- Mode de connexió manual: l'usuari tria explícitament els dos ports; no s'escull automàticament la parella més propera.
+- Rebutja ports ja ocupats, auto connexions i extrems separats més d'1 mm.
+- No desplaça ni gira peces de manera implícita; la connexió queda no verificada elèctricament.
+- Conserva la connexió ràpida antiga com a funció auxiliar.
+- Prova automatitzada de connexió manual exacta i auditoria topològica posterior.
+
+
+## 0.6
+- Auditoria topològica de només lectura sobre tots els cinc nivells.
+- Detecta referències a ports inexistents, connexions duplicades, ports compartits, nivells inconsistents, auto connexions i discontinuïtats geomètriques superiors a 1 mm.
+- Informa separadament dels ports oberts com a avisos; no són errors en un traçat encara no definit.
+- La validació no modifica el projecte ni envia ordres a JMRI.
+
+
+## 0.5 — 2026-11-15
+- Model de dades v3 amb registres explícits de blocs i sensors per nivell.
+- Alta de blocs lògics i sensors JMRI; assignació a peces mitjançant selectors.
+- Relacions inverses `trackIds` i `sensorIds` recalculades a partir de les peces.
+- Canvi de nivell restringit a peces sense assignacions ni connexions; sense enllaços verticals automàtics.
+- Migració de configuracions v2 amb assignacions textuals a registres provisionals no verificats.
+- Validació reforçada d'IDs, referències i connexions dins d'un mateix nivell.
+
+## 0.4
+- Historial Desfer/Refer, duplicació de peces i eina de mesura en mm.
+
+## 0.3
+- Geometria editable i alineació de ports per translació.
+
+## 0.9 — Biblioteca Märklin C basada en dades
+
+- Afegida biblioteca externa `catalogue-marklin-c.json` amb 68 referències identificades: rectes, corbes R1–R5, desviaments, creuaments i complements.
+- Cerca per referència/nom i filtre per categoria; inserció d'elements de catàleg amb metadades de referència.
+- Dimensions conegudes de rectes i corbes carregades com a dades; geometria de desviaments/creuaments marcada parcial o no verificada quan no hi ha prou fitxa tècnica.
+- Afegit tipus esquemàtic `special` al model v3, mantenint la compatibilitat amb projectes 0.7.x.
+- Conservades les primitives lliures per a peces encara no incorporades al catàleg.
+- Documentada cobertura inicial i procediment d'ampliació. No es declara exhaustivitat del catàleg complet fins a contrastar totes les referències i fitxes tècniques.
+- JMRI continua exclusivament en mode monitorització/només lectura; cap ordre de locomotora, desviament o ruta.
