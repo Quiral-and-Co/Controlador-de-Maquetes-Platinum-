@@ -30,7 +30,7 @@
     const assigned=state.config.levels.flatMap(l=>l.tracks||[]).filter(p=>p.sensorName);$('unknownCount').textContent=assigned.filter(p=>state.sensors[p.sensorName]===undefined).length;
     $('levelList').replaceChildren();state.config.levels.forEach(l=>{const b=document.createElement('button');b.className='level-btn'+(l.id===state.selectedLevel?' selected':'');b.innerHTML=`<span>${esc(l.name)}</span><small>${(l.tracks||[]).length} peces</small>`;b.onclick=()=>{state.selectedLevel=l.id;state.selectedIds=[];render();};$('levelList').append(b);});
     $('currentLevelTitle').textContent=lev.name;$('currentLevelSubtitle').textContent=`Cota ${lev.elevationMm} mm · ${lev.tracks.length} peces · coordenades en mm`;
-    renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
+    renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
   }
   function sensorStateFor(p,sourceLevel=level()){
     if(!p.sensorName)return {code:'NONE',label:'Sense sensor'};
