@@ -31,6 +31,10 @@ jobs:
           node --check deadman-core.js
           node --check traffic.js
           node --check traffic-bridge.js
+          node --check signalling-core.js
+          node --check signalling-ui.js
+          node --check signalling-integration-core.js
+          node --check signalling-integration.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Safety core tests
@@ -52,5 +56,5 @@ jobs:
       - name: Validate example JSON syntax
         run: node -e "JSON.parse(require('fs').readFileSync('config/layout.example.json', 'utf8')); console.log('PASS example JSON')"
 
-      - name: ADIF signalling aspect tests
-        run: node tests/signalling.cjs
+      - name: Full regression and fail-safe suite
+        run: npm test
