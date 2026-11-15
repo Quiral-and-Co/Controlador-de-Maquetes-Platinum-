@@ -37,6 +37,14 @@
     </div>
     <p id="dispatcherMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Crea blocs al registre de recursos per començar.</p>
   </section>
+  <section class="dispatcher-panel safety-panel" aria-labelledby="safetyTitle">
+    <div class="dispatcher-header"><div><h2 id="safetyTitle">Validació i bloqueig de seguretat</h2><p>Porta comuna abans de qualsevol ordre física DCC.</p></div><span class="badge offline">BLOQUEJAT per defecte</span></div>
+    <div class="dispatcher-warning"><strong>Atenció:</strong> les marques són declaracions de l’operador, no proves instrumentals. La parada d’emergència ha de ser física, independent i tallar l’energia de tracció; el programari no la substitueix.</div>
+    <div id="safetyChecks" class="safety-checks"></div>
+    <label class="safety-physical"><input id="safetyPhysicalAck" type="checkbox"> Confirmo que he inspeccionat físicament la instal·lació i he provat la parada d’emergència independent.</label>
+    <button id="safetyPhysicalConfirm" type="button">Registrar confirmació física</button>
+    <p id="safetyState" class="safety-state locked" role="status" aria-live="polite">BLOQUEJAT · pendent de validació</p>
+  </section>
   <section class="dispatcher-panel traffic-panel" aria-labelledby="trafficTitle">
     <div class="dispatcher-header"><div><h2 id="trafficTitle">Gestió de circulacions · Märklin DCC</h2><p>Conducció manual i circulacions automàtiques supervisades pel Dispatcher.</p></div><span id="trafficBridgeStatus" class="badge offline">WiThrottle desconnectat</span></div>
     <div class="dispatcher-warning"><strong>Seguretat:</strong> el control DCC real està desactivat per defecte. L'automàtic només admet rutes sense desviaments fins que existeixi una comprovació d'alineació i bloqueig de desviaments. En qualsevol estat desconegut es demana aturada d'emergència. La reserva no és un enclavament ferroviari certificat.</div>
@@ -88,5 +96,5 @@
   </section>
   <section class="monitor-grid"><div class="panel-card"><h3>Connexió JMRI · només lectura</h3><p id="connectionText" class="muted">No hi ha cap sessió activa.</p><p class="small">WebSocket: <code id="endpointText">ws://127.0.0.1:12080/json/</code></p></div><div class="panel-card"><h3>Estat dels sensors assignats</h3><div id="sensorSummary" class="muted small">Encara no hi ha sensors assignats a peces.</div></div><div class="panel-card"><h3>Registre</h3><ol id="eventLog" class="event-log"><li>Editor 0.6 iniciat.</li></ol></div></section>
   <section id="modernPanel" class="modern-panel hidden"><h2>Vista moderna · resum de peces i sensors</h2><div id="modernBlocks" class="modern-blocks"></div></section>
-</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="dispatcher-core.js"></script><script src="traffic-core.js"></script><script src="app.js"></script><script src="dispatcher.js"></script><script src="traffic.js"></script><script src="protocol-core.js"></script><script src="protocol-catalogue-ui.js"></script>
+</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="dispatcher-core.js"></script><script src="traffic-core.js"></script><script src="safety-core.js"></script><script src="app.js"></script><script src="dispatcher.js"></script><script src="traffic.js"></script><script src="protocol-core.js"></script><script src="protocol-catalogue-ui.js"></script>
 </body></html>

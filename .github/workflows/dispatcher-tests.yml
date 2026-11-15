@@ -26,10 +26,15 @@ jobs:
           node --check dispatcher-core.js
           node --check dispatcher.js
           node --check traffic-core.js
+          node --check safety-core.js
           node --check traffic.js
           node --check traffic-bridge.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
+      - name: Safety core tests
+        run: node tests/safety.cjs
+      - name: Safety bridge integration tests
+        run: node tests/safety-bridge.cjs
       - name: Traffic state-machine tests
         run: node tests/traffic.cjs
       - name: Dispatcher unit tests

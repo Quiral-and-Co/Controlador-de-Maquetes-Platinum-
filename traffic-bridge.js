@@ -6,6 +6,7 @@ const path=require('node:path');
 const {WebSocketServer,WebSocket}=require('ws');
 const ROOT=__dirname,HOST='127.0.0.1',HTTP_PORT=Number(process.env.PORT||3000);
 const DCC_ENABLED=process.env.JMRI_TC_ENABLE_DCC==='1';
+const SAFETY_VALIDATED=process.env.JMRI_TC_SAFETY_VALIDATED==='1';
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{
  let pathname;
@@ -32,7 +33,7 @@ wss.on('connection',ws=>{
  if(activeController&&activeController.readyState===WebSocket.OPEN){ws.close(1013,'Another local dispatcher is already connected.');return;}
  activeController=ws;
  let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map();
- const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,host:tcp?.remoteAddress||null});
+ const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,safetyValidated:SAFETY_VALIDATED,host:tcp?.remoteAddress||null});
  const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
  const disarm=()=>{armed=false;report();};
  const clearPending=()=>{for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();};
@@ -71,6 +72,7 @@ wss.on('connection',ws=>{
     tcp.on('close',()=>{stopHeartbeat();connected=false;acquired.clear();clearPending();disarm();send(ws,{type:'disconnected'});});
    }else if(m.type==='arm'){
     if(!DCC_ENABLED)throw new Error('DCC desactivat per defecte. Cal iniciar el pont amb JMRI_TC_ENABLE_DCC=1.');
+    if(!SAFETY_VALIDATED||m.safetyValidated!==true)throw new Error('Interbloqueig de seguretat: manca JMRI_TC_SAFETY_VALIDATED=1 i validació de la interfície.');
     if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
     armed=m.enabled===true;report();send(ws,{type:'armed',armed});
    }else if(m.type==='acquire'){
@@ -108,5 +110,5 @@ wss.on('connection',ws=>{
  ws.on('error',closeTcp);
  report();
 });
-server.listen(HTTP_PORT,HOST,()=>{console.log('JMRI-TC local: http://'+HOST+':'+HTTP_PORT);console.log('WiThrottle bridge: ws://'+HOST+':'+HTTP_PORT+'/traffic-ws');console.log('DCC commands enabled: '+DCC_ENABLED);});
+server.listen(HTTP_PORT,HOST,()=>{console.log('JMRI-TC local: http://'+HOST+':'+HTTP_PORT);console.log('WiThrottle bridge: ws://'+HOST+':'+HTTP_PORT+'/traffic-ws');console.log('DCC commands enabled: '+DCC_ENABLED);console.log('Safety validation enabled: '+SAFETY_VALIDATED);});
 process.on('SIGINT',()=>{for(const client of wss.clients)client.close();server.close(()=>process.exit(0));});

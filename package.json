@@ -1,16 +1,12 @@
 {
   "name": "jmri-tc-gold-custom",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
-  "description": "Local JMRI-TC Gold Custom traffic dispatcher and Märklin WiThrottle bridge",
+  "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
   "scripts": {
     "start": "node traffic-bridge.js",
-    "test": "node tests/traffic.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs"
+    "test": "node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/traffic.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs"
   },
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "ws": "^8.18.3"
-  }
+  "engines": { "node": ">=20" },
+  "dependencies": { "ws": "^8.18.3" }
 }

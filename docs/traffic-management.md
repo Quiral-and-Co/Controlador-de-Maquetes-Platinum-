@@ -44,6 +44,7 @@ Per habilitar ordres reals, només després de validar la maqueta, els sensors, 
 
 ```powershell
 $env:JMRI_TC_ENABLE_DCC="1"
+$env:JMRI_TC_SAFETY_VALIDATED="1"
 npm start
 ```
 
@@ -79,7 +80,7 @@ Aquesta variable només afecta la finestra PowerShell actual. Reinicia el servid
 
 ## Proteccions i límits
 
-- DCC està desactivat per defecte; el servidor local ha d'iniciar-se explícitament amb `JMRI_TC_ENABLE_DCC=1` i l'operador ha d'armar-lo.
+- DCC està desactivat per defecte; el servidor local exigeix explícitament `JMRI_TC_ENABLE_DCC=1`, `JMRI_TC_SAFETY_VALIDATED=1`, la validació a la interfície i l'armament de l'operador.
 - El pont només escolta a `127.0.0.1`; no exposis el port a Internet ni a la xarxa local. En tancar la finestra o perdre el client, el pont intenta enviar E-STOP abans d'alliberar els throttles.
 - Només s'accepten ordres WiThrottle per a velocitat, sentit, funcions, adquisició i alliberament. No hi ha ordres de desviaments.
 - E-STOP es pot enviar encara que el control estigui desarmat, sempre que la connexió WiThrottle continuï activa. Si la xarxa o JMRI fallen, no es pot garantir que l'ordre arribi: mantén un botó d'emergència físic independent.
@@ -95,6 +96,7 @@ node --check dispatcher.js
 node --check traffic-core.js
 node --check traffic.js
 node --check traffic-bridge.js
+node tests/safety.cjs
 node tests/traffic.cjs
 node tests/dispatcher.cjs
 node tests/dispatcher-ui.cjs
