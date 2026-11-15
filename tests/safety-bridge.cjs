@@ -38,7 +38,7 @@ async function runCase({ dcc, safety, expected }) {
       };
       poll();
     });
-    ws = new WebSocket('ws://127.0.0.1:' + port + '/traffic-ws');
+    ws = new WebSocket('ws://127.0.0.1:' + port + '/traffic-ws', { origin: 'http://127.0.0.1:' + port });
     const messages = [];
     ws.on('message', raw => messages.push(JSON.parse(raw.toString())));
     await new Promise((resolve, reject) => {
