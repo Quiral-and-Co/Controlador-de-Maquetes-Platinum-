@@ -34,11 +34,13 @@
     const vmax = Number(signal.vmax ?? infrastructure.vmax ?? 0);
     const block = String(signal.blockSystem || infrastructure.blockSystem || 'BA').toUpperCase();
     if (ids.includes('VIA_LIBRE_CONDICIONAL')) {
-      const valid = vmax > 160 && (block === 'BA' || block === 'BLA');
+      let valid = vmax > 160 && block === 'BA';
+      if (block === 'BLA') valid = vmax > 160 && (
+        signal.type === 'PREADVANCED' || signal.type === 'ADVANCED' ||
+        (signal.type === 'ENTRY' && infrastructure.alsoPreadvancedOfNextStation === true) ||
+        (signal.type === 'EXIT' && infrastructure.alsoAdvancedOfNextStation === true)
+      );
       if (!valid) ids = ids.filter(x => x !== 'VIA_LIBRE_CONDICIONAL');
-    }
-    if (signal.type === 'PREADVANCED') {
-      if (!(vmax > 160 && block === 'BLA')) ids = [];
     }
     if (signal.type === 'PARADA_SELECTIVA' || ids.includes('PARADA_SELECTIVA')) {
       if (!(infrastructure.ertms === true && String(infrastructure.ertmsLevel || '') === 'BCA' && infrastructure.highSpeed === true)) ids = ids.filter(x => x !== 'PARADA_SELECTIVA');
@@ -49,20 +51,15 @@
     if (signal.type === 'EXIT') {
       const bab = block === 'BAB' && infrastructure.fromMainTrack === true && infrastructure.departureTurnoutReverse === true;
       const bsl = block === 'BSL' && infrastructure.releaseSignalEquipped === true;
-      if (!bab && !bsl && infrastructure.alsoAdvancedOfNextStation !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
-      if (infrastructure.alsoAdvancedOfNextStation !== true && infrastructure.followingEntryHasReverseTurnout !== true) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
+      const advancedForNext = infrastructure.alsoAdvancedOfNextStation === true && infrastructure.nextSignalCanStop === true;
+      if (!bab && !bsl && !advancedForNext) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
+      if (infrastructure.alsoAdvancedOfNextStation !== true || infrastructure.followingEntryHasReverseTurnout !== true) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
     }
-    if (signal.type === 'ADVANCED' && infrastructure.precededByStopCapableSignal !== true) ids = ids.filter(x => x !== 'PARADA');
-    if (signal.type === 'ADVANCED' && block !== 'BA') ids = ids.filter(x => x !== 'PARADA');
+    if (signal.type === 'ADVANCED' && (infrastructure.precededByStopCapableSignal !== true || block !== 'BA')) ids = ids.filter(x => x !== 'PARADA');
     if (signal.type === 'INTERMEDIATE' && block !== 'BA') ids = ids.filter(x => x !== 'PARADA');
-    if (signal.type === 'INTERMEDIATE' && infrastructure.nextSignalCanStop !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
-    if (signal.type === 'ENTRY' || signal.type === 'INTERIOR' || signal.type === 'DESTINATION' || signal.type === 'EXIT') {
-      if (infrastructure.nextSignalCanStop !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
-    }
+    if (['INTERMEDIATE','PROTECTION','ADVANCED','INTERIOR','DESTINATION'].includes(signal.type) && infrastructure.nextSignalCanStop !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
+    if (signal.type === 'ENTRY' && infrastructure.nextSignalCanStop !== true && infrastructure.departureTurnoutReverse !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA');
     if (['ENTRY','INTERIOR','DESTINATION','EXIT'].includes(signal.type) && infrastructure.nextSignalCanStop !== true) ids = ids.filter(x => x !== 'ANUNCIO_PARADA_INMEDIATA');
-    if (signal.type === 'INTERIOR' || signal.type === 'DESTINATION') {
-      // Rebase and movement are specific, supervised authorisations, not automatic route-clear aspects.
-    }
     return ids;
   }
   function validateSignal(input, infrastructure={}) {
