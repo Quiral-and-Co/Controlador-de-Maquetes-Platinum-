@@ -1,6 +1,7 @@
 'use strict';
 const http=require('node:http');
 const net=require('node:net');
+const DeadmanCore=require('./deadman-core.js');
 const fs=require('node:fs');
 const path=require('node:path');
 const {WebSocketServer,WebSocket}=require('ws');
@@ -34,11 +35,17 @@ wss.on('connection',ws=>{
  activeController=ws;
  let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map(),manualLocos=new Set(),deadmanEnabled=true,deadmanActive=false,deadmanLast=0,deadmanTimer=null;
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,safetyValidated:SAFETY_VALIDATED,host:tcp?.remoteAddress||null});
- const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};\n  const stopDeadman=()=>{if(deadmanTimer)clearInterval(deadmanTimer);deadmanTimer=null;deadmanActive=false;deadmanLast=0;};\n  const tripDeadman=()=>{if(!deadmanActive)return;for(const id of manualLocos){if(connected&&tcp&&!tcp.destroyed)tcp.write('M0A'+id+'<;>X\n');}stopDeadman();armed=false;report();send(ws,{type:'deadmanTrip',message:'Home mort: s’ha perdut la confirmació de presència. Ordre d’emergència enviada a JMRI; comprova físicament el tren.'});};\n  const startDeadmanMonitor=()=>{if(!deadmanTimer)deadmanTimer=setInterval(()=>{if(deadmanEnabled&&deadmanActive&&Date.now()-deadmanLast>2000)tripDeadman();},200);};
+ const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
+ const deadman=DeadmanCore.createState();let deadmanMonitor=null,deadmanLastHeartbeat=0;
+ const publishDeadman=()=>send(ws,{type:'deadmanState',phase:deadman.phase,pressed:deadman.pressed,tripped:deadman.tripped});
+ const stopDeadmanMonitor=()=>{if(deadmanMonitor)clearInterval(deadmanMonitor);deadmanMonitor=null;};
+ const emergencyDeadman=()=>{if(deadman.tripped)return;for(const id of manualLocos){if(connected&&tcp&&!tcp.destroyed)tcp.write('M0A'+id+'<;>X\\n');}deadman.tripped=true;deadman.pressed=false;deadman.phase='TRIPPED';deadman.releasedAt=null;armed=false;report();publishDeadman();send(ws,{type:'deadmanTrip',message:'Home mort: ordre d’emergència WiThrottle enviada. Comprova físicament la parada del tren.'});};
+ const monitorDeadman=()=>{if(!deadman.enabled||deadman.tripped)return;if(deadman.pressed&&Date.now()-deadmanLastHeartbeat>2000){emergencyDeadman();return;}const result=DeadmanCore.evaluate(deadman,Date.now());if(result.action==='TRIP'){emergencyDeadman();return;}if(result.phase!==deadman.phase)publishDeadman();};
+ const startDeadmanMonitor=()=>{if(!deadmanMonitor)deadmanMonitor=setInterval(monitorDeadman,100);};
  const disarm=()=>{armed=false;report();};
  const clearPending=()=>{for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();};
  const closeTcp=()=>{
-  stopHeartbeat();
+  stopHeartbeat();stopDeadmanMonitor();
   if(tcp){try{tcp.write('M0A*<;>X\nM0-*<;>r\nQ\n');}catch{}tcp.destroy();tcp=null;}
   connected=false;acquired.clear();clearPending();disarm();
  };
@@ -75,17 +82,21 @@ wss.on('connection',ws=>{
     if(!SAFETY_VALIDATED||m.safetyValidated!==true)throw new Error('Interbloqueig de seguretat: manca JMRI_TC_SAFETY_VALIDATED=1 i validació de la interfície.');
     if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
     armed=m.enabled===true;report();send(ws,{type:'armed',armed});
+   }else if(m.type==='deadmanConfigure'){const result=DeadmanCore.configure(deadman,m.enabled===true);if(!result.ok)throw new Error(result.error);publishDeadman();
+   }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
+   }else if(m.type==='deadmanRelease'){if(!deadman.enabled)throw new Error('Home mort no disponible.');DeadmanCore.release(deadman,Date.now());deadmanLastHeartbeat=Date.now();publishDeadman();
+   }else if(m.type==='deadmanHeartbeat'){if(deadman.enabled&&deadman.pressed)deadmanLastHeartbeat=Date.now();
    }else if(m.type==='acquire'){
     requireArmed();
     const id=String(m.locoId||''),match=/^([SL])(\d+)$/.exec(id),n=match?Number(match[2]):NaN;
     if(!match||(match[1]==='S'&&(n<1||n>127))||(match[1]==='L'&&(n<128||n>10239)))throw new Error('Adreça DCC no vàlida.');
-    if(m.manual===true){manualLocos.add(id);deadmanEnabled=m.deadmanEnabled!==false;}else manualLocos.delete(id);write('M0+'+id+'<;>'+id);
+    if(m.manual===true){manualLocos.add(id);DeadmanCore.configure(deadman,true);}else manualLocos.delete(id);write('M0+'+id+'<;>'+id);
     const timer=setTimeout(()=>{pendingAcquire.delete(id);send(ws,{type:'acquireTimeout',locoId:id,message:'JMRI no ha confirmat l’adquisició de la locomotora.'});},5000);
     pendingAcquire.set(id,timer);send(ws,{type:'acquiring',locoId:id});
    }else if(m.type==='speed'){
     requireArmed();const id=String(m.locoId||''),speed=Number(m.speed);
     if(!acquired.has(id))throw new Error('La locomotora no està adquirida.');
-    if(manualLocos.has(id)&&deadmanEnabled&&speed!==0&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de conduir.');
+    if(manualLocos.has(id)&&deadman.enabled&&speed!==0&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per conduir.');
     if(!Number.isInteger(speed)||speed<0||speed>126)throw new Error('Velocitat fora del rang 0–126.');
     write('M0A'+id+'<;>V'+speed);send(ws,{type:'command',command:'speed',locoId:id,speed});
    }else if(m.type==='direction'){
