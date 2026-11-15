@@ -61,7 +61,10 @@
   function createRoute(){
     const c=getConfig();c.dispatcher=c.dispatcher||{};c.dispatcher.routes=c.dispatcher.routes||[];
     const blockIds=$('dispatcherRouteBlocks').value.split(',').map(v=>v.trim()).filter(Boolean);
-    const result=core.addRoute(runtime,{id:'R-'+Date.now(),name:$('dispatcherRouteName').value,blockIds},allBlocks().map(b=>b.id));
+    const existingIds=new Set(c.dispatcher.routes.map(route=>String(route.id)));
+    const baseId='R-'+Date.now();let routeId=baseId,suffix=2;
+    while(existingIds.has(routeId))routeId=baseId+'-'+suffix++;
+    const result=core.addRoute(runtime,{id:routeId,name:$('dispatcherRouteName').value,blockIds},allBlocks().map(b=>b.id));
     if(!result.ok){announce(result.error);return;}
     c.dispatcher.routes.push(result.route);$('dispatcherRouteName').value='';$('dispatcherRouteBlocks').value='';
     announce('Itinerari creat. Per defecte no està reservat.');refresh();
