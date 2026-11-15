@@ -35,4 +35,5 @@ assert.equal(bridge.evaluateAll({config,signals:[signal],snapshot,telemetry,sign
 const cycleA={...signal,id:'A',nextSignalId:'B'},cycleB={...signal,id:'B',nextSignalId:'A'};
 const cyclic=bridge.evaluateAll({config,signals:[cycleA,cycleB],snapshot,telemetry,signallingCore:signalling,now});
 assert.equal(cyclic.A.aspect,'PARADA','signal dependency cycle fails safe');
+const brokenNext={...signal,nextSignalId:'MISSING'};assert.equal(bridge.evaluateAll({config,signals:[brokenNext],snapshot,telemetry,signallingCore:signalling,now}).SIG1.aspect,'PARADA','missing next signal reference fails safe');
 console.log('PASS: signalling SVG/Dispatcher integration fail-safe core');
