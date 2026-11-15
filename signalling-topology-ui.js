@@ -66,7 +66,7 @@ function renderDiagnostics(results){
 function refresh(){
  const c=config(),signals=Array.isArray(c.signals)?c.signals:[],results=core.inspect(c,signals,root.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{});
  signals.forEach(s=>{const r=results[s.id];if(r&&!r.ok){s.computedAspect='PARADA';s.computedReason='Vinculació topològica incompleta: '+r.issues.join(' ');}});
- renderVisual(results);renderDiagnostics(results);return results;
+ renderVisual(results);renderDiagnostics(results);root.JMRI_TC_SIGNALLING_INTEGRATION?.renderSvg?.();return results;
 }
 function install(){
  if(installed||!$('signalRegistry'))return;installed=true;
