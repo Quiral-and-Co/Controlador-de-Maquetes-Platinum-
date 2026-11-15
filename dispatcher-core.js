@@ -5,7 +5,13 @@
   function ensureBlocks(state, blockIds) {
     const valid = new Set(blockIds);
     for (const id of valid) if (!state.blockStates[id]) state.blockStates[id] = 'UNKNOWN';
-    for (const id of Object.keys(state.blockStates)) if (!valid.has(id)) { delete state.blockStates[id]; delete state.reservations[id]; }
+    const removed = Object.keys(state.blockStates).filter(id => !valid.has(id));
+    const affectedRoutes = new Set(removed.map(id => state.reservations[id]).filter(Boolean));
+    for (const id of removed) { delete state.blockStates[id]; delete state.reservations[id]; }
+    // If a route loses any of its blocks, release every remaining reservation it owns.
+    for (const [blockId, owner] of Object.entries(state.reservations)) {
+      if (affectedRoutes.has(owner)) delete state.reservations[blockId];
+    }
     return state;
   }
   function setRoutes(state, routes) {
