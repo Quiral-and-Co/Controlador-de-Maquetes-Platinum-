@@ -32,9 +32,9 @@ function validHost(host){return typeof host==='string'&&host.length<=253&&!/[\s/
 wss.on('connection',ws=>{
  if(activeController&&activeController.readyState===WebSocket.OPEN){ws.close(1013,'Another local dispatcher is already connected.');return;}
  activeController=ws;
- let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map();
+ let tcp=null,armed=false,connected=false,heartbeat=null,buffer='',acquired=new Set(),pendingAcquire=new Map(),manualLocos=new Set(),deadmanEnabled=true,deadmanActive=false,deadmanLast=0,deadmanTimer=null;
  const report=()=>send(ws,{type:'status',connected,armed,dccEnabled:DCC_ENABLED,safetyValidated:SAFETY_VALIDATED,host:tcp?.remoteAddress||null});
- const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};
+ const stopHeartbeat=()=>{if(heartbeat)clearInterval(heartbeat);heartbeat=null;};\n  const stopDeadman=()=>{if(deadmanTimer)clearInterval(deadmanTimer);deadmanTimer=null;deadmanActive=false;deadmanLast=0;};\n  const tripDeadman=()=>{if(!deadmanActive)return;for(const id of manualLocos){if(connected&&tcp&&!tcp.destroyed)tcp.write('M0A'+id+'<;>X\\n');}stopDeadman();armed=false;report();send(ws,{type:'deadmanTrip',message:'Home mort: s’ha perdut la confirmació de presència. Ordre d’emergència enviada a JMRI; comprova físicament el tren.'});};\n  const startDeadmanMonitor=()=>{if(!deadmanTimer)deadmanTimer=setInterval(()=>{if(deadmanEnabled&&deadmanActive&&Date.now()-deadmanLast>2000)tripDeadman();},200);};
  const disarm=()=>{armed=false;report();};
  const clearPending=()=>{for(const timer of pendingAcquire.values())clearTimeout(timer);pendingAcquire.clear();};
  const closeTcp=()=>{
@@ -79,7 +79,7 @@ wss.on('connection',ws=>{
     requireArmed();
     const id=String(m.locoId||''),match=/^([SL])(\d+)$/.exec(id),n=match?Number(match[2]):NaN;
     if(!match||(match[1]==='S'&&(n<1||n>127))||(match[1]==='L'&&(n<128||n>10239)))throw new Error('Adreça DCC no vàlida.');
-    write('M0+'+id+'<;>'+id);
+    if(m.manual===true){manualLocos.add(id);deadmanEnabled=m.deadmanEnabled!==false;}else manualLocos.delete(id);write('M0+'+id+'<;>'+id);
     const timer=setTimeout(()=>{pendingAcquire.delete(id);send(ws,{type:'acquireTimeout',locoId:id,message:'JMRI no ha confirmat l’adquisició de la locomotora.'});},5000);
     pendingAcquire.set(id,timer);send(ws,{type:'acquiring',locoId:id});
    }else if(m.type==='speed'){
@@ -97,7 +97,7 @@ wss.on('connection',ws=>{
     write('M0A'+id+'<;>F'+(m.enabled?1:0)+fn);send(ws,{type:'command',command:'function',locoId:id,fn,enabled:!!m.enabled});
    }else if(m.type==='release'){
     requireArmed();const id=String(m.locoId||'');
-    if(acquired.has(id)){write('M0-'+id+'<;>r');acquired.delete(id);}
+    if(acquired.has(id)){write('M0-'+id+'<;>r');acquired.delete(id);}manualLocos.delete(id);
     send(ws,{type:'released',locoId:id});
    }else if(m.type==='emergencyStop'){
     if(connected&&tcp&&!tcp.destroyed){const id=String(m.locoId||'');if(id&&acquired.has(id))tcp.write('M0A'+id+'<;>X\n');else tcp.write('M0A*<;>X\n');}
