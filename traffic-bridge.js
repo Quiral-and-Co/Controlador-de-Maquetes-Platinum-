@@ -96,13 +96,13 @@ wss.on('connection',ws=>{
    }else if(m.type==='speed'){
     requireArmed();const id=String(m.locoId||''),speed=Number(m.speed);
     if(!acquired.has(id))throw new Error('La locomotora no està adquirida.');
-    if(manualLocos.has(id)&&deadman.enabled&&speed!==0&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per conduir.');
+    if(manualLocos.has(id)&&deadman.enabled&&speed!==0&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premuda la tecla per conduir.');
     if(!Number.isInteger(speed)||speed<0||speed>126)throw new Error('Velocitat fora del rang 0–126.');
     write('M0A'+id+'<;>V'+speed);send(ws,{type:'command',command:'speed',locoId:id,speed});
    }else if(m.type==='direction'){
     requireArmed();const id=String(m.locoId||''),direction=Number(m.direction);
     if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');
-    if(manualLocos.has(id)&&deadman.enabled&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per canviar el sentit.');
+    if(manualLocos.has(id)&&deadman.enabled&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premuda la tecla per canviar el sentit.');
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
     requireArmed();const id=String(m.locoId||''),fn=Number(m.fn);
