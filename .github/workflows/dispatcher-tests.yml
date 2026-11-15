@@ -28,6 +28,7 @@ jobs:
           node --check traffic-core.js
           node --check safety-core.js
           node --check automation-core.js
+          node --check deadman-core.js
           node --check traffic.js
           node --check traffic-bridge.js
       - name: Install local bridge dependencies
@@ -40,6 +41,8 @@ jobs:
         run: node tests/automation.cjs
       - name: Traffic state-machine tests
         run: node tests/traffic.cjs
+      - name: Dead-man vigilance sequence tests
+        run: node tests/deadman.cjs
       - name: Dispatcher unit tests
         run: node tests/dispatcher.cjs
       - name: Dispatcher UI integration tests
