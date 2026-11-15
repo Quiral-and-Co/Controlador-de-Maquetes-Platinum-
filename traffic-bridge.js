@@ -103,7 +103,6 @@ wss.on('connection',ws=>{
     requireArmed();const id=String(m.locoId||''),direction=Number(m.direction);
     if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');
     if(manualLocos.has(id)&&deadman.enabled&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per canviar el sentit.');
-    if(manualLocos.has(id)&&deadman.enabled&&(!deadman.pressed||deadman.tripped))throw new Error('Home mort: mantén premut el pedal per canviar el sentit.');
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
     requireArmed();const id=String(m.locoId||''),fn=Number(m.fn);
