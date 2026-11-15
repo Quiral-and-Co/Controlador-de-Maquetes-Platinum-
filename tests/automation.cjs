@@ -21,7 +21,7 @@ assert.equal(a.addSchedule(state, input, routes, locomotives).ok, false);
 assert.equal(a.evaluateSchedule(state.schedules[0], new Date(2026,10,16,8,29), safe).status, 'WAIT');
 assert.equal(a.evaluateSchedule(state.schedules[0], monday, safe).status, 'READY');
 assert.equal(a.evaluateSchedule(state.schedules[0], new Date(2026,10,16,8,34), safe).status, 'MISSED');
-assert.equal(a.evaluateSchedule(state.schedules[0], new Date(2026,10,17,8,31), safe).status, 'WAIT');
+assert.equal(a.evaluateSchedule(state.schedules[0], new Date(2026,10,22,8,31), safe).status, 'WAIT');
 assert.equal(a.evaluateSchedule(state.schedules[0], monday, { ...safe, safetyValidated: false }).status, 'BLOCKED');
 assert.equal(a.evaluateSchedule(state.schedules[0], monday, { ...safe, jmriPower: 'UNKNOWN' }).status, 'BLOCKED');
 assert.equal(a.evaluateSchedule(state.schedules[0], monday, { ...safe, blockStates: { ...safe.blockStates, B02: 'UNKNOWN' } }).status, 'BLOCKED');
