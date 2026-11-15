@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JMRI TC Gold Custom · Editor 0.9</title><link rel="stylesheet" href="styles.css">
+  <title>JMRI TC Gold Custom · Editor 0.9</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dispatcher.css">
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>JMRI TC Gold Custom</strong><small>Editor de maqueta · versió 0.9</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn active">Mode clàssic</button><button id="modeModern" class="mode-btn">Mode modern</button></div></header>
@@ -19,11 +19,29 @@
     <aside class="properties-panel"><h2>Propietats</h2><div id="emptyProperties" class="muted small">Selecciona una peça del tauler o afegeix-ne una des de la paleta.</div><div id="pieceProperties" class="hidden"><label>ID<input id="propId" readonly></label><label>Nom<input id="propName"></label><label>Tipus<input id="propType" readonly></label><label>X (mm)<input id="propX" type="number" step="10"></label><label>Y (mm)<input id="propY" type="number" step="10"></label><label>Rotació (°)<input id="propRotation" type="number" step="15"></label><label>Longitud (mm)<input id="propLength" type="number" min="20" step="10"></label><label>Radi (mm)<input id="propRadius" type="number" min="20" step="10"></label><label>Angle de corba (°)<input id="propAngle" type="number" min="1" max="179" step="1"></label><label>Bloc del nivell<select id="propBlock"><option value="">Sense bloc</option></select></label><label>Sensor del nivell<select id="propSensor"><option value="">Sense sensor</option></select></label><label>Nivell assignat<select id="propLevel"></select></label><button id="moveLevelBtn" class="wide">Moure peça al nivell seleccionat</button><div class="property-actions"><button id="duplicateBtn">Duplicar</button><button id="rotateBtn">Girar +15°</button><button id="deleteBtn" class="danger">Eliminar</button></div><button id="portModeBtn" class="wide">Activar connexió manual de ports</button><p id="portStatus" class="small muted">Desactivat. Activa el mode i selecciona dos ports concrets al tauler.</p><button id="connectBtn2" class="wide">Connexió ràpida (ports més propers)</button><p class="small muted">La connexió manual exigeix coincidència geomètrica ≤ 1 mm i no mou ni gira peces automàticament.</p></div><div class="panel-card safety-card"><strong>Control segur</strong><p>Editor offline: cap ordre operativa s'envia a la CS2.</p></div></aside>
   </section>
   <section class="panel-card topology-card"><h3>Diagnòstic topològic</h3><p id="topologyReport" class="small muted">Encara no s’ha executat la validació. Les boques obertes són informatives mentre el traçat no estigui definit.</p></section>
+  <section class="dispatcher-panel" aria-labelledby="dispatcherTitle">
+    <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Dispatcher · despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Simulació local</span></div>
+    <div class="dispatcher-warning"><strong>Mode segur:</strong> aquest mòdul només simula ocupació i reserves. No envia ordres a locomotores, desviaments ni rutes de JMRI. Un bloc desconegut mai no es considera lliure.</div>
+    <div class="dispatcher-metrics">
+      <article class="dispatcher-metric"><span>Blocs lliures</span><strong id="dispatcherFreeCount">0</strong></article>
+      <article class="dispatcher-metric"><span>Blocs ocupats</span><strong id="dispatcherOccupiedCount">0</strong></article>
+      <article class="dispatcher-metric"><span>Estat desconegut</span><strong id="dispatcherUnknownCount">0</strong></article>
+      <article class="dispatcher-metric"><span>Blocs reservats</span><strong id="dispatcherReservedCount">0</strong></article>
+    </div>
+    <div class="dispatcher-columns">
+      <section class="dispatcher-subpanel"><h3>Estat dels blocs</h3><p class="dispatcher-help">Canvia l’estat manualment per provar la lògica del despatxador. És una simulació, no una lectura certificada del maquinari.</p><div id="dispatcherBlocks" class="dispatcher-block-list"></div></section>
+      <section class="dispatcher-subpanel"><h3>Itineraris</h3><p class="dispatcher-help">Escriu els identificadors dels blocs en ordre, separats per comes. Exemple: B01, B02, B03.</p>
+        <div class="dispatcher-create"><input id="dispatcherRouteName" placeholder="Nom de l’itinerari" aria-label="Nom de l’itinerari"><input id="dispatcherRouteBlocks" placeholder="B01, B02" aria-label="Identificadors dels blocs"><button id="dispatcherCreateRoute" class="primary" type="button">Crear</button></div>
+        <div id="dispatcherRoutes" class="dispatcher-route-list"></div>
+      </section>
+    </div>
+    <p id="dispatcherMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Crea blocs al registre de recursos per començar.</p>
+  </section>
   <section class="resource-grid">
     <article class="panel-card resource-card"><h3>Blocs lògics · nivell actual</h3><p class="small muted">Els blocs són agrupacions de disseny; no reserven trens ni activen automatismes.</p><div class="resource-create"><input id="newBlockName" placeholder="Nom del bloc (p. ex. B01)" aria-label="Nom del bloc"><button id="addBlockBtn">Crear bloc</button></div><div id="blockRegistry" class="resource-list">Sense blocs definits.</div></article>
     <article class="panel-card resource-card"><h3>Sensors JMRI · nivell actual</h3><p class="small muted">System name JMRI únic. Cada sensor nou queda no verificat fins a contrastar-lo amb el maquinari.</p><div class="resource-create"><input id="newSensorSystemName" placeholder="System name (p. ex. LS101)" aria-label="System name del sensor"><input id="newSensorUserName" placeholder="Nom visible (opcional)" aria-label="Nom visible del sensor"><button id="addSensorBtn">Registrar sensor</button></div><div id="sensorRegistry" class="resource-list">Sense sensors registrats.</div></article>
   </section>
   <section class="monitor-grid"><div class="panel-card"><h3>Connexió JMRI · només lectura</h3><p id="connectionText" class="muted">No hi ha cap sessió activa.</p><p class="small">WebSocket: <code id="endpointText">ws://127.0.0.1:12080/json/</code></p></div><div class="panel-card"><h3>Estat dels sensors assignats</h3><div id="sensorSummary" class="muted small">Encara no hi ha sensors assignats a peces.</div></div><div class="panel-card"><h3>Registre</h3><ol id="eventLog" class="event-log"><li>Editor 0.6 iniciat.</li></ol></div></section>
   <section id="modernPanel" class="modern-panel hidden"><h2>Vista moderna · resum de peces i sensors</h2><div id="modernBlocks" class="modern-blocks"></div></section>
-</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="app.js"></script>
+</main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="dispatcher-core.js"></script><script src="app.js"></script><script src="dispatcher.js"></script>
 </body></html>
