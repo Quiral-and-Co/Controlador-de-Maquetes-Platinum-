@@ -28,11 +28,6 @@ const config = {
     { id: 'B01', name: 'B01', trackIds: ['T1'], sensorIds: [] },
     { id: 'B02', name: 'B02', trackIds: ['T2'], sensorIds: [] },
     { id: 'B03', name: 'B03', trackIds: ['T3'], sensorIds: ['S1'], verified: true }
-  ] }],
-  levels: [{ id: 1, name: 'Nivell 1', blocks: [
-    { id: 'B01', name: 'B01', trackIds: ['T1'], sensorIds: [] },
-    { id: 'B02', name: 'B02', trackIds: ['T2'], sensorIds: [] },
-    { id: 'B03', name: 'B03', trackIds: ['T3'], sensorIds: ['S1'], verified: true }
   ], sensors: [{ id: 'S1', systemName: 'LS101', verified: false, invert: false }] }],
   dispatcher: { routes: [] }
 };
