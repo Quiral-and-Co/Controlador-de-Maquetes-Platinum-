@@ -85,12 +85,12 @@ wss.on('connection',ws=>{
    }else if(m.type==='deadmanConfigure'){const result=DeadmanCore.configure(deadman,m.enabled===true);if(!result.ok)throw new Error(result.error);publishDeadman();
    }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
    }else if(m.type==='deadmanRelease'){if(!deadman.enabled)throw new Error('Home mort no disponible.');DeadmanCore.release(deadman,Date.now());deadmanLastHeartbeat=Date.now();publishDeadman();
-   }else if(m.type==='deadmanHeartbeat'){if(deadman.enabled&&deadman.pressed)deadmanLastHeartbeat=Date.now();
+   }else if(m.type==='deadmanRearm'){if(!deadman.tripped)throw new Error('No cal rearmament: el watchdog no està disparat.');DeadmanCore.rearm(deadman);publishDeadman();}else if(m.type==='deadmanHeartbeat'){if(deadman.enabled&&deadman.pressed)deadmanLastHeartbeat=Date.now();
    }else if(m.type==='acquire'){
     requireArmed();
     const id=String(m.locoId||''),match=/^([SL])(\d+)$/.exec(id),n=match?Number(match[2]):NaN;
     if(!match||(match[1]==='S'&&(n<1||n>127))||(match[1]==='L'&&(n<128||n>10239)))throw new Error('Adreça DCC no vàlida.');
-    if(m.manual===true){manualLocos.add(id);DeadmanCore.configure(deadman,true);}else manualLocos.delete(id);write('M0+'+id+'<;>'+id);
+    if(m.manual===true){manualLocos.add(id);DeadmanCore.configure(deadman,m.deadmanEnabled!==false);}else manualLocos.delete(id);write('M0+'+id+'<;>'+id);
     const timer=setTimeout(()=>{pendingAcquire.delete(id);send(ws,{type:'acquireTimeout',locoId:id,message:'JMRI no ha confirmat l’adquisició de la locomotora.'});},5000);
     pendingAcquire.set(id,timer);send(ws,{type:'acquiring',locoId:id});
    }else if(m.type==='speed'){
@@ -102,7 +102,7 @@ wss.on('connection',ws=>{
    }else if(m.type==='direction'){
     requireArmed();const id=String(m.locoId||''),direction=Number(m.direction);
     if(!acquired.has(id)||![0,1].includes(direction))throw new Error('Locomotora no adquirida o sentit invàlid.');
-    if(manualLocos.has(id)&&deadmanEnabled&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de canviar el sentit.');\n    if(manualLocos.has(id)&&deadmanEnabled&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de canviar el sentit.');
+    if(manualLocos.has(id)&&deadmanEnabled&&(!deadmanActive||Date.now()-deadmanLast>2000))throw new Error('Home mort: mantén premut el control de presència abans de canviar el sentit.');
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
     requireArmed();const id=String(m.locoId||''),fn=Number(m.fn);
