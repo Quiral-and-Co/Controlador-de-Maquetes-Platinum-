@@ -46,7 +46,7 @@
       if (!(infrastructure.ertms === true && String(infrastructure.ertmsLevel || '') === 'BCA' && infrastructure.highSpeed === true)) ids = ids.filter(x => x !== 'PARADA_SELECTIVA');
     }
     if (signal.type === 'ADVANCED' && infrastructure.followingEntryHasReverseTurnout !== true) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
-    if (signal.type === 'PROTECTION' && signal.alsoAdvanced !== true) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
+    if (signal.type === 'PROTECTION' && (signal.alsoAdvanced !== true || infrastructure.followingEntryHasReverseTurnout !== true)) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
     if (signal.type === 'ENTRY' && infrastructure.departureTurnoutReverse !== true) ids = ids.filter(x => x !== 'ANUNCIO_PRECAUCION');
     if (signal.type === 'EXIT') {
       const bab = block === 'BAB' && infrastructure.fromMainTrack === true && infrastructure.departureTurnoutReverse === true;
