@@ -58,6 +58,7 @@ if(!els.pieceLayer.children.some(x=>x.innerHTML.includes('turnout-indicator')))t
 els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.textContent!=='Nivell 1')throw Error('Unsafe move with assigned block/sensor was not blocked');
 els.propBlock.value='';els.propBlock.handlers.change({target:els.propBlock});
 els.propSensor.value='';els.propSensor.handlers.change({target:els.propSensor});
+els.propTurnout.value='';els.propTurnout.handlers.change({target:els.propTurnout});
 els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.textContent!=='Nivell 2')throw Error('Piece level reassignment failed');
 (async()=>{
   const legacy={schemaVersion:2,name:'Legacy',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
