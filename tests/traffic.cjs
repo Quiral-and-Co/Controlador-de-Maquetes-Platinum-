@@ -9,8 +9,9 @@ assert.equal(traffic.addLocomotive(state,{id:'L1',name:'Märklin BR 01',address:
 assert.equal(traffic.addLocomotive(state,{id:'L2',name:'Duplicate',address:'1234',addressType:'L'}).ok,false);
 const routes=[{id:'R1',name:'Estació a estació',blockIds:['B01','B02','B03']}];
 const created=traffic.createRun(state,{locomotiveId:'L1',routeId:'R1',mode:'AUTO',maxSpeed:90},routes);
-assert.equal(created.ok,true);\nassert.equal(runSpeed(created.run),18);
-const run=created.run;\nfunction runSpeed(r){return r.maxSpeed;}
+assert.equal(created.ok,true);
+assert.equal(created.run.maxSpeed,20,'automatic mode has a hard speed-step ceiling');
+const run=created.run;
 const snapshot={blockStates:{B01:'OCCUPIED',B02:'FREE',B03:'FREE'},reservations:{}};
 const safe={jmriConnected:true,jmriPower:'ON',bridgeConnected:true,dccArmed:true,sensorDataValid:true,hasUnverifiedTurnouts:false};
 assert.equal(traffic.preflight(run,routes[0],snapshot,{...safe,jmriPower:'UNKNOWN'}).ok,false,'unknown power blocks start');
