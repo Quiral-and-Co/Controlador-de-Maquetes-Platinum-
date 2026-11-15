@@ -67,7 +67,7 @@
     const id=String(input.id||'').trim(), name=String(input.name||'').trim(), type=String(input.type||'');
     if (!id || !name) return {ok:false,error:'La senyal necessita identificador i nom.'};
     if (!BASE[type]) return {ok:false,error:'Tipus de senyal desconegut.'};
-    const signal={id,name,type,blockSystem:String(input.blockSystem||infrastructure.blockSystem||'BA').toUpperCase(),vmax:Number(input.vmax||infrastructure.vmax||120),alsoAdvanced:input.alsoAdvanced===true,head:String(input.head||'HIGH'),aspect:String(input.aspect||'PARADA'),blockIds:Array.isArray(input.blockIds)?[...new Set(input.blockIds.map(String))]:[],nextSignalId:String(input.nextSignalId||''),enabled:input.enabled!==false};
+    const signal={id,name,type,blockSystem:String(input.blockSystem||infrastructure.blockSystem||'BA').toUpperCase(),vmax:Number(input.vmax||infrastructure.vmax||120),alsoAdvanced:input.alsoAdvanced===true,head:String(input.head||'HIGH'),aspect:String(input.aspect||'PARADA'),blockIds:Array.isArray(input.blockIds)?[...new Set(input.blockIds.map(String))]:[],protectedBlockId:String(input.protectedBlockId||''),routeId:String(input.routeId||''),nextSignalId:String(input.nextSignalId||''),enabled:input.enabled!==false};
     const allowed=allowedAspects(signal,infrastructure);
     if (!allowed.includes(signal.aspect)) signal.aspect='PARADA';
     return {ok:true,signal,allowedAspects:allowed};
