@@ -21,7 +21,7 @@
   <section class="panel-card topology-card"><h3>Diagnòstic topològic</h3><p id="topologyReport" class="small muted">Encara no s’ha executat la validació. Les boques obertes són informatives mentre el traçat no estigui definit.</p></section>
   <section class="dispatcher-panel" aria-labelledby="dispatcherTitle">
     <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Dispatcher · despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Sensors JMRI + simulació</span></div>
-    <div class="dispatcher-warning"><strong>Mode segur:</strong> els blocs amb sensors verificats calculen l’ocupació des de JMRI; els blocs sense sensors continuen en simulació. La reserva és local i no envia ordres a locomotores, desviaments ni rutes. Un bloc desconegut mai no es considera lliure.</div>
+    <div class="dispatcher-warning"><strong>Mode segur:</strong> els blocs amb sensors verificats calculen l’ocupació des de JMRI; els blocs sense sensors continuen en simulació. Les reserves són locals; les ordres de locomotora només s'envien des del mòdul de circulacions amb DCC armat. No es controlen desviaments. Un bloc desconegut mai no es considera lliure.</div>
     <div class="dispatcher-metrics">
       <article class="dispatcher-metric"><span>Blocs lliures</span><strong id="dispatcherFreeCount">0</strong></article>
       <article class="dispatcher-metric"><span>Blocs ocupats</span><strong id="dispatcherOccupiedCount">0</strong></article>
