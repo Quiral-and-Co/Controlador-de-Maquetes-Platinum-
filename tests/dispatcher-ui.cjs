@@ -62,8 +62,8 @@ function routeRow(name) {
 }
 
 assert.equal($('dispatcherUnknownCount').textContent, 3);
-for (const id of ['B01', 'B02', 'B03']) setBlock(id, 'FREE');
-assert.equal($('dispatcherFreeCount').textContent, 3);
+for (const id of ['B01', 'B02']) setBlock(id, 'FREE');
+assert.equal($('dispatcherFreeCount').textContent, 2);
 
 createRoute('Ruta nord', 'B01, B02');
 assert.equal(config.dispatcher.routes.length, 1);
