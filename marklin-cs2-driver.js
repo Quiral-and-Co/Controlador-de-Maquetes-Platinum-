@@ -119,7 +119,7 @@ class MarklinCS2Monitor extends EventEmitter {
     const udp = dgram.createSocket({ type: 'udp4', reuseAddr: true });
     this.udp = udp;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => udp.close(), this.options.timeoutMs);
+      const timer = setTimeout(() => {\n        if (settled) return;\n        settled = true; this.udp = null; this.state = 'DISCONNECTED';\n        udp.close(); reject(new Error('Timeout escoltant broadcasts MCAN UDP.'));\n      }, this.options.timeoutMs);
       timer.unref?.();
       let settled = false;
       udp.once('error', error => {
