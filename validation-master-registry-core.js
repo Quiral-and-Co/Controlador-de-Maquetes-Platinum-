@@ -20,7 +20,7 @@
   const counters={...(seed.counters||{})};
   // Rebuild missing/old counters from persisted IDs before allocating new IDs.
   for(const record of records) {
-   const match=String(record.registryId||'').match(/^JMRI-TC-VMR-([A-Z]+)-(\\d+)$/);
+   const match=String(record.registryId||'').match(/^JMRI-TC-VMR-([A-Z]+)-([0-9]+)$/);
    if(!match)continue;
    const type=match[1].toLowerCase(),value=Number(match[2]);
    if(Number.isSafeInteger(value))counters[type]=Math.max(Number(counters[type])||0,value);
