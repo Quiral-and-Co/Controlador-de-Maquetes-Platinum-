@@ -50,7 +50,7 @@ function samePersistedFields(actual, expected, label) {
         c.signals = [{ id:'SIG-'+suffix, name:'Senyal '+suffix }];
         c.levels[0].blocks = [{ id:'BLK-'+suffix, name:'Bloc '+suffix, trackIds:[], sensorIds:[] }];
         c.levels[0].sensors = [{ id:'SNS-'+suffix, systemName:'LS-'+suffix, userName:'Sensor '+suffix, verified:false }];
-        c.levels[0].tracks = [{ id:'TRK-'+suffix, type:'turnout', name:'Desviament '+suffix, turnoutSystemName:'LT-'+suffix }];
+        c.levels[0].tracks = [{ id:'TRK-'+suffix, type:'turnout', name:'Desviament '+suffix, x:100, y:100, rotation:0, levelId:1, blockId:'', sensorName:'', turnoutSystemName:'LT-'+suffix, geometry:{lengthMm:180,radiusMm:360,angleDeg:30} }];
         delete c.validationMasterRegistry;
         window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI.refresh();
       }, {projectId,suffix,name});
