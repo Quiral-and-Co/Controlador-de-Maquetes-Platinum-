@@ -13,7 +13,13 @@
   const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const snap = n => Math.round(Number(n)/GRID)*GRID;
   const pieceName = t => ({straight:'Recta',curve:'Corba',turnout:'Desviament',block:'Bloc lògic',special:'Peça especial'})[t]||t;
-  function makePiece(type){const id=`${type.toUpperCase()}-${String(Date.now()).slice(-6)}-${Math.floor(Math.random()*90+10)}`;return {id,type,name:`${pieceName(type)} ${pieces().length+1}`,x: snap(300+pieces().length*30),y:snap(300+pieces().length*25),rotation:0,levelId:state.selectedLevel,blockId:'',sensorName:'',turnoutSystemName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30}};}
+  let pieceSequence=0;
+  function makePiece(type){
+    const existing=new Set(state.config.levels.flatMap(l=>(l.tracks||[]).map(p=>String(p.id))));
+    let id;
+    do { pieceSequence+=1; id=type.toUpperCase()+'-'+Date.now().toString(36)+'-'+pieceSequence.toString(36); } while(existing.has(id));
+    return {id,type,name:pieceName(type)+' '+(pieces().length+1),x:snap(300+pieces().length*30),y:snap(300+pieces().length*25),rotation:0,levelId:state.selectedLevel,blockId:'',sensorName:'',turnoutSystemName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30}};
+  }
   function localPorts(p){const g=p.geometry||{};const len=Math.max(20,Number(g.lengthMm)||180);if(p.type==='straight')return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'}];if(p.type==='curve'){const a=Math.max(1,Math.min(179,Number(g.angleDeg)||30))*Math.PI/180,r=Math.max(20,Number(g.radiusMm)||360);return [{x:0,y:0,port:'A'},{x:r*Math.sin(a),y:r*(1-Math.cos(a)),port:'B'}];}if(p.type==='turnout')return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'},{x:len*.83,y:-Math.min(120,Number(g.branchOffsetMm)||60),port:'C'}];return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'}];}
   function worldPorts(p){const a=(p.rotation||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return localPorts(p).map(q=>({x:p.x+q.x*c-q.y*s,y:p.y+q.x*s+q.y*c,port:q.port,pieceId:p.id}));}
   function sleeperPath(length,step=20){let d='';for(let x=10;x<length;x+=step)d+=` M${x} -9v18`;return d;}
