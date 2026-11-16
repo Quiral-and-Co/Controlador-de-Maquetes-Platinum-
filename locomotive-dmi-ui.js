@@ -3,10 +3,37 @@
 const core=window.JMRI_TC_LocomotiveDmiCore;if(!core)return;
 const $=id=>document.getElementById(id);
 let maxKmh=160,setpoint=0,currentStep=0,direction=1,brakePercent=0,functions=new Set(),dragging=false;
+const KEY_STORAGE='jmri-tc-dmi-keybindings-v1';
+const KEY_ACTIONS=[{id:'speedUp',label:'Velocitat · augmentar (1 pas DCC)'},{id:'speedDown',label:'Velocitat · reduir (1 pas DCC)'},{id:'presetUp',label:'Consigna prefixada · augmentar (5 km/h)'},{id:'presetDown',label:'Consigna prefixada · reduir (5 km/h)'},{id:'brakeUp',label:'Fre · aplicar (5%)'},{id:'brakeDown',label:'Fre · alliberar (5%)'},...Array.from({length:33},(_,fn)=>({id:'function'+fn,label:'Funció auxiliar F'+fn}))];
+const defaultBindings={speedUp:'BracketRight',speedDown:'BracketLeft',presetUp:'Shift+BracketRight',presetDown:'Shift+BracketLeft',brakeUp:'PageDown',brakeDown:'PageUp'};
+let keyBindings=loadKeyBindings(),captureAction=null;
 const ASPECTS=window.JMRI_TC_SignallingCore?.ASPECTS||{};
 function traffic(){return window.JMRI_TC_TRAFFIC_CONTROL;}
 function routeFor(snapshot){return snapshot?.activeRun?((snapshot.config?.dispatcher?.routes||[]).find(r=>r.id===snapshot.activeRun.routeId)||null):null;}
 function activeLoco(snapshot){return snapshot?.locomotives?.find(l=>l.id===snapshot.activeRun?.locomotiveId)||snapshot?.locomotives?.find(l=>l.id===$('dmiLocomotive')?.value)||null;}
+function loadKeyBindings(){try{return {...defaultBindings,...JSON.parse(localStorage.getItem(KEY_STORAGE)||'{}')};}catch{return {...defaultBindings};}}
+function keyLabel(code){return String(code||'').replace(/^Key/,'').replace(/^Digit/,'').replace('BracketRight',']').replace('BracketLeft','[').replace('PageUp','Re Pàg').replace('PageDown','Av Pàg');}
+function isEditableTarget(target){return !!target?.closest?.('input,textarea,select,[contenteditable="true"]');}
+function renderKeyboardBindings(){
+ const host=$('dmiKeyboardBindings');if(!host)return;host.replaceChildren();
+ KEY_ACTIONS.forEach(action=>{const row=document.createElement('div');row.className='dmi-key-row';const label=document.createElement('label');label.textContent=action.label;const key=document.createElement('strong');key.textContent=captureAction===action.id?'Prem una tecla…':(keyLabel(keyBindings[action.id])||'Sense assignar');const button=document.createElement('button');button.type='button';button.textContent=captureAction===action.id?'Escoltant…':'Canviar';button.onclick=()=>{captureAction=action.id;renderKeyboardBindings();setStatus('Prem la tecla que vols assignar a '+action.label+'.');};const clear=document.createElement('button');clear.type='button';clear.textContent='×';clear.title='Eliminar assignació';clear.onclick=()=>{delete keyBindings[action.id];saveKeyBindings();renderKeyboardBindings();};row.append(label,key,button,clear);host.append(row);});
+}
+function saveKeyBindings(){try{localStorage.setItem(KEY_STORAGE,JSON.stringify(keyBindings));}catch{}}
+function normalizedKey(event){return (event.shiftKey?'Shift+':'')+(event.ctrlKey?'Ctrl+':'')+(event.altKey?'Alt+':'')+(event.metaKey?'Meta+':'')+event.code;}
+function isDmiSafe(){const api=traffic();if(!api?.getSnapshot)return false;const s=api.getSnapshot(),r=s.activeRun;return !!r&&r.status==='RUNNING'&&r.mode==='MANUAL'&&s.bridgeConnected&&s.dccArmed&&s.deadmanHeld&&s.safetyReady;}
+function toggleFunction(fn){const button=$('dmiFunctionButtons').querySelector('button[data-function="'+fn+'"]'),enabled=!functions.has(fn);if(traffic()?.setFunction?.(fn,enabled)){if(enabled)functions.add(fn);else functions.delete(fn);if(button){button.setAttribute('aria-pressed',String(enabled));button.classList.toggle('active',enabled);}}}
+function handleKeyboard(event){
+ if(captureAction){if(event.key==='Escape'){captureAction=null;renderKeyboardBindings();return;}if(['Tab','Shift','Control','Alt','Meta'].includes(event.key))return;event.preventDefault();const code=normalizedKey(event),conflict=KEY_ACTIONS.find(a=>a.id!==captureAction&&keyBindings[a.id]===code);if(conflict){setStatus('Tecla ja assignada a '+conflict.label+'. Tria’n una altra.');return;}keyBindings[captureAction]=code;captureAction=null;saveKeyBindings();renderKeyboardBindings();setStatus('Assignació de teclat desada.');return;}
+ if(event.repeat||isEditableTarget(event.target)||!$('locomotiveDmiPanel')||!isDmiSafe())return;
+ const code=normalizedKey(event),action=KEY_ACTIONS.find(a=>keyBindings[a.id]===code);if(!action)return;event.preventDefault();
+ if(action.id==='speedUp'){const step=Math.min(126,core.kmhToStep(setpoint,maxKmh)+1);setTarget(core.stepToKmh(step,maxKmh));}
+ else if(action.id==='speedDown'){const step=Math.max(0,core.kmhToStep(setpoint,maxKmh)-1);setTarget(core.stepToKmh(step,maxKmh));}
+ else if(action.id==='presetUp')setTarget(setpoint+5);
+ else if(action.id==='presetDown')setTarget(setpoint-5);
+ else if(action.id==='brakeUp')setBrake(brakePercent+5);
+ else if(action.id==='brakeDown')setBrake(brakePercent-5);
+ else if(action.id.startsWith('function'))toggleFunction(Number(action.id.slice(8)));
+}
 function setStatus(message){const node=$('dmiCommandStatus');if(node)node.textContent=message;}
 function setDial(value){setpoint=core.clamp(value,0,maxKmh);$('dmiSetpointValue').textContent=Math.round(setpoint);$('dmiSetpointDial').setAttribute('aria-valuenow',String(Math.round(setpoint)));$('dmiSetpointDial').setAttribute('aria-valuetext',Math.round(setpoint)+' km/h');const angle=core.needleAngle(setpoint,maxKmh);$('dmiSetpointNeedle').setAttribute('transform','rotate('+angle+' 90 90)');$('dmiSetpointArc').style.strokeDasharray=(setpoint/maxKmh*240)+' 240';}
 function renderSpeed(){
@@ -80,6 +107,7 @@ function refresh(){
 }
 function init(){
  if(!$('locomotiveDmiPanel'))return;
+ renderKeyboardBindings();document.addEventListener('keydown',handleKeyboard);
  $('dmiMaxSpeed').value=String(maxKmh);
  $('dmiApplyMax').onclick=()=>{const result=core.validateCalibration($('dmiMaxSpeed').value);if(!result.ok){setStatus(result.error);return;}maxKmh=result.maxKmh;setpoint=core.clamp(setpoint,0,maxKmh);currentStep=core.kmhToStep(currentStep/126*maxKmh,maxKmh);renderSpeed();setStatus('Escala DMI configurada a '+maxKmh+' km/h. Ajusta-la amb dades de calibratge reals de la locomotora.');};
  $('dmiLinearSpeed').oninput=e=>setTarget(e.target.value);
@@ -93,10 +121,10 @@ function init(){
  $('dmiSetpointDial').addEventListener('pointerup',()=>{dragging=false;});
  $('dmiSetpointDial').addEventListener('pointercancel',()=>{dragging=false;});
  $('dmiSetpointDial').addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();setTarget(setpoint+1);}else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();setTarget(setpoint-1);}else if(e.key==='Home'){e.preventDefault();setTarget(0);}});
- $('dmiFunctionButtons').addEventListener('click',e=>{const button=e.target.closest('button[data-function]');if(!button)return;const fn=Number(button.dataset.function),enabled=!functions.has(fn);if(traffic()?.setFunction?.(fn,enabled)){if(enabled)functions.add(fn);else functions.delete(fn);button.setAttribute('aria-pressed',String(enabled));button.classList.toggle('active',enabled);}});
+ $('dmiFunctionButtons').addEventListener('click',e=>{const button=e.target.closest('button[data-function]');if(button)toggleFunction(Number(button.dataset.function));});
  $('dmiLocomotive').onchange=()=>{const source=$('trafficLoco');if(source)source.value=$('dmiLocomotive').value;};
  renderSpeed();refresh();setInterval(refresh,1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.JMRI_TC_LOCOMOTIVE_DMI={refresh,setTarget,getCalibration:()=>({maxKmh})};
+window.JMRI_TC_LOCOMOTIVE_DMI={refresh,setTarget,getCalibration:()=>({maxKmh}),getKeyBindings:()=>({...keyBindings})};
 })();
