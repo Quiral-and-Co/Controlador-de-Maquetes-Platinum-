@@ -4,6 +4,9 @@
  const TYPES=Object.freeze(['signal','block','sensor','turnout']);
  const labels={signal:'Senyal',block:'Bloc',sensor:'Sensor',turnout:'Desviament'};
  const list=v=>Array.isArray(v)?v:[];
+ let actSequence=0;
+ function ensureProjectId(config={},createId){if(!config.projectId){config.projectId=String(createId?createId():config.validationMasterRegistry?.projectId||('JMRI-TC-PROJECT-'+nowIso().replace(/[-:.TZ]/g,'')));}return String(config.projectId);}
+ function storageKey(projectId){return 'jmri-tc-validation-master-registry-v1:'+encodeURIComponent(String(projectId));}
  const nowIso=now=>new Date(now===undefined?Date.now():now).toISOString();
  function entitySource(config={}) {
   const out=[];
@@ -69,7 +72,7 @@
   const entries=state.records.filter(r=>r.present!==false).map(r=>({...r})).sort((a,b)=>a.type.localeCompare(b.type)||a.registryId.localeCompare(b.registryId));
   const counts={total:entries.length,pending:0,failed:0,softwareReady:0,physicalReady:0};
   for(const r of entries){if(r.status==='FAILED')counts.failed++;else if(r.status==='PENDING_SOFTWARE'||r.status==='PENDING')counts.pending++;else if(r.status==='SOFTWARE_READY')counts.softwareReady++;else if(r.status==='PHYSICAL_READY')counts.physicalReady++;}
-  const actId=PREFIX+'-ACT-'+nowIso(options.now).replace(/[-:.TZ]/g,'').slice(0,14)+'-'+String(state.audit.length+1).padStart(4,'0');
+  const actId=PREFIX+'-ACT-'+nowIso(options.now).replace(/[-:.TZ]/g,'')+'-'+String(++actSequence).padStart(4,'0');
   const lines=['# ACTA DE VALIDACIÓ · '+(options.projectName||config.name||'JMRI TC Gold Custom'),'','- Acta: '+actId,'- Projecte: '+(options.projectId||state.projectId),'- Data: '+nowIso(options.now),'- Versió del registre: '+VERSION,'','## Resum','', '| Total | Pendents de programari | Preparats per inspecció física | Validació física registrada | No conformitats |','|---:|---:|---:|---:|---:|','| '+[counts.total,counts.pending,counts.softwareReady,counts.physicalReady,counts.failed].join(' | ')+' |','','## Registre individual','','| Identificador VMR | Tipus | Element | Estat | Comprovacions pendents |','|---|---|---|---|---|'];
   const cell=value=>String(value??'').replaceAll('|','\\|').replaceAll('\r',' ').replaceAll('\n',' ');
   entries.forEach(r=>lines.push('| '+cell(r.registryId)+' | '+cell(labels[r.type]||r.type)+' | '+cell(r.name||r.sourceId)+' ('+cell(r.sourceId)+') | '+cell(r.status)+' | '+cell((r.validation?.missing||[]).join(', '))+' |'));
@@ -89,7 +92,7 @@
   if(!storage||typeof storage.setItem!=='function')return{ok:false,error:'Persistència no disponible.'};
   try{storage.setItem(key,serialize(state));return{ok:true};}catch(e){return{ok:false,error:String(e?.message||e)};}
  }
- const api={VERSION,PREFIX,TYPES,entitySource,createState,reconcile,updateValidation,appendNote,buildAct,serialize,load,save};
+ const api={VERSION,PREFIX,TYPES,entitySource,ensureProjectId,storageKey,createState,reconcile,updateValidation,appendNote,buildAct,serialize,load,save};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.JMRI_TC_ValidationMasterRegistry=api;
 })(typeof window!=='undefined'?window:globalThis);
