@@ -51,7 +51,7 @@ for (const id of ['signalRegistry', 'signalId', 'signalCurrentAspect', 'signalMe
 }
 document.getElementById('signalId').value = 'SIG1';
 
-const now = 100000;
+const now = Date.now();
 const config = {
   signallingInfrastructure: { blockSystem: 'BA', vmax: 200 },
   levels: [{
