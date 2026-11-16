@@ -31,7 +31,7 @@
     const entry=findModel(manufacturer,model);
     if(!entry)return result(false,null,'Fabricant i model no inclosos al catàleg suportat.');
     if(!entry.protocols.includes(protocol))return result(false,null,'El protocol no està declarat per a aquest model.');
-    const type=String(connection.type||'');
+    const type=String(input.interface||connection.type||'');
     if(!entry.interfaces.includes(type))return result(false,null,'La interfície no està declarada per a aquest model.');
     const host=String(connection.host||'').trim();
     const port=connection.port===''||connection.port==null?null:Number(connection.port);
