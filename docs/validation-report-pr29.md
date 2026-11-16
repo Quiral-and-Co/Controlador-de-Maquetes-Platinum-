@@ -15,9 +15,9 @@
 |---|---|---|---|
 | [#579](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43953581406) | `3073ea5d989a53ae583661eddf3b80f7fee216f7` | Dispatcher and editor tests | SUCCESS |
 | [#580](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43953618305) | `3073ea5d989a53ae583661eddf3b80f7fee216f7` | Dispatcher and editor tests | SUCCESS |
-| [#585](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954048874) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | EN CURS / PENDENT |
+| [#584](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954035805) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |\n| [#585](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954048874) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |
 
-Les execucions #579 i #580 van completar amb èxit la CI completa, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. Aquestes execucions són evidència només del SHA indicat; no cobreixen els commits posteriors.
+Les execucions #579 i #580 van completar amb èxit la CI completa, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. Les execucions #584 i #585 són evidència completa del SHA indicat i inclouen les proves afegides de fallada/recuperació. No cobreixen els commits documentals posteriors.
 
 ## Proves de fallada i recuperació afegides
 
@@ -31,17 +31,17 @@ La mateixa suite ja cobreix heartbeat i lectures caducades, alimentació OFF/UNK
 
 ## Estat de la VMR
 
-- VMR-023 — seqüència Senyal 1 / Senyal 2: PENDENT de CI del SHA actual.
-- VMR-024 — aspectes i transicions: evidència de proves inclosa a #579/#580; cal tornar-la a validar amb el SHA actual.
-- VMR-025 — traçabilitat de senyalització RFIG: documentada; pendent de tancar amb CI actual i revisió.
-- VMR-026 — fallada i recuperació: proves afegides; PENDENT de CI del SHA actual.
+- VMR-023 — seqüència Senyal 1 / Senyal 2: PASS-CI a #584/#585, SHA `b722e1b`.
+- VMR-024 — aspectes i transicions: PASS-CI a #584/#585, SHA `b722e1b`.
+- VMR-025 — traçabilitat de senyalització RFIG: PASS-CI documental i de proves a #584/#585, SHA `b722e1b`.
+- VMR-026 — fallada i recuperació: PASS-CI a #584/#585, SHA `b722e1b`.
 - Requisits físics VMR-016 a VMR-020 i autorització VMR-022: PENDENT-FÍSIC.
 - VMR-021 (referència Digikeijs ADJ9000): NO-VERIFICAT.
 
 ## Incidències i limitacions pendents
 
-1. Cal que la CI completa del SHA `b722e1b5269796fb2d02f8fd4b94f94701b8f393` acabi en verd. Si falla, corregir i repetir tota la suite.
-2. Cal revisar el resultat final de les proves de recuperació; la recuperació mai no pot armar automàticament sortides físiques.
+1. La CI #584/#585 del SHA `b722e1b5269796fb2d02f8fd4b94f94701b8f393` és verda. La PR continua oberta i en esborrany fins a revisar la CI del commit documental actual.
+2. La recuperació només es produeix després de reavaluar amb telemetria vàlida; no ha d'armar automàticament sortides físiques.
 3. Cal inspecció elèctrica individual, verificació del cablejat, fusibles, polaritat i parada d'emergència física independent.
 4. Cal validar en banc els models, protocols i firmware de les centrals reals.
 5. Aquesta acta no és una certificació ADIF/RFIG, no valida distàncies de frenada reals ni substitueix un enclavament ferroviari homologat.
