@@ -37,9 +37,11 @@ function refresh(){
   const activeRoutes=routes.filter(route=>activeRouteIds.has(route.id));
   document.querySelectorAll('#trackSvg [data-turnout]').forEach(node=>{
     const name=node.getAttribute('data-turnout');
-    const relevant=activeRoutes.flatMap(route=>core.routeRequirements(route,c).filter(req=>req.systemName===name).map(req=>({route,result:core.inspectRoute(route,c,t,a,now)})));
+    const candidates=(activeRoutes.length?activeRoutes:routes).filter(route=>core.routeRequirements(route,c).some(req=>req.systemName===name));
+    const expectedStates=new Set(candidates.flatMap(route=>core.routeRequirements(route,c).filter(req=>req.systemName===name).map(req=>req.requiredState)));
+    const relevant=expectedStates.size===1?candidates.map(route=>({route,result:core.inspectRoute(route,c,t,a,now)})):[];
     node.classList.remove('supervision-aligned','supervision-misaligned','supervision-unknown');
-    if(!relevant.length){node.dataset.supervision='UNCOMMITTED';return;}
+    if(!relevant.length){node.dataset.supervision=candidates.length?'AMBIGUOUS':'UNCOMMITTED';return;}
     const failed=relevant.flatMap(x=>x.result.incidents);
     const status=failed.some(x=>x.code==='TURNOUT_MISALIGNED')?'MISALIGNED':failed.length?'UNKNOWN':'ALIGNED';
     node.dataset.supervision=status;node.classList.add('supervision-'+status.toLowerCase());
