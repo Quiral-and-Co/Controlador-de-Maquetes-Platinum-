@@ -111,10 +111,14 @@ function samePersistedFields(actual, expected, label) {
     samePersistedFields(importedA, exportedA, 'project A re-import');
 
     const captureActs = async () => {
-      const waits = [page.waitForEvent('download'), page.waitForEvent('download')];
+      const downloads = [];
+      const onDownload = download => downloads.push(download);
+      page.on('download', onDownload);
       await page.getByRole('button', { name:'Generar acta Markdown + JSON' }).click();
-      const downloads = await Promise.all(waits);
+      await page.waitForTimeout(500);
+      page.off('download', onDownload);
       const names = downloads.map(d => d.suggestedFilename());
+      console.log('Captured validation downloads:', names.join(', '));
       const md = names.find(n => n.endsWith('.md'));
       const json = names.find(n => n.endsWith('.json'));
       assert.ok(md && json, 'each validation act must download Markdown and JSON');
