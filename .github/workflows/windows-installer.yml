@@ -32,10 +32,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -53,7 +53,7 @@ jobs:
         run: |
           $installer = Get-ChildItem -Path dist -Filter '*.exe' -File
           if (-not $installer) {
-            throw 'No s’ha generat cap instal·lador NSIS .exe.'
+            throw 'No NSIS installer .exe was generated.'
           }
           $installer | ForEach-Object {
             Write-Host "Installer: $($_.FullName) ($($_.Length) bytes)"
