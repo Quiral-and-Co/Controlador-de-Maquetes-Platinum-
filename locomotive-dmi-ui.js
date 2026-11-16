@@ -18,7 +18,7 @@ function renderSpeed(){
 }
 function setTarget(value,send=true){
  setpoint=core.clamp(value,0,maxKmh);$('dmiLinearSpeed').value=String(Math.round(setpoint));setDial(setpoint);
- if(send){const step=core.kmhToStep(setpoint,maxKmh),api=traffic();if(!api?.setSpeed){setStatus('Comandament no disponible: cal una circulació manual activa.');return;}api.setSpeed(step);currentStep=step;renderSpeed();setStatus('Consigna enviada: '+Math.round(setpoint)+' km/h (pas DCC '+step+'/126). La velocitat real requereix telemetria calibrada.');}
+ if(send){const step=core.kmhToStep(setpoint,maxKmh),api=traffic();if(!api?.setSpeed){setStatus('Comandament no disponible: cal una circulació manual activa.');return;}if(api.setSpeed(step)){currentStep=step;renderSpeed();setStatus('Consigna acceptada: '+Math.round(setpoint)+' km/h (pas DCC '+step+'/126). La velocitat real requereix telemetria calibrada.');}else setStatus('Consigna no enviada: comprova circulació, home mort i interbloqueigs.');}
 }
 function dialValue(event){
  const rect=$('dmiSetpointDial').getBoundingClientRect(),x=event.clientX-(rect.left+rect.width/2),y=event.clientY-(rect.top+rect.height/2);
