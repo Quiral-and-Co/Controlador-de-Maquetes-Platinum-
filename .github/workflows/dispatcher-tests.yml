@@ -47,6 +47,10 @@ jobs:
           node --check jmri-turnout-supervision.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: VMR real-browser integration tests
+        run: npm run test:browser
       - name: Safety core tests
         run: node tests/safety.cjs
       - name: Safety bridge integration tests
@@ -76,5 +80,7 @@ jobs:
         run: node tests/jmri-dispatcher-diagnostics.cjs
       - name: Turnout and route supervision failure/recovery tests
         run: node tests/jmri-turnout-supervision.cjs
-      - name: Full regression and fail-safe suite
+      - name: Full regression and fail-safe suite — run 1
+        run: npm test
+      - name: Full regression and fail-safe suite — run 2
         run: npm test
