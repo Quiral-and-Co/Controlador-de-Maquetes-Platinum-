@@ -136,3 +136,13 @@ La selecció d'una senyal al registre ressalta al tauler les peces de via relaci
 **Límit de seguretat:** els estats de la matriu són registres declaratius de l'operador, no mesures instrumentals. Cap casella habilita sortides. DCC i automatització física continuen bloquejats fins a completar proves de programari, inspecció del cablejat i proteccions, i prova d'una parada d'emergència física independent. Consulta [docs/signalling-diagnostics-validation.md](docs/signalling-diagnostics-validation.md).
 
 Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm test`.
+
+
+## Navegació del tauler 2D (0.10)
+
+- **Zoom:** roda del ratolí centrada al cursor o botons +/−; l’indicador mostra el percentatge respecte de la vista completa.
+- **Desplaçament:** mantén Espai i arrossega amb el botó principal, o arrossega amb el botó central.
+- **Ajustar:** «Ajusta a superfície» retorna la vista completa de 3000 × 1800 mm.
+- El zoom està limitat entre 10% i 1000%; el desplaçament no perd l’àrea de la maqueta. En allunyar més enllà de l’ajust, es poden veure marges al voltant del tauler.
+- La navegació canvia exclusivament el `viewBox` SVG: no modifica coordenades en mm, geometries, connexions, blocs, sensors ni el JSON exportat.
+- Proves: `node --check viewport-core.js`, `node tests/viewport.cjs` i `node tests/smoke.cjs`.
