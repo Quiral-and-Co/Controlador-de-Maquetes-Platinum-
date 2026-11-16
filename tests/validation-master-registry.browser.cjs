@@ -21,13 +21,11 @@ const server = http.createServer((req, res) => {
 
 function samePersistedFields(actual, expected, label) {
   assert.equal(actual.projectId, expected.projectId, label + ': projectId');
-  assert.deepEqual(actual.records.map(r => ({
+  const fields = value => value.records.map(r => ({
     registryId:r.registryId, identityKey:r.identityKey, status:r.status,
     notes:r.notes, validation:r.validation
-  })), expected.records.map(r => ({
-    registryId:r.registryId, identityKey:r.identityKey, status:r.status,
-    notes:r.notes, validation:r.validation
-  })), label + ': identifiers, annotations and statuses');
+  }));
+  assert.deepEqual(fields(actual), fields(expected), label + ': identifiers, annotations and statuses');
   assert.deepEqual(actual.audit, expected.audit, label + ': audit trail');
 }
 
@@ -42,26 +40,40 @@ function samePersistedFields(actual, expected, label) {
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
 
-    const installProject = async (projectId, suffix, name) => {
-      await page.evaluate(({projectId,suffix,name}) => {
-        const c = window.JMRI_TC_DISPATCHER.getConfig();
-        c.projectId = projectId;
-        c.name = name;
-        c.signals = [{ id:'SIG-'+suffix, name:'Senyal '+suffix }];
-        c.levels[0].blocks = [{ id:'BLK-'+suffix, name:'Bloc '+suffix, trackIds:[], sensorIds:[] }];
-        c.levels[0].sensors = [{ id:'SNS-'+suffix, systemName:'LS-'+suffix, userName:'Sensor '+suffix, verified:false }];
-        c.levels[0].tracks = [{ id:'TRK-'+suffix, type:'turnout', name:'Desviament '+suffix, x:100, y:100, rotation:0, levelId:1, blockId:'', sensorName:'', turnoutSystemName:'LT-'+suffix, geometry:{lengthMm:180,radiusMm:360,angleDeg:30} }];
-        delete c.validationMasterRegistry;
-        window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI.refresh();
-      }, {projectId,suffix,name});
-      await page.waitForFunction(id => {
-        const s = window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry;
-        return s && s.projectId === id && s.records.length === 4;
-      }, projectId);
-      return page.evaluate(() => JSON.parse(JSON.stringify(window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry)));
+    const makeProjectFixture = async (projectId, suffix, name) => page.evaluate(({projectId,suffix,name}) => {
+      const c = JSON.parse(JSON.stringify(window.JMRI_TC_DISPATCHER.getConfig()));
+      c.projectId = projectId;
+      c.name = name;
+      c.signals = [{ id:'SIG-'+suffix, name:'Senyal '+suffix }];
+      c.levels[0].blocks = [{ id:'BLK-'+suffix, name:'Bloc '+suffix, trackIds:[], sensorIds:[], lengthMm:0, verified:false }];
+      c.levels[0].sensors = [{ id:'SNS-'+suffix, systemName:'LS-'+suffix, userName:'Sensor '+suffix, verified:false, invert:false }];
+      c.levels[0].tracks = [{
+        id:'TRK-'+suffix, type:'turnout', name:'Desviament '+suffix,
+        x:100, y:100, rotation:0, levelId:1, blockId:'', sensorName:'',
+        turnoutSystemName:'LT-'+suffix, geometry:{lengthMm:180,radiusMm:360,angleDeg:30}
+      }];
+      delete c.validationMasterRegistry;
+      return c;
+    }, {projectId,suffix,name});
+
+    const importProject = async (project, filename) => {
+      await page.locator('#configFile').setInputFiles({
+        name:filename, mimeType:'application/json', buffer:Buffer.from(JSON.stringify(project))
+      });
+      await page.waitForFunction(id =>
+        window.JMRI_TC_DISPATCHER.getConfig().projectId === id &&
+        window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry?.records.length === 4,
+        project.projectId
+      );
+      return page.evaluate(() => JSON.parse(JSON.stringify(
+        window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry
+      )));
     };
 
-    const projectA = await installProject('vmr-browser-project-A', 'A', 'Projecte de navegador A');
+    const fixtureA = await makeProjectFixture('vmr-browser-project-A', 'A', 'Projecte de navegador A');
+    const projectA = await importProject(fixtureA, 'project-A.json');
+    assert.ok(projectA.records.every(r => r.sourceId.endsWith('-A')));
+
     const noteInput = page.locator('#validationMasterRegistry input[placeholder="Nota de revisió / incidència"]');
     await noteInput.fill('Anotació exclusiva del projecte A');
     await page.getByRole('button', { name:'Afegir nota' }).click();
@@ -84,7 +96,8 @@ function samePersistedFields(actual, expected, label) {
       window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry
     ))), 'project A export');
 
-    const projectB = await installProject('vmr-browser-project-B', 'B', 'Projecte de navegador B');
+    const fixtureB = await makeProjectFixture('vmr-browser-project-B', 'B', 'Projecte de navegador B');
+    const projectB = await importProject(fixtureB, 'project-B.json');
     assert.notEqual(projectB.projectId, projectA.projectId);
     assert.ok(projectB.records.every(r => r.sourceId.endsWith('-B')), 'project B must contain only its own source records');
     assert.ok(projectB.records.every(r => r.notes.length === 0), 'project A annotations must not leak into project B');
@@ -94,17 +107,7 @@ function samePersistedFields(actual, expected, label) {
     assert.ok(storageKeys.some(k => k.endsWith('vmr-browser-project-A')));
     assert.ok(storageKeys.some(k => k.endsWith('vmr-browser-project-B')), 'projects must use separate browser storage keys');
 
-    await page.locator('#configFile').setInputFiles({
-      name:'project-A-export.json', mimeType:'application/json',
-      buffer:Buffer.from(JSON.stringify(exportedProject))
-    });
-    await page.waitForFunction(() =>
-      window.JMRI_TC_DISPATCHER.getConfig().projectId === 'vmr-browser-project-A' &&
-      window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry?.records.length === 4
-    );
-    const importedA = await page.evaluate(() => JSON.parse(JSON.stringify(
-      window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry
-    )));
+    const importedA = await importProject(exportedProject, 'project-A-export.json');
     samePersistedFields(importedA, exportedA, 'project A re-import');
 
     const captureActs = async () => {
@@ -129,17 +132,7 @@ function samePersistedFields(actual, expected, label) {
     page = await context.newPage();
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
-    await page.locator('#configFile').setInputFiles({
-      name:'project-A-after-browser-restart.json', mimeType:'application/json',
-      buffer:Buffer.from(JSON.stringify(exportedProject))
-    });
-    await page.waitForFunction(() =>
-      window.JMRI_TC_DISPATCHER.getConfig().projectId === 'vmr-browser-project-A' &&
-      window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry?.records.length === 4
-    );
-    const afterRestart = await page.evaluate(() => JSON.parse(JSON.stringify(
-      window.JMRI_TC_DISPATCHER.getConfig().validationMasterRegistry
-    )));
+    const afterRestart = await importProject(exportedProject, 'project-A-after-browser-restart.json');
     samePersistedFields(afterRestart, exportedA, 'project A after browser restart and import');
 
     console.log('PASS: Chromium UI project isolation, project JSON download/import, browser close/reopen, VMR IDs/status/notes/audit persistence, and unique consecutive validation acts');
