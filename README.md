@@ -127,3 +127,12 @@ El motor `automation-core.js` valida horaris, dies, finestres d’inici i veloci
 **Límit deliberat:** el planificador només valida i registra; no envia ordres físiques ni inicia trens. `safetyValidated` s’ha de derivar de l’estat actual de `JMRI_TC_SAFETY.canEnablePhysical(runtime)`, mai d’un valor persistent. La parada d’emergència física independent i les proteccions elèctriques continuen sent obligatòries. Consulta `docs/automation-1.3.md`.
 
 Proves: `node tests/automation.cjs` i `npm test`.
+
+
+## Diagnòstic de senyals i matriu de validació física (1.4.0)
+
+La selecció d'una senyal al registre ressalta al tauler les peces de via relacionades amb el bloc protegit i l'itinerari complet. El diagnòstic resumeix incidències per nivell. La matriu individual manté comprovacions separades per senyal, bloc, sensor i desviament, distingint revisió de programari i inspecció física. Les anotacions s'exporten amb el projecte JSON a `validationMatrix`.
+
+**Límit de seguretat:** els estats de la matriu són registres declaratius de l'operador, no mesures instrumentals. Cap casella habilita sortides. DCC i automatització física continuen bloquejats fins a completar proves de programari, inspecció del cablejat i proteccions, i prova d'una parada d'emergència física independent. Consulta [docs/signalling-diagnostics-validation.md](docs/signalling-diagnostics-validation.md).
+
+Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm test`.
