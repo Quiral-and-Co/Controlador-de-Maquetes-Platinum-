@@ -59,9 +59,14 @@
       const route=(snapshot.routes||[]).find(r=>r.id===signal.routeId);
       const routeReserved=!!route&&route.blockIds?.length>0&&route.blockIds.includes(blockId)&&route.blockIds.every(id=>snapshot.reservations?.[id]===route.id);
       const turnouts=communication?turnoutChecks(signal,config,telemetry,now,maxAge):{verified:false,aligned:false,reverse:false,reason:'Comunicació JMRI absent o heartbeat obsolet.'};
-      const next=signals.find(s=>s.id===signal.nextSignalId);
-      const missingNext=!!signal.nextSignalId&&!next;
+      const next1Id=signal.nextSignal1Id||signal.nextSignalId||'';
+      const next2Id=signal.nextSignal2Id||'';
+      const next=signals.find(s=>s.id===next1Id),next2=signals.find(s=>s.id===next2Id);
+      const missingNext=!!next1Id&&!next;
+      const missingNext2=!!next2Id&&!next2;
+      const invalidNextOrder=!!next2Id&&(!next||!next2||String(next.nextSignal1Id||next.nextSignalId||'')!==next2Id);
       const nextResult=next?calculate(next):null;
+      const next2Result=next2?calculate(next2):null;
       const conditions={
         blockState,occupied:blockState==='OCCUPIED',routeReserved,
         turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,
@@ -71,8 +76,9 @@
         protectionChecks:signal.protectionChecks===true
       };
       const derived=core.deriveAspect(signal,conditions,config.signallingInfrastructure||{});
-      const cycle=nextResult?.cycle===true;
-      const result={aspect:cycle||missingNext?'PARADA':derived.aspect,cycle:cycle||missingNext,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':missingNext?'Senyal següent configurada però inexistent: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
+      const cycle=nextResult?.cycle===true||next2Result?.cycle===true;
+      const brokenSequence=missingNext||missingNext2||invalidNextOrder;
+      const result={aspect:cycle||brokenSequence?'PARADA':derived.aspect,cycle:cycle||brokenSequence,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':brokenSequence?'Relació Senyal 1 / Senyal 2 absent, inexistent o fora d’ordre: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
       visiting.delete(signal.id);results[signal.id]=result;return result;
     }
     for(const signal of signals)calculate(signal);
