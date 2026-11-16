@@ -104,7 +104,18 @@
           <svg viewBox="0 0 180 180" aria-hidden="true"><path id="dmiSetpointArc" class="dmi-dial-arc" d="M24 130 A70 70 0 1 1 156 130"/><path id="dmiSetpointNeedle" class="dmi-dial-needle" d="M90 90 L90 24" transform="rotate(-135 90 90)"/></svg>
           <div class="dmi-dial-center"><strong id="dmiSetpointValue">0</strong><span>km/h · consigna</span></div>
         </div></div>
-        <label class="dmi-linear-control">Deslizador lineal · 0 a màxim <strong id="dmiLinearValue">0 km/h</strong><input id="dmiLinearSpeed" type="range" min="0" max="160" step="1" value="0" disabled></label>
+        <div class="dmi-lever-bank">
+          <section class="dmi-lever speed-lever"><h4>Velocitat</h4><strong id="dmiLinearValue">0 km/h</strong>
+            <div class="dmi-vertical-range"><span>MAX</span><input id="dmiLinearSpeed" type="range" min="0" max="160" step="1" value="0" disabled aria-label="Velocitat: zero a baix, màxima a dalt"><span>0</span></div>
+            <div class="dmi-fine-adjust"><button id="dmiSpeedMinus" type="button" disabled aria-label="Reduir velocitat un pas DCC">➖</button><button id="dmiSpeedPlus" type="button" disabled aria-label="Augmentar velocitat un pas DCC">➕</button></div>
+            <small>Ajust fi · un pas DCC</small>
+          </section>
+          <section class="dmi-lever brake-lever"><h4>Fre de servei</h4><strong id="dmiBrakeValue">Alliberat · 0%</strong>
+            <div class="dmi-vertical-range brake-range"><span>Alliberat</span><input id="dmiBrakeSlider" type="range" min="0" max="100" step="1" value="0" disabled aria-label="Fre: alliberat a dalt, màxim a baix"><span>Màxim</span></div>
+            <small>Redueix la consigna de tracció</small>
+            <button id="dmiEmergency" class="dmi-emergency" type="button" disabled>EMERGÈNCIA</button>
+          </section>
+        </div>
         <button id="dmiDirection" class="dmi-direction" type="button" disabled>▶ ENDAVANT / canviar sentit</button>
         <p class="dmi-help">Per invertir el sentit, posa primer la consigna a 0 km/h. El comandament també exigeix la porta de seguretat i el dispositiu d’home mort.</p>
       </section>
