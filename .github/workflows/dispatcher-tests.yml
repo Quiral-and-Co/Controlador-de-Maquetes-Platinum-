@@ -39,6 +39,8 @@ jobs:
           node --check signalling-topology-ui.js
           node --check physical-validation-core.js
           node --check physical-validation-ui.js
+          node --check validation-master-registry-core.js
+          node --check validation-master-registry-ui.js
           node --check jmri-dispatcher-diagnostics-core.js
           node --check jmri-dispatcher-diagnostics.js
           node --check jmri-turnout-supervision-core.js
