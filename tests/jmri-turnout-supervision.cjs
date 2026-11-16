@@ -40,7 +40,14 @@ assert.equal(result.ok,true,'fresh aligned feedback restores the diagnostic stat
 assert.equal(result.status,'ALIGNED','recovery is observed, not an automatic movement or reservation');
 assert.equal(core.normalizePosition(0),'UNKNOWN');
 assert.equal(core.normalizeExpected('4'),'THROWN');
+const initialLabel='Desviament · recte';
+const once=core.supervisionAriaLabel(initialLabel,'ALIGNED');
+const twice=core.supervisionAriaLabel(once,'ALIGNED');
+const afterTransition=core.supervisionAriaLabel(once,'MISALIGNED');
+assert.equal(once,'Desviament · recte · supervisió ALIGNED');
+assert.equal(twice,once,'repeated SVG refreshes must not append duplicate accessibility labels');
+assert.equal(afterTransition,'Desviament · recte · supervisió MISALIGNED','state changes replace the prior accessible status');
 const dispatcherState=dispatcherCore.createState();
 dispatcherCore.setRoutes(dispatcherState,[route]);
 assert.deepEqual(dispatcherState.routes[0].turnoutRequirements,route.turnoutRequirements,'Dispatcher route normalization preserves required turnout positions');
-console.log('PASS: turnout alignment, stale feedback, communication loss, verification, invalid states, Dispatcher route persistence and safe recovery');
+console.log('PASS: turnout alignment, stale feedback, communication loss, verification, invalid states, stable SVG accessibility labels, Dispatcher route persistence and safe recovery');
