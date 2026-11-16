@@ -45,7 +45,8 @@ function refresh(){
     const failed=relevant.flatMap(x=>x.result.incidents);
     const status=failed.some(x=>x.code==='TURNOUT_MISALIGNED')?'MISALIGNED':failed.length?'UNKNOWN':'ALIGNED';
     node.dataset.supervision=status;node.classList.add('supervision-'+status.toLowerCase());
-    node.setAttribute('aria-label',(node.getAttribute('aria-label')||name)+' · supervisió '+status);
+    if(!node.dataset.supervisionBaseLabel)node.dataset.supervisionBaseLabel=node.getAttribute('aria-label')||name;
+    node.setAttribute('aria-label',core.supervisionAriaLabel(node.dataset.supervisionBaseLabel,status));
   });
   return{aligned,blocked,unknown,incidents};
 }
