@@ -2,7 +2,7 @@
 'use strict';
 const core=window.JMRI_TC_LocomotiveDmiCore;if(!core)return;
 const $=id=>document.getElementById(id);
-let maxKmh=160,setpoint=0,currentStep=0,direction=1,functions=new Set(),dragging=false;
+let maxKmh=160,setpoint=0,currentStep=0,direction=1,brakePercent=0,functions=new Set(),dragging=false;
 const ASPECTS=window.JMRI_TC_SignallingCore?.ASPECTS||{};
 function traffic(){return window.JMRI_TC_TRAFFIC_CONTROL;}
 function routeFor(snapshot){return snapshot?.activeRun?((snapshot.config?.dispatcher?.routes||[]).find(r=>r.id===snapshot.activeRun.routeId)||null):null;}
@@ -16,9 +16,21 @@ function renderSpeed(){
  $('dmiLinearSpeed').max=String(maxKmh);$('dmiLinearSpeed').value=String(Math.round(setpoint));$('dmiLinearValue').textContent=Math.round(setpoint)+' km/h';
  setDial(setpoint);
 }
+function sendTractionCommand(){
+ const effectiveKmh=setpoint*(1-brakePercent/100),step=core.kmhToStep(effectiveKmh,maxKmh),api=traffic();
+ if(!api?.setSpeed){setStatus('Comandament no disponible: cal una circulació manual activa.');return false;}
+ if(api.setSpeed(step)){currentStep=step;renderSpeed();setStatus('Tracció acceptada: '+Math.round(effectiveKmh)+' km/h equivalents · fre '+brakePercent+'%.');return true;}
+ setStatus('Ordre no enviada: comprova circulació, home mort i interbloqueigs.');return false;
+}
 function setTarget(value,send=true){
  setpoint=core.clamp(value,0,maxKmh);$('dmiLinearSpeed').value=String(Math.round(setpoint));setDial(setpoint);
- if(send){const step=core.kmhToStep(setpoint,maxKmh),api=traffic();if(!api?.setSpeed){setStatus('Comandament no disponible: cal una circulació manual activa.');return;}if(api.setSpeed(step)){currentStep=step;renderSpeed();setStatus('Consigna acceptada: '+Math.round(setpoint)+' km/h (pas DCC '+step+'/126). La velocitat real requereix telemetria calibrada.');}else setStatus('Consigna no enviada: comprova circulació, home mort i interbloqueigs.');}
+ if(send)sendTractionCommand();
+}
+function setBrake(value,send=true){
+ brakePercent=core.clamp(value,0,100);
+ $('dmiBrakeSlider').value=String(brakePercent);
+ $('dmiBrakeValue').textContent=brakePercent===0?'Alliberat · 0%':brakePercent===100?'Màxim · 100%':'Frenada · '+brakePercent+'%';
+ if(send)sendTractionCommand();
 }
 function dialValue(event){
  const rect=$('dmiSetpointDial').getBoundingClientRect(),x=event.clientX-(rect.left+rect.width/2),y=event.clientY-(rect.top+rect.height/2);
@@ -63,7 +75,7 @@ function refresh(){
  $('dmiSafetyState').textContent=safe?'CONDUCCIÓ SUPERVISADA':'CONTROL BLOQUEJAT · '+(run?'verifica DCC, home mort i interbloqueigs':'inicia una circulació manual');
  $('dmiSafetyState').className=safe?'dmi-safety ready':'dmi-safety locked';
  const controls=$('dmiFunctionButtons');if(controls)controls.querySelectorAll('button').forEach(b=>b.disabled=!safe);
- $('dmiDirection').disabled=!safe;$('dmiLinearSpeed').disabled=!safe;$('dmiSetpointDial').setAttribute('aria-disabled',String(!safe));
+ $('dmiDirection').disabled=!safe;$('dmiLinearSpeed').disabled=!safe;$('dmiSetpointDial').setAttribute('aria-disabled',String(!safe));$('dmiSpeedMinus').disabled=!safe;$('dmiSpeedPlus').disabled=!safe;$('dmiBrakeSlider').disabled=!safe;$('dmiEmergency').disabled=!run||!snapshot.bridgeConnected;
  renderSignals(snapshot);renderTurnouts(snapshot);
 }
 function init(){
@@ -71,6 +83,10 @@ function init(){
  $('dmiMaxSpeed').value=String(maxKmh);
  $('dmiApplyMax').onclick=()=>{const result=core.validateCalibration($('dmiMaxSpeed').value);if(!result.ok){setStatus(result.error);return;}maxKmh=result.maxKmh;setpoint=core.clamp(setpoint,0,maxKmh);currentStep=core.kmhToStep(currentStep/126*maxKmh,maxKmh);renderSpeed();setStatus('Escala DMI configurada a '+maxKmh+' km/h. Ajusta-la amb dades de calibratge reals de la locomotora.');};
  $('dmiLinearSpeed').oninput=e=>setTarget(e.target.value);
+ $('dmiSpeedMinus').onclick=()=>{const step=Math.max(0,core.kmhToStep(setpoint,maxKmh)-1);setTarget(core.stepToKmh(step,maxKmh));};
+ $('dmiSpeedPlus').onclick=()=>{const step=Math.min(126,core.kmhToStep(setpoint,maxKmh)+1);setTarget(core.stepToKmh(step,maxKmh));};
+ $('dmiBrakeSlider').oninput=e=>setBrake(e.target.value);
+ $('dmiEmergency').onclick=()=>{const api=traffic();if(api?.emergencyStop?.())setStatus('EMERGÈNCIA sol·licitada. Comprova físicament que el tren s’ha aturat.');else setStatus('No s’ha pogut enviar l’ordre d’emergència. Actua sobre la parada física independent.');};
  $('dmiDirection').onclick=()=>{direction=direction===1?0:1;const api=traffic();const ok=api?.setDirection?.(direction);if(ok){$('dmiDirection').textContent=direction===1?'▶ ENDAVANT':'◀ ENRERE';setStatus('Canvi de sentit sol·licitat.');}};
  $('dmiSetpointDial').addEventListener('pointerdown',e=>{if($('dmiSetpointDial').getAttribute('aria-disabled')==='true')return;dragging=true;$('dmiSetpointDial').setPointerCapture?.(e.pointerId);setTarget(dialValue(e));});
  $('dmiSetpointDial').addEventListener('pointermove',e=>{if(dragging)setTarget(dialValue(e));});
