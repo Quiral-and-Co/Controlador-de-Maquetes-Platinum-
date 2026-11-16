@@ -47,7 +47,8 @@ window.JMRI_TC_TRAFFIC_CONTROL={
   return{config:config(),locomotives:runtime.locomotives.map(x=>({...x})),activeRun:run?{...run}:null,bridgeConnected,dccArmed,deadmanHeld,safetyReady:gate.ok};
  },
  setSpeed(value){return manualSpeed(value);},
- setDirection(value){manualDirection(value);},
+ setDirection(value){return manualDirection(value);},
+ emergencyStop(){const run=activeRun();if(!run||!bridgeConnected)return false;emergency(run);return true;},
  setFunction(fn,enabled){
   const run=activeRun(),route=routeById(run?.routeId),loco=locoById(run?.locomotiveId);
   if(!run||run.mode!=='MANUAL'||!route||!loco){log('Funció bloquejada: no hi ha circulació manual activa.');return false;}
