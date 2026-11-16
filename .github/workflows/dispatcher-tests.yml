@@ -39,6 +39,8 @@ jobs:
           node --check signalling-topology-ui.js
           node --check physical-validation-core.js
           node --check physical-validation-ui.js
+          node --check jmri-dispatcher-diagnostics-core.js
+          node --check jmri-dispatcher-diagnostics.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Safety core tests
@@ -66,5 +68,7 @@ jobs:
         run: node tests/physical-validation.cjs
       - name: Integrated SVG, Dispatcher and signalling UI tests
         run: node tests/signalling-ui-integration.cjs
+      - name: JMRI live diagnostics tests
+        run: node tests/jmri-dispatcher-diagnostics.cjs
       - name: Full regression and fail-safe suite
         run: npm test
