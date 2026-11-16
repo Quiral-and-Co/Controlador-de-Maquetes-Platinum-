@@ -11,7 +11,7 @@ const storage={data:{},getItem(k){return this.data[k]||null;},setItem(k,v){this.
 assert.equal(vmr.save(s,storage).ok,true);const loaded=vmr.load(storage);assert.equal(loaded.records.length,4);assert.equal(loaded.audit.length,s.audit.length);
 const projectExport=JSON.stringify({name:config.name,signals:config.signals,levels:config.levels,validationMasterRegistry:loaded});
 const reloadedProject=JSON.parse(projectExport);
-const afterProjectReload=vmr.createState(reloadedProject.validationMasterRegistry);
+delete reloadedProject.validationMasterRegistry.counters;const afterProjectReload=vmr.createState(reloadedProject.validationMasterRegistry);
 assert.equal(afterProjectReload.records.length,4);
 const next=vmr.reconcile(afterProjectReload,{...config,signals:[{id:'S2',name:'Sortida'}]},7000);
 assert.equal(next.length,1);
