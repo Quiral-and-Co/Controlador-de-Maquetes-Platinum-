@@ -11,3 +11,9 @@ Les senyals es desen a `config.signals` del projecte. El simulador aplica criter
 **Límit de seguretat:** és un mòdul de maqueta i simulació, no un enclavament homologat ni un sistema ferroviari de seguretat. No habilita sortides físiques ni substitueix l'E-stop cablejat independent. Manteniu DCC i automatització física bloquejats fins a validar programari, cablejat i proteccions amb proves reals.
 
 Referències: [Catàleg Oficial de Senyals, BOE-A-2017-556](https://www.boe.es/eli/es/o/2016/12/30/fom2015/con), apartat 1.5 i capítol 2; [Reglament de Circulació Ferroviària, BOE-A-2015-8042](https://www.boe.es/eli/es/rd/2015/07/17/664/con).
+
+## Validació de seqüència i aspectes
+
+El camp `nextSignal1Id` identifica la primera senyal posterior i `nextSignal2Id` la següent després de Senyal 1; `nextSignalId` es conserva com a àlies de compatibilitat de Senyal 1. El validador de seqüència comprova existència, itinerari, ordre dels blocs segons `direction` (`FORWARD` per defecte o `REVERSE`), continuïtat declarada i dependències cícliques. Si no hi ha itinerari verificable, emet un avís i no afirma haver comprovat l'ordre físic.
+
+Els aspectes es calculen segons la funció de la senyal i les condicions d'infraestructura. Les proves automatitzades cobreixen compatibilitat, transicions condicionades per la senyal següent, ocupació, estat desconegut i autoritzacions explícites. Aquestes proves són de simulació; no validen distàncies de frenada reals ni constitueixen una certificació RFIG.

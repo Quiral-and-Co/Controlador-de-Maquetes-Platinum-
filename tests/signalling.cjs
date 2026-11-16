@@ -23,3 +23,15 @@ assert.equal(c.deriveAspect({type:'INTERIOR',enabled:true},{blockState:'FREE',ro
 assert.equal(c.deriveAspect({type:'INTERIOR',enabled:true},{blockState:'FREE',routeReserved:true,turnoutsVerified:true,turnoutsAligned:true,authorisation:'MOVEMENT',explicitAuthorisation:true},infra).aspect,'MOVIMIENTO_AUTORIZADO');
 console.log('ADIF signalling core tests: OK');
 const pair=c.validateSignal({id:'PAIR',name:'Senyal amb seqüència',type:'ENTRY',nextSignal1Id:'S1',nextSignal2Id:'S2'},infra);assert.equal(pair.ok,true);assert.equal(pair.signal.nextSignal1Id,'S1');assert.equal(pair.signal.nextSignal2Id,'S2');assert.equal(pair.signal.nextSignalId,'S1');assert.equal(c.validateSignal({id:'SELF',name:'Autoreferència',type:'ENTRY',nextSignal1Id:'SELF'},infra).ok,false);assert.equal(c.validateSignal({id:'DUP',name:'Duplicada',type:'ENTRY',nextSignal1Id:'S1',nextSignal2Id:'S1'},infra).ok,false);assert.ok(c.TYPES.ENTRY_INTERIOR);assert.ok(c.TYPES.EXIT_INTERIOR);assert.ok(c.TYPES.RETROCESS);assert.ok(c.TYPES.ROUTE_INDICATOR);assert.ok(c.TYPES.LEVEL_CROSSING);assert.equal(c.TYPES.INTERMEDIATE,'Intermèdia / plena via');
+
+const ready={blockState:'FREE',routeReserved:true,turnoutsVerified:true,turnoutsAligned:true};
+const entry={id:'E2',name:'Entrada',type:'ENTRY',blockSystem:'BA',vmax:120,enabled:true};
+assert.equal(c.deriveAspect(entry,{...ready,nextAspect:'PARADA'},infra).aspect,'ANUNCIO_PARADA');
+assert.equal(c.deriveAspect(entry,{...ready,nextAspect:'PARADA',shortBrakingDistance:true},infra).aspect,'ANUNCIO_PARADA_INMEDIATA');
+assert.equal(c.deriveAspect(entry,{...ready,turnoutReverse:true},infra).aspect,'ANUNCIO_PRECAUCION');
+assert.equal(c.deriveAspect(entry,{...ready,nextAspect:'PREANUNCIO_PARADA'},infra).aspect,'PREANUNCIO_PARADA');
+assert.equal(c.deriveAspect(entry,{...ready,emergency:true},infra).aspect,'PARADA');
+assert.equal(c.deriveAspect(entry,{...ready,turnoutsVerified:false},infra).aspect,'PARADA');
+assert.equal(c.deriveAspect(entry,{...ready,blockState:'UNKNOWN'},infra).aspect,'PARADA');
+const conditional={...entry,vmax:200,blockSystem:'BA'};
+assert.equal(c.deriveAspect(conditional,{...ready,nextAspect:'VIA_LIBRE_CONDICIONAL'},infra).aspect,'VIA_LIBRE_CONDICIONAL');
