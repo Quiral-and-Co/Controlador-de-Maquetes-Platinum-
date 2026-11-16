@@ -38,7 +38,9 @@
     if(!entry)return result(false,null,'Fabricant i model no inclosos al catàleg suportat.');
     if(!entry.protocols.includes(protocol))return result(false,null,'El protocol no està declarat per a aquest model.');
     const type=String(input.interface||connection.type||'');
-    if(!entry.interfaces.includes(type))return result(false,null,'La interfície no està declarada per a aquest model.');\n    const mode=entry.modes?.find(x=>x.protocol===protocol);\n    if(mode&&!mode.interfaces.includes(type))return result(false,null,'La combinació de protocol i interfície no està suportada per a aquest model.');
+    if(!entry.interfaces.includes(type))return result(false,null,'La interfície no està declarada per a aquest model.');
+    const mode=entry.modes?.find(x=>x.protocol===protocol);
+    if(mode&&!mode.interfaces.includes(type))return result(false,null,'La combinació de protocol i interfície no està suportada per a aquest model.');
     const host=String(connection.host||'').trim();
     const port=connection.port===''||connection.port==null?null:Number(connection.port);
     const baud=connection.baudRate===''||connection.baudRate==null?null:Number(connection.baudRate);
