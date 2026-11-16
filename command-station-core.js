@@ -16,7 +16,13 @@
     {id:'hornby-elite',manufacturer:'Hornby',models:['Elite'],protocols:['DCC'],interfaces:['USB','Serial']},
     {id:'piko-smartcontrol',manufacturer:'PIKO',models:['SmartControl','SmartControl WLAN'],protocols:['DCC'],interfaces:['TCP','Wi-Fi']},
     {id:'dcc-ex',manufacturer:'DCC-EX',models:['EX-CommandStation'],protocols:['DCC-EX Native','DCC'],interfaces:['USB','Serial','TCP','Wi-Fi']},
-    {id:'sprog',manufacturer:'SPROG',models:['SPROG 3','SPROG 4','SPROG 5'],protocols:['DCC'],interfaces:['USB','Serial']}
+    {id:'sprog',manufacturer:'SPROG',models:['SPROG 3','SPROG 4','SPROG 5'],protocols:['DCC'],interfaces:['USB','Serial']},
+    {id:'uhlenbrock-ib1',manufacturer:'Uhlenbrock',models:['Intellibox','Intellibox I'],protocols:['LocoNet'],interfaces:['Serial']},
+    {id:'uhlenbrock-ib2',manufacturer:'Uhlenbrock',models:['Intellibox II'],protocols:['LocoNet'],interfaces:['USB']},
+    {id:'uhlenbrock-ib2neo',manufacturer:'Uhlenbrock',models:['Intellibox II Neo'],protocols:['LocoNet','LocoNet over TCP','Z21 LAN','WiThrottle'],interfaces:['USB','Wi-Fi','TCP'],modes:[{protocol:'LocoNet',interfaces:['USB']},{protocol:'LocoNet over TCP',interfaces:['Wi-Fi','TCP']},{protocol:'Z21 LAN',interfaces:['Wi-Fi','TCP']},{protocol:'WiThrottle',interfaces:['Wi-Fi','TCP']}]},
+    {id:'uhlenbrock-ib3',manufacturer:'Uhlenbrock',models:['Intellibox 3'],protocols:['LocoNet','LocoNet over TCP','Z21 LAN','WiThrottle'],interfaces:['USB','Wi-Fi','TCP'],modes:[{protocol:'LocoNet',interfaces:['USB']},{protocol:'LocoNet over TCP',interfaces:['Wi-Fi','TCP']},{protocol:'Z21 LAN',interfaces:['Wi-Fi','TCP']},{protocol:'WiThrottle',interfaces:['Wi-Fi','TCP']}]},
+    {id:'digikeijs-adj9000',manufacturer:'Digikeijs',models:['ADJ9000 (referència pendent de confirmar)'],protocols:['LocoNet over TCP'],interfaces:['TCP','USB'],catalogueVerification:'UNCONFIRMED'},
+    {id:'yamorc-command-station',manufacturer:'YaMoRC',models:['YaMoRC (model segons unitat)'],protocols:['LocoNet over TCP','LocoNet'],interfaces:['TCP','Wi-Fi','USB','Serial'],modes:[{protocol:'LocoNet over TCP',interfaces:['TCP','Wi-Fi']},{protocol:'LocoNet',interfaces:['USB','Serial']}]}
   ]);
   const PROTOCOLS=Object.freeze(['DCC','MM2','MFX','LocoNet','XpressNet','Z21 LAN','DCC-EX Native','SRCP','CAN/CBUS','BiDiB']);
   const INTERFACES=Object.freeze(['TCP','Wi-Fi','USB','Serial','WebSocket']);
@@ -32,7 +38,7 @@
     if(!entry)return result(false,null,'Fabricant i model no inclosos al catàleg suportat.');
     if(!entry.protocols.includes(protocol))return result(false,null,'El protocol no està declarat per a aquest model.');
     const type=String(input.interface||connection.type||'');
-    if(!entry.interfaces.includes(type))return result(false,null,'La interfície no està declarada per a aquest model.');
+    if(!entry.interfaces.includes(type))return result(false,null,'La interfície no està declarada per a aquest model.');\n    const mode=entry.modes?.find(x=>x.protocol===protocol);\n    if(mode&&!mode.interfaces.includes(type))return result(false,null,'La combinació de protocol i interfície no està suportada per a aquest model.');
     const host=String(connection.host||'').trim();
     const port=connection.port===''||connection.port==null?null:Number(connection.port);
     const baud=connection.baudRate===''||connection.baudRate==null?null:Number(connection.baudRate);
@@ -53,7 +59,7 @@
       id,name,manufacturer,model,protocol,interface:type,
       connection:{host,port,serialPort:String(connection.serialPort||''),baudRate:baud,path:String(connection.path||'/'),timeoutMs},
       notes:String(input.notes||'').slice(0,1000),
-      verified:false,connectionStatus:'NOT_TESTED',physicalOutputsEnabled:false
+      verified:false,catalogueVerification:entry.catalogueVerification||'DOCUMENTED',connectionStatus:'NOT_TESTED',physicalOutputsEnabled:false
     });
   }
   function validateDatabase(db){
