@@ -37,14 +37,13 @@ function refresh(){
   const activeRoutes=routes.filter(route=>activeRouteIds.has(route.id));
   document.querySelectorAll('#trackSvg [data-turnout]').forEach(node=>{
     const name=node.getAttribute('data-turnout');
-    if(!node.dataset.supervisionBaseLabel)node.dataset.supervisionBaseLabel=node.getAttribute('aria-label')||name;
     const relevant=activeRoutes.flatMap(route=>core.routeRequirements(route,c).filter(req=>req.systemName===name).map(req=>({route,result:core.inspectRoute(route,c,t,a,now)})));
     node.classList.remove('supervision-aligned','supervision-misaligned','supervision-unknown');
     if(!relevant.length){node.dataset.supervision='UNCOMMITTED';return;}
     const failed=relevant.flatMap(x=>x.result.incidents);
     const status=failed.some(x=>x.code==='TURNOUT_MISALIGNED')?'MISALIGNED':failed.length?'UNKNOWN':'ALIGNED';
     node.dataset.supervision=status;node.classList.add('supervision-'+status.toLowerCase());
-    node.setAttribute('aria-label',node.dataset.supervisionBaseLabel+' · supervisió '+status);
+    node.setAttribute('aria-label',(node.getAttribute('aria-label')||name)+' · supervisió '+status);
   });
   return{aligned,blocked,unknown,incidents};
 }
