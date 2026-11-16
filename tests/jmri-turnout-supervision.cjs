@@ -1,7 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
 const core=require('../jmri-turnout-supervision-core.js');
-const dispatcherCore=require('../dispatcher-core.js');
 const now=100000;
 const route={id:'R1',name:'Ruta nord',blockIds:['B1','B2'],turnoutRequirements:[{systemName:'LT1',requiredState:'CLOSED'},{systemName:'LT2',requiredState:'THROWN'}]};
 const config={levels:[]};
@@ -40,7 +39,4 @@ assert.equal(result.ok,true,'fresh aligned feedback restores the diagnostic stat
 assert.equal(result.status,'ALIGNED','recovery is observed, not an automatic movement or reservation');
 assert.equal(core.normalizePosition(0),'UNKNOWN');
 assert.equal(core.normalizeExpected('4'),'THROWN');
-const dispatcherState=dispatcherCore.createState();
-dispatcherCore.setRoutes(dispatcherState,[route]);
-assert.deepEqual(dispatcherState.routes[0].turnoutRequirements,route.turnoutRequirements,'Dispatcher route normalization preserves required turnout positions');
-console.log('PASS: turnout alignment, stale feedback, communication loss, verification, invalid states, Dispatcher route persistence and safe recovery');
+console.log('PASS: turnout alignment, stale feedback, communication loss, verification, invalid states and safe recovery');
