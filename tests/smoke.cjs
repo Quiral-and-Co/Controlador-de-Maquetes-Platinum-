@@ -85,6 +85,7 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   let firstB=firstPiece.find(x=>x.dataset.port==='B');
   palette[0].onclick();
   const secondId=els.propId.value;
+  if(firstId===secondId)throw Error('New track piece identifiers must be unique');
   els.propX.value='480';els.propX.handlers.change({target:els.propX});
   els.propY.value='300';els.propY.handlers.change({target:els.propY});
   els.portModeBtn.onclick();
