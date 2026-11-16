@@ -38,7 +38,7 @@
       const row=document.createElement('div');row.className='cs-station-row';
       const details=document.createElement('div');const title=document.createElement('strong');title.textContent=station.name;
       const sub=document.createElement('small');sub.textContent=station.manufacturer+' · '+station.model+' · '+station.protocol+' · '+station.interface;
-      const status=document.createElement('span');status.className='cs-not-tested';status.textContent='Configurada · connexió no provada';
+      const status=document.createElement('span');status.className='cs-not-tested';status.textContent=station.catalogueVerification==='UNCONFIRMED'?'Model no verificat · confirmar referència i manual':'Configurada · connexió no provada';
       details.append(title,sub,status);
       const actions=document.createElement('div');
       const select=document.createElement('button');select.type='button';select.textContent=db.selectedStationId===station.id?'Seleccionada':'Seleccionar';select.onclick=()=>{core.selectStation(db,station.id);persist();render();};
