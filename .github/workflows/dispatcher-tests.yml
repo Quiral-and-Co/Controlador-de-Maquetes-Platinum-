@@ -64,5 +64,7 @@ jobs:
         run: node tests/signalling-topology.cjs
       - name: Physical validation matrix tests
         run: node tests/physical-validation.cjs
+      - name: Integrated SVG, Dispatcher and signalling UI tests
+        run: node tests/signalling-ui-integration.cjs
       - name: Full regression and fail-safe suite
         run: npm test
