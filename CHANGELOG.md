@@ -1,5 +1,13 @@
 # Canvis
 
+## 0.10 — Navegació del tauler 2D
+- Zoom progressiu amb roda del ratolí centrat al cursor i controls accessibles +/−.
+- Desplaçament amb Espai + arrossegar o botó central, limitat a l’àrea de la maqueta.
+- Acció per ajustar novament la vista als 3000 × 1800 mm i indicador de percentatge.
+- La navegació només modifica el viewBox SVG; no altera coordenades, peces, connexions ni dades del projecte.
+- Proves unitàries de límits, ancoratge del zoom i proves d’integració de la UI.
+
+
 ## 1.0 alpha — Dispatcher / despatxador
 - Afegit panell de supervisió de blocs amb estats simulats desconegut, lliure i ocupat.
 - Afegida definició d'itineraris per seqüències de blocs, reserves i alliberaments.
