@@ -6,7 +6,7 @@
 - Branca: `feature/pr29-rfig-signalling-validation`
 - PR: [#29 — validació VMR i seqüència RFIG](https://github.com/tc-jmri-team/jmri-tc-app/pull/29)
 - Main de referència: `3e34d909ba1659debf270425dc4d9052bd224d1f`
-- SHA de la branca amb les proves de fallada/recuperació i la correcció de la matriu: `b722e1b5269796fb2d02f8fd4b94f94701b8f393`
+- SHA de codi cobert per la CI completa més recent: `d35a4d39a18ec91a52d2a59960124e07e778224e`
 - Data de l'acta: 2026-11-16
 
 ## Evidència de CI
@@ -16,9 +16,9 @@
 | [#579](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43953581406) | `3073ea5d989a53ae583661eddf3b80f7fee216f7` | Dispatcher and editor tests | SUCCESS |
 | [#580](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43953618305) | `3073ea5d989a53ae583661eddf3b80f7fee216f7` | Dispatcher and editor tests | SUCCESS |
 | [#584](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954035805) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |
-| [#585](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954048874) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |
+| [#585](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954048874) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |\n| [#591](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954384152) | `d35a4d39a18ec91a52d2a59960124e07e778224e` | Dispatcher and editor tests | SUCCESS |\n| [#592](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954451296) | `d35a4d39a18ec91a52d2a59960124e07e778224e` | Dispatcher and editor tests | SUCCESS |
 
-Les execucions #579 i #580 van completar amb èxit la CI completa, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. Les execucions #584 i #585 són evidència completa del SHA indicat i inclouen les proves afegides de fallada/recuperació. No cobreixen els commits documentals posteriors.
+Les execucions #579/#580, #584/#585 i #591/#592 van completar el workflow complet, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. #591/#592 cobreixen el SHA `d35a4d39a18ec91a52d2a59960124e07e778224e`. Els canvis documentals posteriors de revisió no queden coberts fins a una nova execució.
 
 ## Proves de fallada i recuperació afegides
 
@@ -32,20 +32,29 @@ La mateixa suite ja cobreix heartbeat i lectures caducades, alimentació OFF/UNK
 
 ## Estat de la VMR
 
-- VMR-023 — seqüència Senyal 1 / Senyal 2: PASS-CI a #584/#585, SHA `b722e1b`.
-- VMR-024 — aspectes i transicions: PASS-CI a #584/#585, SHA `b722e1b`.
-- VMR-025 — traçabilitat de senyalització RFIG: PASS-CI documental i de proves a #584/#585, SHA `b722e1b`.
-- VMR-026 — fallada i recuperació: PASS-CI a #584/#585, SHA `b722e1b`.
+- VMR-023 — seqüència Senyal 1 / Senyal 2: PARCIAL-CI; proves unitàries verdes, però falta integrar la validació d'ordre físic del nou mòdul en el flux actiu.
+- VMR-024 — aspectes i transicions: PASS-CI a #591/#592, SHA `d35a4d3`.
+- VMR-025 — traçabilitat: PARCIAL; acta i matriu revisades, pendents de CI del commit documental actual.
+- VMR-026 — fallada i recuperació: PARCIAL-CI; falta demostrar transició fallada→recuperada i restauració d'una referència que abans era absent.
 - Requisits físics VMR-016 a VMR-020 i autorització VMR-022: PENDENT-FÍSIC.
 - VMR-021 (referència Digikeijs ADJ9000): NO-VERIFICAT.
 
+## Resultats de revisió tècnica (punt 1)
+
+- La comparació confirma 13 commits per davant de `main` i 0 per darrere; el merge-base és `3e34d909ba1659debf270425dc4d9052bd224d1f`.
+- Detectada i corregida la representació literal `\\n` a les files VMR-023…VMR-026; abans no eren files Markdown independents.
+- Observació R1: `signalling-sequence-core.js` és un validador nou però no està cridat pel flux de l'aplicació (`signalling-integration.js`/`signalling-integration-core.js`). Cal integrar-lo o retirar l'afirmació que valida l'ordre físic en execució.
+- Observació R2: les dues proves finals de recuperació de `tests/signalling-integration.cjs` són duplicades; `recoveredMissing` no parteix d'una referència absent. `recoveredCommunication` tampoc modela una seqüència temporal de pèrdua i retorn, sinó una nova avaluació amb telemetria sana.
+- Per aquests motius, VMR-023 i VMR-026 es mantenen parcials, no certificats com a PASS.
+
 ## Incidències i limitacions pendents
 
-1. La CI #584/#585 del SHA `b722e1b5269796fb2d02f8fd4b94f94701b8f393` és verda. La PR continua oberta i en esborrany fins a revisar la CI del commit documental actual.
-2. La recuperació només es produeix després de reavaluar amb telemetria vàlida; no ha d'armar automàticament sortides físiques.
-3. Cal inspecció elèctrica individual, verificació del cablejat, fusibles, polaritat i parada d'emergència física independent.
-4. Cal validar en banc els models, protocols i firmware de les centrals reals.
-5. Aquesta acta no és una certificació ADIF/RFIG, no valida distàncies de frenada reals ni substitueix un enclavament ferroviari homologat.
+1. Executar CI completa sobre el SHA documental actual després de la revisió.
+2. Integrar i provar `signalling-sequence-core.js` en el flux real o ajustar l'abast de la VMR i documentació.
+3. Afegir proves de recuperació genuïnes amb estat inicial fallit, reparació explícita i reavaluació; eliminar el duplicat `recoveredMissing`.
+4. Cal inspecció elèctrica individual, verificació del cablejat, fusibles, polaritat i parada d'emergència física independent.
+5. Cal validar en banc els models, protocols i firmware de les centrals reals.
+6. Aquesta acta no és una certificació ADIF/RFIG, no valida distàncies de frenada reals ni substitueix un enclavament ferroviari homologat.
 
 ## Decisió
 
