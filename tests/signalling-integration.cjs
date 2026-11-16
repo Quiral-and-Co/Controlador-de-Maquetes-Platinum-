@@ -46,7 +46,9 @@ assert.equal(bridge.evaluateAll({config:routeConfig,signals:[routeSignal],snapsh
 assert.equal(bridge.evaluateAll({config:routeConfig,signals:[routeSignal],snapshot:routeSnapshot,telemetry:{...routeTelemetry,turnouts:{LT1:2}},signallingCore:signalling,now}).SIG1.aspect,'PARADA','missing later-route turnout feedback forces stop');
 console.log('PASS: signalling SVG/Dispatcher integration fail-safe core');
 
-const s2={...signal,id:'SIG2',nextSignal1Id:'SIG3'},s3={...signal,id:'SIG3'};const ordered=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot,telemetry,signallingCore:signalling,now});assert.equal(ordered.SIG1.aspect,'VIA_LIBRE','valid ordered first and second next signals preserve normal evaluation');const badOrder=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},{...s2,nextSignal1Id:''},s3],snapshot,telemetry,signallingCore:signalling,now});assert.equal(badOrder.SIG1.aspect,'PARADA','second next signal must follow signal 1');const missing2=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'MISSING'},s2],snapshot,telemetry,signallingCore:signalling,now});assert.equal(missing2.SIG1.aspect,'PARADA','missing signal 2 fails safe');
+const sequenceConfig={...config,dispatcher:{routes:[{id:'R1',blockIds:['B1','B2','B3']}]},levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}]}]};
+const sequenceSnapshot={...snapshot,blocks:[...snapshot.blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}],routes:[{id:'R1',blockIds:['B1','B2','B3']}],reservations:{B1:'R1',B2:'R1',B3:'R1'}};
+const s2={...signal,id:'SIG2',protectedBlockId:'B2',nextSignal1Id:'SIG3'},s3={...signal,id:'SIG3',protectedBlockId:'B3'};const ordered=bridge.evaluateAll({config:sequenceConfig,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});assert.equal(ordered.SIG1.aspect,'VIA_LIBRE','valid ordered first and second next signals preserve normal evaluation');const badOrder=bridge.evaluateAll({config:sequenceConfig,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},{...s2,nextSignal1Id:''},s3],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});assert.equal(badOrder.SIG1.aspect,'PARADA','second next signal must follow signal 1');const missing2=bridge.evaluateAll({config:sequenceConfig,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'MISSING'},s2],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});assert.equal(missing2.SIG1.aspect,'PARADA','missing signal 2 fails safe');
 
 // Recovery is a state transition: failure first, then fresh evidence and reevaluation.
 const disconnected=evaluate({telemetry:{...telemetry,connected:false}});
@@ -71,12 +73,10 @@ assert.equal(recoveredPower.aspect,'VIA_LIBRE','new confirmed power ON permits r
 const missingSequence=[{...signal,nextSignal1Id:'MISSING',nextSignal2Id:''}];
 const failedSequence=bridge.evaluateAll({config,signals:missingSequence,snapshot,telemetry,signallingCore:signalling,now});
 assert.equal(failedSequence.SIG1.aspect,'PARADA','missing signal reference starts in restrictive state');
-const repairedSequence=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot,telemetry,signallingCore:signalling,now});
+const repairedSequence=bridge.evaluateAll({config:sequenceConfig,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});
 assert.equal(repairedSequence.SIG1.aspect,'VIA_LIBRE','repaired Senyal 1/Senyal 2 chain recovers after reevaluation');
 
-const sequenceConfig={...config,dispatcher:{routes:[{id:'R1',blockIds:['B1','B2','B3']}]},levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}]}]};
 const physicalChain=[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'}, {...s2,protectedBlockId:'B2'}, {...s3,protectedBlockId:'B3'}];
-const sequenceSnapshot={...snapshot,blocks:[...snapshot.blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}],routes:[{id:'R1',blockIds:['B1','B2','B3']}],reservations:{B1:'R1',B2:'R1',B3:'R1'}};
 const activeOrdered=bridge.evaluateAll({config:sequenceConfig,signals:physicalChain,snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});
 assert.equal(activeOrdered.SIG1.aspect,'VIA_LIBRE','active integration accepts physically ordered signals');
 const activeWrongDirection=bridge.evaluateAll({config:sequenceConfig,signals:[{...physicalChain[0],direction:'REVERSE'},physicalChain[1],physicalChain[2]],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});
