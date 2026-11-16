@@ -22,6 +22,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check app.js
+          node --check viewport-core.js
           node --check catalogue.js
           node --check dispatcher-core.js
           node --check dispatcher.js
@@ -67,6 +68,8 @@ jobs:
         run: node tests/dispatcher-ui.cjs
       - name: Editor regression tests
         run: node tests/smoke.cjs
+      - name: Editor viewport navigation tests
+        run: node tests/viewport.cjs
       - name: Validate example JSON syntax
         run: node -e "JSON.parse(require('fs').readFileSync('config/layout.example.json', 'utf8')); console.log('PASS example JSON')"
 
