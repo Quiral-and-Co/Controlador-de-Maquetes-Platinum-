@@ -71,7 +71,7 @@
   for(const r of entries){if(r.status==='FAILED')counts.failed++;else if(r.status==='PENDING_SOFTWARE'||r.status==='PENDING')counts.pending++;else if(r.status==='SOFTWARE_READY')counts.softwareReady++;else if(r.status==='PHYSICAL_READY')counts.physicalReady++;}
   const actId=PREFIX+'-ACT-'+nowIso(options.now).replace(/[-:.TZ]/g,'').slice(0,14)+'-'+String(state.audit.length+1).padStart(4,'0');
   const lines=['# ACTA DE VALIDACIÓ · '+(options.projectName||config.name||'JMRI TC Gold Custom'),'','- Acta: '+actId,'- Projecte: '+(options.projectId||state.projectId),'- Data: '+nowIso(options.now),'- Versió del registre: '+VERSION,'','## Resum','', '| Total | Pendents de programari | Preparats per inspecció física | Validació física registrada | No conformitats |','|---:|---:|---:|---:|---:|','| '+[counts.total,counts.pending,counts.softwareReady,counts.physicalReady,counts.failed].join(' | ')+' |','','## Registre individual','','| Identificador VMR | Tipus | Element | Estat | Comprovacions pendents |','|---|---|---|---|---|'];
-  const cell=value=>String(value??'').replaceAll('|','\\\\|').replaceAll('\\r',' ').replaceAll('\\n',' ');
+  const cell=value=>String(value??'').replaceAll('|','\\|').replaceAll('\r',' ').replaceAll('\n',' ');
   entries.forEach(r=>lines.push('| '+cell(r.registryId)+' | '+cell(labels[r.type]||r.type)+' | '+cell(r.name||r.sourceId)+' ('+cell(r.sourceId)+') | '+cell(r.status)+' | '+cell((r.validation?.missing||[]).join(', '))+' |'));
   lines.push('','## Anotacions per element','');
   entries.forEach(r=>{if(list(r.notes).length){lines.push('### '+cell(r.registryId)+' · '+cell(r.name||r.sourceId));r.notes.forEach(n=>lines.push('- '+cell(n.at)+' · '+cell(n.author)+': '+cell(n.text)));lines.push('');}});
