@@ -2,7 +2,7 @@
 'use strict';
 const root=window,core=root.JMRI_TC_SignallingCore,bridge=root.JMRI_TC_SignallingIntegrationCore;
 if(!core||!bridge)return;
-const NS='http://www.w3.org/2000/svg';
+const NS='http://www.w3.org/2000/svg',topology=root.JMRI_TC_SignallingTopologyCore;
 const $=id=>document.getElementById(id);
 let installed=false,timer=null;
 function config(){return root.JMRI_TC_DISPATCHER?.getConfig?.()||{};}
@@ -12,7 +12,8 @@ function emergency(){return !!root.JMRI_TC_SAFETY?.state?.fault;}
 function compute(){
  const c=config(),signals=Array.isArray(c.signals)?c.signals:[];
  const result=bridge.evaluateAll({config:c,signals,snapshot:snapshot(),telemetry:telemetry(),signallingCore:core,emergency:emergency()});
- signals.forEach(s=>{const r=result[s.id]||{aspect:'PARADA',reason:'Sense resultat de càlcul.'};s.computedAspect=r.aspect;s.computedReason=r.reason;s.computedAt=r.computedAt;});
+ const topologyResults=topology?topology.inspect(c,signals,snapshot()):{};
+ signals.forEach(s=>{const r=result[s.id]||{aspect:'PARADA',reason:'Sense resultat de càlcul.'},t=topologyResults[s.id];s.computedAspect=t&&!t.ok?'PARADA':r.aspect;s.computedReason=t&&!t.ok?'Vinculació topològica incompleta: '+t.issues.join(' '):r.reason;s.computedAt=r.computedAt;});
  return result;
 }
 function anchor(signal,c){
@@ -21,7 +22,7 @@ function anchor(signal,c){
   const block=(l.blocks||[]).find(b=>b.id===signal.protectedBlockId);
   if(!block)continue;
   const tracks=(l.tracks||[]).filter(p=>p.blockId===block.id);
-  const p=tracks[0];if(!p)continue;
+  const p=tracks.find(t=>String(t.id)===String(signal.trackId))||tracks[0];if(!p)continue;
   const length=Math.max(20,Number(p.geometry?.lengthMm)||180);
   return{levelId:l.id,x:Number(p.x)+length/2,y:Number(p.y)-42};
  }
