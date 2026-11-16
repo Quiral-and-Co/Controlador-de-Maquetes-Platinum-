@@ -76,8 +76,9 @@ assert.equal(repairedSequence.SIG1.aspect,'VIA_LIBRE','repaired Senyal 1/Senyal 
 
 const sequenceConfig={...config,dispatcher:{routes:[{id:'R1',blockIds:['B1','B2','B3']}]},levels:[{...config.levels[0],blocks:[...config.levels[0].blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}]}]};
 const physicalChain=[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'}, {...s2,protectedBlockId:'B2'}, {...s3,protectedBlockId:'B3'}];
-const activeOrdered=bridge.evaluateAll({config:sequenceConfig,signals:physicalChain,snapshot:{...snapshot,routes:[{id:'R1',blockIds:['B1','B2','B3']}]},telemetry,signallingCore:signalling,now});
+const sequenceSnapshot={...snapshot,blocks:[...snapshot.blocks,{id:'B2',verified:true,sensorIds:['S1']},{id:'B3',verified:true,sensorIds:['S1']}],routes:[{id:'R1',blockIds:['B1','B2','B3']}],reservations:{B1:'R1',B2:'R1',B3:'R1'}};
+const activeOrdered=bridge.evaluateAll({config:sequenceConfig,signals:physicalChain,snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});
 assert.equal(activeOrdered.SIG1.aspect,'VIA_LIBRE','active integration accepts physically ordered signals');
-const activeWrongDirection=bridge.evaluateAll({config:sequenceConfig,signals:[{...physicalChain[0],direction:'REVERSE'},physicalChain[1],physicalChain[2]],snapshot:{...snapshot,routes:[{id:'R1',blockIds:['B1','B2','B3']}]},telemetry,signallingCore:signalling,now});
+const activeWrongDirection=bridge.evaluateAll({config:sequenceConfig,signals:[{...physicalChain[0],direction:'REVERSE'},physicalChain[1],physicalChain[2]],snapshot:sequenceSnapshot,telemetry,signallingCore:signalling,now});
 assert.equal(activeWrongDirection.SIG1.aspect,'PARADA','active integration rejects sequence inconsistent with travel direction');
 
