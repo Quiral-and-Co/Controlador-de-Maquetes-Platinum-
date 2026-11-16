@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const vmr=require('../validation-master-registry-core.js');
+const physical=require('../physical-validation-core.js');
+const config={name:'Test',signals:[{id:'S1',name:'Entrada'}],levels:[{id:1,name:'Nivell 1',blocks:[{id:'B1'}],sensors:[{id:'SN1',systemName:'LS1'}],tracks:[{id:'T1',type:'turnout',turnoutSystemName:'LT1'}]}]};
+const s=vmr.createState({projectId:'test'});
+const added=vmr.reconcile(s,config,1000);assert.equal(added.length,4);assert.equal(new Set(s.records.map(r=>r.registryId)).size,4);
+assert.match(s.records[0].registryId,/^JMRI-TC-VMR-/);
+vmr.reconcile(s,config,2000);assert.equal(s.records.length,4);
+vmr.updateValidation(s,config,physical,3000);assert.equal(s.records.every(r=>r.status==='PENDING_SOFTWARE'),true);
+const storage={data:{},getItem(k){return this.data[k]||null;},setItem(k,v){this.data[k]=v;}};
+assert.equal(vmr.save(s,storage).ok,true);const loaded=vmr.load(storage);assert.equal(loaded.records.length,4);assert.equal(loaded.audit.length,s.audit.length);
+const id=s.records[0].registryId;assert.equal(vmr.appendNote(s,id,'Inspecció visual pendent','tester',4000).ok,true);assert.equal(vmr.appendNote(s,'missing','x').ok,false);
+const act=vmr.buildAct(s,config,{now:5000});assert.match(act.id,/^JMRI-TC-VMR-ACT-/);assert.match(act.markdown,/DCC, sortides físiques/);assert.equal(act.counts.total,4);
+config.signals=[];vmr.reconcile(s,config,6000);assert.equal(s.records.find(r=>r.type==='signal').present,false);
+console.log('PASS: Validation Master Registry persistence, identities, audit and validation act');
