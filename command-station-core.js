@@ -9,7 +9,7 @@
     {id:'marklin-cs2',manufacturer:'Märklin',models:['Central Station 2'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'marklin-cs3',manufacturer:'Märklin',models:['Central Station 3','Central Station 3+'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'esu-ecos',manufacturer:'ESU',models:['ECoS 50200','ECoS 50210'],protocols:['DCC','MM2','MFX'],interfaces:['TCP']},
-    {id:'roco-z21',manufacturer:'Roco',models:['Z21','z21','z21 start'],protocols:['DCC','MM2','XpressNet'],interfaces:['TCP','Wi-Fi']},
+    {id:'roco-z21',manufacturer:'Roco',models:['Z21','z21','z21 start'],protocols:['DCC','MM2','XpressNet','Z21 LAN'],interfaces:['TCP','Wi-Fi']},
     {id:'digitrax-dcs',manufacturer:'Digitrax',models:['DCS52','DCS100','DCS200','DCS210','DCS240'],protocols:['DCC','LocoNet'],interfaces:['USB','Serial','TCP']},
     {id:'lenz-lzv',manufacturer:'Lenz',models:['LZV100','LZV200'],protocols:['DCC','XpressNet'],interfaces:['USB','Serial','TCP']},
     {id:'nce-powercab',manufacturer:'NCE',models:['PowerCab','Powerhouse Pro'],protocols:['DCC'],interfaces:['USB','Serial','TCP']},
@@ -20,7 +20,7 @@
   ]);
   const PROTOCOLS=Object.freeze(['DCC','MM2','MFX','LocoNet','XpressNet','Z21 LAN','DCC-EX Native','SRCP','CAN/CBUS','BiDiB']);
   const INTERFACES=Object.freeze(['TCP','Wi-Fi','USB','Serial','WebSocket']);
-  const DEFAULTS=Object.freeze({schemaVersion:1,stations:[],selectedStationId:null});
+  const DEFAULTS=Object.freeze({schemaVersion:1,stations:[],selectedStationId:null,physicalOutputsEnabled:false});
   const clone=value=>JSON.parse(JSON.stringify(value));
   function result(ok,value,error){return ok?{ok:true,value}:{ok:false,error};}
   function findModel(manufacturer,model){return CATALOGUE.find(x=>x.manufacturer===manufacturer&&x.models.includes(model));}
