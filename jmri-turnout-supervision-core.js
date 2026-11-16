@@ -18,6 +18,10 @@
     if(normalized==='4'||normalized==='THROWN'||normalized==='DIVERGING'||normalized==='BRANCH')return'THROWN';
     return'UNKNOWN';
   }
+  function supervisionAriaLabel(baseLabel,status){
+    const base=String(baseLabel||'Desviament').replace(/\s+·\s+supervisió\s+(?:ALIGNED|MISALIGNED|UNKNOWN)$/,'');
+    return base+' · supervisió '+String(status);
+  }
   function routeRequirements(route,config){
     const explicit=Array.isArray(route?.turnoutRequirements)?route.turnoutRequirements:[];
     const requirements=explicit.map(item=>({systemName:String(item.systemName||''),requiredState:normalizeExpected(item.requiredState??item.requiredPosition??item.state)}));
@@ -63,7 +67,7 @@
     const ok=incidents.length===0;
     return{ok,status:ok?'ALIGNED':incidents.some(x=>x.code==='TURNOUT_MISALIGNED')?'MISALIGNED':'UNKNOWN',requirements,incidents};
   }
-  const api={DEFAULT_MAX_AGE_MS,STATES,isFresh,normalizePosition,normalizeExpected,routeRequirements,inspectRoute};
+  const api={DEFAULT_MAX_AGE_MS,STATES,isFresh,normalizePosition,normalizeExpected,supervisionAriaLabel,routeRequirements,inspectRoute};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   root.JMRI_TC_TurnoutSupervisionCore=api;
 })(typeof window!=='undefined'?window:globalThis);
