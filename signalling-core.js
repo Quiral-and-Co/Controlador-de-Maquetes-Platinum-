@@ -13,7 +13,7 @@
     MOVIMIENTO_AUTORIZADO: { id:'MOVIMIENTO_AUTORIZADO', label:'Moviment autoritzat', code:'M', color:'white', order:'Autorització limitada segons la funció de la senyal interior; no autoritza circular fins a l’estació següent.' }
   });
   const TYPES = Object.freeze({
-    PREADVANCED:'Preavançada', ADVANCED:'Avançada', INTERMEDIATE:'Intermèdia / plena via', PROTECTION:'Protecció', ENTRY:'Entrada', INTERIOR:'Interior', DESTINATION:'Destí / interior', EXIT:'Sortida', RELEASE:'Alliberament', MANEUVER:'Maniobres (senyal baixa/interior)'
+    PREADVANCED:'Preavançada', ADVANCED:'Avançada', INTERMEDIATE:'Intermèdia / plena via', PROTECTION:'Protecció', ENTRY:'Entrada', ENTRY_INTERIOR:'Entrada interior', INTERIOR:'Interior', EXIT_INTERIOR:'Sortida interior', DESTINATION:'Destí / interior (denominació funcional)', EXIT:'Sortida', RETROCESS:'Retrocés', MANEUVER:'Maniobres', RELEASE:'Alliberament', LEVEL_CROSSING:'Protecció de pas a nivell', ROUTE_INDICATOR:'Indicadora d’itinerari'
   });
   const BASE = {
     PREADVANCED: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL'],
@@ -25,7 +25,12 @@
     DESTINATION: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL','PREANUNCIO_PARADA','ANUNCIO_PARADA','ANUNCIO_PARADA_INMEDIATA','PARADA','PARADA_SELECTIVA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO'],
     EXIT: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL','ANUNCIO_PRECAUCION','PREANUNCIO_PARADA','ANUNCIO_PARADA','ANUNCIO_PARADA_INMEDIATA','PARADA','PARADA_SELECTIVA','REBASE_AUTORIZADO'],
     RELEASE: ['VIA_LIBRE','VIA_LIBRE_CONDICIONAL','PARADA'],
-    MANEUVER: ['PARADA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO']
+    MANEUVER: ['PARADA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO'],
+    ENTRY_INTERIOR: ['VIA_LIBRE','PREANUNCIO_PARADA','ANUNCIO_PARADA','ANUNCIO_PARADA_INMEDIATA','PARADA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO'],
+    EXIT_INTERIOR: ['VIA_LIBRE','PREANUNCIO_PARADA','ANUNCIO_PARADA','ANUNCIO_PARADA_INMEDIATA','PARADA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO'],
+    RETROCESS: ['PARADA','REBASE_AUTORIZADO','MOVIMIENTO_AUTORIZADO'],
+    LEVEL_CROSSING: ['PARADA','VIA_LIBRE'],
+    ROUTE_INDICATOR: ['PARADA','MOVIMIENTO_AUTORIZADO']
   };
   const copy = x => JSON.parse(JSON.stringify(x));
   function allowedAspects(signal, infrastructure={}) {
@@ -69,7 +74,10 @@
     if (!BASE[type]) return {ok:false,error:'Tipus de senyal desconegut.'};
     if(input.turnoutRequirements!==undefined&&!Array.isArray(input.turnoutRequirements))return{ok:false,error:'La configuració de desviaments ha de ser una llista.'};
     const turnoutRequirements=Array.isArray(input.turnoutRequirements)?input.turnoutRequirements.map(r=>({systemName:String(r?.systemName||'').trim(),expectedState:Number(r?.expectedState)})):[];if(turnoutRequirements.some(r=>!r.systemName||![2,4].includes(r.expectedState)))return{ok:false,error:'Cada desviament requer un system name i una posició esperada 2 (recte) o 4 (branca).'};if(new Set(turnoutRequirements.map(r=>r.systemName)).size!==turnoutRequirements.length)return{ok:false,error:'No es pot repetir el mateix desviament a la configuració de la senyal.'};
-    const signal={id,name,type,blockSystem:String(input.blockSystem||infrastructure.blockSystem||'BA').toUpperCase(),vmax:Number(input.vmax||infrastructure.vmax||120),alsoAdvanced:input.alsoAdvanced===true,head:String(input.head||'HIGH'),aspect:String(input.aspect||'PARADA'),blockIds:Array.isArray(input.blockIds)?[...new Set(input.blockIds.map(String))]:[],protectedBlockId:String(input.protectedBlockId||''),trackId:String(input.trackId||''),routeId:String(input.routeId||''),nextSignalId:String(input.nextSignalId||''),turnoutRequirements,enabled:input.enabled!==false};
+    const nextSignal1Id=String(input.nextSignal1Id||input.nextSignalId||'').trim(),nextSignal2Id=String(input.nextSignal2Id||'').trim();
+    if(nextSignal1Id===id||nextSignal2Id===id)return{ok:false,error:'Una senyal no pot apuntar-se a si mateixa.'};
+    if(nextSignal1Id&&nextSignal2Id&&nextSignal1Id===nextSignal2Id)return{ok:false,error:'Senyal 1 i Senyal 2 han de ser diferents.'};
+    const signal={id,name,type,blockSystem:String(input.blockSystem||infrastructure.blockSystem||'BA').toUpperCase(),vmax:Number(input.vmax||infrastructure.vmax||120),alsoAdvanced:input.alsoAdvanced===true,head:String(input.head||'HIGH'),aspect:String(input.aspect||'PARADA'),blockIds:Array.isArray(input.blockIds)?[...new Set(input.blockIds.map(String))]:[],protectedBlockId:String(input.protectedBlockId||''),trackId:String(input.trackId||''),routeId:String(input.routeId||''),nextSignal1Id,nextSignal2Id,nextSignalId:nextSignal1Id,turnoutRequirements,enabled:input.enabled!==false};
     const allowed=allowedAspects(signal,infrastructure);
     if (!allowed.includes(signal.aspect)) signal.aspect=allowed.includes('PARADA')?'PARADA':(allowed[0]||'NO_ASPECT');
     return {ok:true,signal,allowedAspects:allowed};
