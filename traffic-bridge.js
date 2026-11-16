@@ -106,7 +106,7 @@ wss.on('connection',ws=>{
     write('M0A'+id+'R'+direction);send(ws,{type:'command',command:'direction',locoId:id,direction});
    }else if(m.type==='function'){
     requireArmed();const id=String(m.locoId||''),fn=Number(m.fn);
-    if(!acquired.has(id)||!Number.isInteger(fn)||fn<0||fn>31)throw new Error('Locomotora no adquirida o funció invàlida.');
+    if(!acquired.has(id)||!Number.isInteger(fn)||fn<0||fn>32)throw new Error('Locomotora no adquirida o funció invàlida.');
     write('M0A'+id+'<;>F'+(m.enabled?1:0)+fn);send(ws,{type:'command',command:'function',locoId:id,fn,enabled:!!m.enabled});
    }else if(m.type==='release'){
     requireArmed();const id=String(m.locoId||'');
