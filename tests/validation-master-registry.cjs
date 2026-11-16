@@ -8,7 +8,7 @@ assert.match(s.records[0].registryId,/^JMRI-TC-VMR-/);
 vmr.reconcile(s,config,2000);assert.equal(s.records.length,4);
 vmr.updateValidation(s,config,physical,3000);assert.equal(s.records.every(r=>r.status==='PENDING_SOFTWARE'),true);
 const storage={data:{},getItem(k){return this.data[k]||null;},setItem(k,v){this.data[k]=v;}};
-assert.equal(vmr.save(s,storage).ok,true);const loaded=vmr.load(storage);assert.equal(loaded.records.length,4);assert.equal(loaded.audit.length,s.audit.length);
+assert.equal(vmr.save(s,storage).ok,true);const restartedStorage={data:{...storage.data},getItem(k){return this.data[k]||null;},setItem(k,v){this.data[k]=v;}};const loaded=vmr.load(restartedStorage);assert.equal(loaded.records.length,4);assert.equal(loaded.audit.length,s.audit.length);
 const projectExport=JSON.stringify({name:config.name,signals:config.signals,levels:config.levels,validationMasterRegistry:loaded});
 const reloadedProject=JSON.parse(projectExport);
 delete reloadedProject.validationMasterRegistry.counters;const afterProjectReload=vmr.createState(reloadedProject.validationMasterRegistry);
