@@ -71,7 +71,7 @@ function init(){
  $('dmiMaxSpeed').value=String(maxKmh);
  $('dmiApplyMax').onclick=()=>{const result=core.validateCalibration($('dmiMaxSpeed').value);if(!result.ok){setStatus(result.error);return;}maxKmh=result.maxKmh;setpoint=core.clamp(setpoint,0,maxKmh);currentStep=core.kmhToStep(currentStep/126*maxKmh,maxKmh);renderSpeed();setStatus('Escala DMI configurada a '+maxKmh+' km/h. Ajusta-la amb dades de calibratge reals de la locomotora.');};
  $('dmiLinearSpeed').oninput=e=>setTarget(e.target.value);
- $('dmiDirection').onclick=()=>{direction=direction===1?0:1;const api=traffic();api?.setDirection?.(direction);$('dmiDirection').textContent=direction===1?'▶ ENDAVANT':'◀ ENRERE';setStatus('Canvi de sentit sol·licitat. Verifica que la locomotora està aturada abans d’invertir.');};
+ $('dmiDirection').onclick=()=>{direction=direction===1?0:1;const api=traffic();const ok=api?.setDirection?.(direction);if(ok){$('dmiDirection').textContent=direction===1?'▶ ENDAVANT':'◀ ENRERE';setStatus('Canvi de sentit sol·licitat.');}};
  $('dmiSetpointDial').addEventListener('pointerdown',e=>{if($('dmiSetpointDial').getAttribute('aria-disabled')==='true')return;dragging=true;$('dmiSetpointDial').setPointerCapture?.(e.pointerId);setTarget(dialValue(e));});
  $('dmiSetpointDial').addEventListener('pointermove',e=>{if(dragging)setTarget(dialValue(e));});
  $('dmiSetpointDial').addEventListener('pointerup',()=>{dragging=false;});
