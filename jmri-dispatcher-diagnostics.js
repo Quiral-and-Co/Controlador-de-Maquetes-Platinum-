@@ -7,7 +7,8 @@ function refresh(){
   const config=window.JMRI_TC_DISPATCHER?.getConfig?.()||{};
   const telemetry=window.JMRI_TC_BOARD?.getTelemetry?.()||{};
   const snapshot=window.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{routes:[],blockStates:{}};
-  const result=core.inspect(config,telemetry,snapshot);
+  const accessories=window.JMRI_TC_DIGITAL_CATALOGUE?.getDatabase?.().accessories||[];
+  const result=core.inspect(config,telemetry,snapshot,Date.now(),undefined,accessories);
   const valid=$('jmriDiagnosticValid'),count=$('jmriDiagnosticIncidents'),unknown=$('jmriDiagnosticUnknown'),list=$('jmriDiagnosticList');
   if(!valid||!count||!unknown||!list)return result;
   valid.textContent=String(result.validSensorCount);
