@@ -1,0 +1,69 @@
+name: Windows 11 NSIS installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'traffic-bridge.js'
+      - 'electron/**'
+      - '.github/workflows/windows-installer.yml'
+      - '**.js'
+      - '**.html'
+      - '**.css'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'traffic-bridge.js'
+      - 'electron/**'
+      - '.github/workflows/windows-installer.yml'
+      - '**.js'
+      - '**.html'
+      - '**.css'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    name: Build Windows 11 x64 NSIS installer
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run complete test suite
+        run: npm test
+
+      - name: Build NSIS installer
+        run: npm run dist:win
+
+      - name: Verify installer exists
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File
+          if (-not $installer) {
+            throw 'No s’ha generat cap instal·lador NSIS .exe.'
+          }
+          $installer | ForEach-Object {
+            Write-Host "Installer: $($_.FullName) ($($_.Length) bytes)"
+          }
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: JMRI-TC-Gold-Custom-Windows-11-NSIS
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
