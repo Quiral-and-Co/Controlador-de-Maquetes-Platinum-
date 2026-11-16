@@ -18,6 +18,13 @@
  function createState(seed={}) {
   const records=Array.isArray(seed.records)?seed.records.map(r=>({...r})):[],audit=Array.isArray(seed.audit)?seed.audit.map(a=>({...a})):[];
   const counters={...(seed.counters||{})};
+  // Rebuild missing/old counters from persisted IDs before allocating new IDs.
+  for(const record of records) {
+   const match=String(record.registryId||'').match(/^JMRI-TC-VMR-([A-Z]+)-(\\d+)$/);
+   if(!match)continue;
+   const type=match[1].toLowerCase(),value=Number(match[2]);
+   if(Number.isSafeInteger(value))counters[type]=Math.max(Number(counters[type])||0,value);
+  }
   return {schemaVersion:VERSION,projectId:String(seed.projectId||'default'),createdAt:seed.createdAt||nowIso(),updatedAt:seed.updatedAt||nowIso(),counters,records,audit};
  }
  function nextId(state,type) {
@@ -62,7 +69,7 @@
   const entries=state.records.filter(r=>r.present!==false).map(r=>({...r})).sort((a,b)=>a.type.localeCompare(b.type)||a.registryId.localeCompare(b.registryId));
   const counts={total:entries.length,pending:0,failed:0,softwareReady:0,physicalReady:0};
   for(const r of entries){if(r.status==='FAILED')counts.failed++;else if(r.status==='PENDING_SOFTWARE'||r.status==='PENDING')counts.pending++;else if(r.status==='SOFTWARE_READY')counts.softwareReady++;else if(r.status==='PHYSICAL_READY')counts.physicalReady++;}
-  const actId=PREFIX+'-ACT-'+nowIso(options.now).replace(/[-:.TZ]/g,'').slice(0,14);
+  const actId=PREFIX+'-ACT-'+nowIso(options.now).replace(/[-:.TZ]/g,'').slice(0,14)+'-'+String(state.audit.length+1).padStart(4,'0');
   const lines=['# ACTA DE VALIDACIÓ · '+(options.projectName||config.name||'JMRI TC Gold Custom'),'','- Acta: '+actId,'- Projecte: '+(options.projectId||state.projectId),'- Data: '+nowIso(options.now),'- Versió del registre: '+VERSION,'','## Resum','', '| Total | Pendents de programari | Preparats per inspecció física | Validació física registrada | No conformitats |','|---:|---:|---:|---:|---:|','| '+[counts.total,counts.pending,counts.softwareReady,counts.physicalReady,counts.failed].join(' | ')+' |','','## Registre individual','','| Identificador VMR | Tipus | Element | Estat | Comprovacions pendents |','|---|---|---|---|---|'];
   entries.forEach(r=>lines.push('| '+r.registryId+' | '+(labels[r.type]||r.type)+' | '+String(r.name||r.sourceId).replaceAll('|','\\|')+' ('+r.sourceId+') | '+r.status+' | '+(r.validation?.missing||[]).join(', ')+' |'));
   lines.push('','## Traçabilitat','','Esdeveniments registrats: '+state.audit.length+'. L’historial identifica altes, retirades de font, canvis d’estat i anotacions.','', '## Abast i reserva de seguretat','','Aquesta acta reflecteix únicament dades de programari i declaracions introduïdes al registre. No és una certificació de seguretat ni acredita mesures instrumentals. L’estat PHYSICAL_READY significa que les comprovacions físiques s’han marcat al sistema, no que s’hagin verificat independentment.','', '**DCC, sortides físiques, desviaments comandats i automatització continuen BLOQUEJATS.** Cap registre ni acta autoritza l’activació. Cal completar i revisar per separat les proves fail-safe, el cablejat i les proteccions elèctriques, i la parada d’emergència física independent.','');
