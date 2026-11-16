@@ -1,5 +1,6 @@
 const fs = require('fs');
 const vm = require('vm');
+const viewport = require('../viewport-core.js');
 class El {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.innerHTML='';this.children=[];this.dataset={};this.handlers={};this.className='';this.disabled=false;this.classList={add:()=>{},toggle:()=>{},remove:()=>{}};this.style={};}
   addEventListener(n,fn){this.handlers[n]=fn;}
@@ -9,16 +10,27 @@ class El {
   setAttribute(k,v){this[k]=v;}
   getAttribute(k){return this[k]??null;}
   remove(){}
+  getBoundingClientRect(){return {left:0,top:0,width:1000,height:600};}
+  setPointerCapture(){}
   closest(){return null;}
 }
-const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propTurnout','propLevel','moveLevelBtn','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList'];
+const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propTurnout','propLevel','moveLevelBtn','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList','zoomInBtn','zoomOutBtn','zoomFitBtn','zoomReadout'];
 const els=Object.fromEntries(ids.map(x=>[x,new El(x)]));els.host.value='127.0.0.1';els.port.value='12080';
 const palette=['straight','curve','turnout','block'].map(type=>{const e=new El();e.dataset.piece=type;return e;});
 const shell=new El('shell');
-const document={addEventListener:()=>{},getElementById:id=>els[id]||(els[id]=new El(id)),createElement:tag=>new El(tag),createElementNS:()=>new El('svg'),querySelectorAll:q=>q==='[data-piece]'?palette:[],querySelector:q=>shell};
-const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8'))};
+const docHandlers={};
+const document={addEventListener:(name,fn)=>{docHandlers[name]=fn;},getElementById:id=>els[id]||(els[id]=new El(id)),createElement:tag=>new El(tag),createElementNS:()=>new El('svg'),querySelectorAll:q=>q==='[data-piece]'?palette:[],querySelector:q=>shell};
+const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8')),JMRI_TC_VIEWPORT:viewport,addEventListener:()=>{}};
 vm.runInNewContext(fs.readFileSync(__dirname+'/../app.js','utf8'),{document,window,console,Date,Math,JSON,Number,String,Array,Set,Map,WebSocket:function(){}});
 if(els.levelCount.textContent!==5)throw Error('Expected five levels');
+if(els.zoomReadout.textContent!=='100%')throw Error('Viewport must start at 100% fit');
+els.zoomInBtn.onclick();const zoomedView=window.JMRI_TC_VIEWPORT_UI.getViewBox();if(!(zoomedView.width<3000))throw Error('Zoom-in button did not enlarge the board');
+docHandlers.keydown({code:'Space',key:' ',target:{tagName:'BODY'},preventDefault(){}});
+els.trackSvg.handlers.pointerdown({button:0,pointerId:9,clientX:100,clientY:100,preventDefault(){}});
+els.trackSvg.handlers.pointermove({pointerId:9,clientX:200,clientY:150});
+const pannedView=window.JMRI_TC_VIEWPORT_UI.getViewBox();if(!(pannedView.x<zoomedView.x&&pannedView.y<zoomedView.y))throw Error('Space-drag did not pan the board');
+els.trackSvg.handlers.pointerup({pointerId:9});docHandlers.keyup({code:'Space'});
+els.zoomFitBtn.onclick();if(window.JMRI_TC_VIEWPORT_UI.getViewBox().width!==3000)throw Error('Fit button did not restore full board');
 if(els.catalogueList.children.length!==68)throw Error('Expected 68 catalogue entries, got '+els.catalogueList.children.length);
 const c24188=els.catalogueList.children.find(x=>x.dataset.catalogue==='24188');if(!c24188)throw Error('Catalogue reference 24188 missing');c24188.onclick();if(els.pieceCount.textContent!==1||!els.propName.value.includes('24188'))throw Error('Catalogue insertion failed');if(els.propLength.value!==188.3)throw Error('Catalogue length geometry not applied');els.undoBtn.onclick();if(els.pieceCount.textContent!==0)throw Error('Undo catalogue insertion failed');
 els.validateTopologyBtn.onclick();if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Empty topology should validate without errors');
@@ -117,5 +129,5 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   if(els.portStatus.textContent.includes('Primer port:'))throw Error('Occupied port was accepted as a first endpoint');
   els.validateTopologyBtn.onclick();
   if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Manual connection should pass topology audit');
-  console.log('PASS: startup, five levels, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation and rejection of self/distant/occupied ports');
+  console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
