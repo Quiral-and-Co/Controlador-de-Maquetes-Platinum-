@@ -62,12 +62,10 @@ function refresh(){
  const safe=!!run&&run.status==='RUNNING'&&run.mode==='MANUAL'&&snapshot.bridgeConnected&&snapshot.dccArmed&&snapshot.deadmanHeld&&snapshot.safetyReady;
  $('dmiSafetyState').textContent=safe?'CONDUCCIÓ SUPERVISADA':'CONTROL BLOQUEJAT · '+(run?'verifica DCC, home mort i interbloqueigs':'inicia una circulació manual');
  $('dmiSafetyState').className=safe?'dmi-safety ready':'dmi-safety locked';
- const controls=$$('dmiFunctionButtons');if(controls)controls.querySelectorAll('button').forEach(b=>b.disabled=!run||!snapshot.dccArmed||!snapshot.bridgeConnected);
+ const controls=$('dmiFunctionButtons');if(controls)controls.querySelectorAll('button').forEach(b=>b.disabled=!safe);
  $('dmiDirection').disabled=!safe;$('dmiLinearSpeed').disabled=!safe;$('dmiSetpointDial').setAttribute('aria-disabled',String(!safe));
  renderSignals(snapshot);renderTurnouts(snapshot);
 }
-function $(id){return document.getElementById(id);}
-function $$(id){return document.getElementById(id);}
 function init(){
  if(!$('locomotiveDmiPanel'))return;
  $('dmiMaxSpeed').value=String(maxKmh);
