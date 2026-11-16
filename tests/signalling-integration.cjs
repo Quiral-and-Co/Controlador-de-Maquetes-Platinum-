@@ -47,3 +47,20 @@ assert.equal(bridge.evaluateAll({config:routeConfig,signals:[routeSignal],snapsh
 console.log('PASS: signalling SVG/Dispatcher integration fail-safe core');
 
 const s2={...signal,id:'SIG2',nextSignal1Id:'SIG3'},s3={...signal,id:'SIG3'};const ordered=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot,telemetry,signallingCore:signalling,now});assert.equal(ordered.SIG1.aspect,'VIA_LIBRE','valid ordered first and second next signals preserve normal evaluation');const badOrder=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},{...s2,nextSignal1Id:''},s3],snapshot,telemetry,signallingCore:signalling,now});assert.equal(badOrder.SIG1.aspect,'PARADA','second next signal must follow signal 1');const missing2=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'MISSING'},s2],snapshot,telemetry,signallingCore:signalling,now});assert.equal(missing2.SIG1.aspect,'PARADA','missing signal 2 fails safe');
+
+const disconnected=evaluate({telemetry:{...telemetry,connected:false}});
+assert.equal(disconnected.aspect,'PARADA','communication loss immediately forces stop');
+const recoveredCommunication=evaluate();
+assert.equal(recoveredCommunication.aspect,'VIA_LIBRE','restored fresh JMRI heartbeat permits normal aspect after reevaluation');
+const unknownSensor=evaluate({telemetry:{...telemetry,sensors:{LS1:'UNRECOGNISED'}}});
+assert.equal(unknownSensor.blockState,'UNKNOWN','unknown sensor encoding is never interpreted as free');
+assert.equal(unknownSensor.aspect,'PARADA','unknown sensor encoding forces stop');
+const recoveredSensor=evaluate({telemetry:{...telemetry,sensors:{LS1:4}}});
+assert.equal(recoveredSensor.blockState,'FREE','fresh valid free sensor reading restores known state');
+assert.equal(recoveredSensor.aspect,'VIA_LIBRE','signal aspect recovers only after fresh free sensor and valid route conditions');
+const recoveredPower=evaluate({telemetry:{...telemetry,power:'ON',powerUpdatedAt:now}});
+assert.equal(recoveredPower.aspect,'VIA_LIBRE','fresh confirmed power ON permits reevaluation after unknown/off power');
+const recoveredSequence=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot,telemetry,signallingCore:signalling,now});
+assert.equal(recoveredSequence.SIG1.aspect,'VIA_LIBRE','corrected Senyal 1/Senyal 2 chain recovers after reevaluation');
+const recoveredMissing=bridge.evaluateAll({config,signals:[{...signal,nextSignal1Id:'SIG2',nextSignal2Id:'SIG3'},s2,s3],snapshot,telemetry,signallingCore:signalling,now});
+assert.equal(recoveredMissing.SIG1.aspect,'VIA_LIBRE','restoring missing signal reference allows safe reevaluation');
