@@ -41,6 +41,8 @@ jobs:
           node --check physical-validation-ui.js
           node --check jmri-dispatcher-diagnostics-core.js
           node --check jmri-dispatcher-diagnostics.js
+          node --check jmri-turnout-supervision-core.js
+          node --check jmri-turnout-supervision.js
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Safety core tests
@@ -70,5 +72,7 @@ jobs:
         run: node tests/signalling-ui-integration.cjs
       - name: JMRI live diagnostics tests
         run: node tests/jmri-dispatcher-diagnostics.cjs
+      - name: Turnout and route supervision failure/recovery tests
+        run: node tests/jmri-turnout-supervision.cjs
       - name: Full regression and fail-safe suite
         run: npm test
