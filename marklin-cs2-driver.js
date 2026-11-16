@@ -19,7 +19,8 @@ function validateOptions(options = {}) {
   const tcpPort = Number(options.tcpPort ?? DEFAULTS.tcpPort);
   const udpPort = Number(options.udpPort ?? DEFAULTS.udpPort);
   const timeoutMs = Number(options.timeoutMs ?? DEFAULTS.timeoutMs);
-  if (!host || host.length > 253 || /[\s\r\n]/.test(host)) throw new Error('Host CS2 invàlid.');
+  if (!host || host.length > 253 || /[\s\r
+]/.test(host)) throw new Error('Host CS2 invàlid.');
   for (const [name, value] of [['tcpPort', tcpPort], ['udpPort', udpPort]]) {
     if (!Number.isInteger(value) || value < 1 || value > 65535) throw new Error(name + ' ha d’estar entre 1 i 65535.');
   }
@@ -119,7 +120,11 @@ class MarklinCS2Monitor extends EventEmitter {
     const udp = dgram.createSocket({ type: 'udp4', reuseAddr: true });
     this.udp = udp;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {\n        if (settled) return;\n        settled = true; this.udp = null; this.state = 'DISCONNECTED';\n        udp.close(); reject(new Error('Timeout escoltant broadcasts MCAN UDP.'));\n      }, this.options.timeoutMs);
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true; this.udp = null; this.state = 'DISCONNECTED';
+        udp.close(); reject(new Error('Timeout escoltant broadcasts MCAN UDP.'));
+      }, this.options.timeoutMs);
       timer.unref?.();
       let settled = false;
       udp.once('error', error => {
