@@ -1,6 +1,8 @@
 'use strict';
 (function(root){
   const MAX_AGE_MS=15000, FUTURE_TOLERANCE_MS=1000;
+  const sequenceCore=root.JMRI_TC_SignallingSequenceCore||
+    (typeof module!=='undefined'&&module.exports?require('./signalling-sequence-core.js'):null);
   const finiteTime=v=>Number.isFinite(Number(v))?Number(v):null;
   function fresh(timestamp,now,maxAge=MAX_AGE_MS){
     const t=finiteTime(timestamp);
@@ -47,6 +49,8 @@
     const config=input.config||{},signals=Array.isArray(input.signals)?input.signals:[],snapshot=input.snapshot||{},telemetry=input.telemetry||{};
     const core=input.signallingCore;
     if(!core)throw new Error('Motor de senyalització no disponible.');
+    const routeDefinitions=(snapshot.routes||[]).length?snapshot.routes:(config.dispatcher?.routes||[]);
+    const sequenceResults=sequenceCore?sequenceCore.inspect(signals,routeDefinitions):null;
     const communication=telemetry.connected===true&&fresh(telemetry.lastHeartbeatAt,now,maxAge);
     const results={},visiting=new Set();
     function calculate(signal){
@@ -77,8 +81,11 @@
       };
       const derived=core.deriveAspect(signal,conditions,config.signallingInfrastructure||{});
       const cycle=nextResult?.cycle===true||next2Result?.cycle===true;
-      const brokenSequence=missingNext||missingNext2||invalidNextOrder;
-      const result={aspect:cycle||brokenSequence?'PARADA':derived.aspect,cycle:cycle||brokenSequence,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':brokenSequence?'Relació Senyal 1 / Senyal 2 absent, inexistent o fora d’ordre: criteri restrictiu.':!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
+      const sequenceCheck=sequenceResults?.[signal.id];
+      const sequenceUnverified=!!sequenceCheck&&sequenceCheck.warnings.length>0;
+      const sequenceInvalid=!!sequenceCheck&&(!sequenceCheck.ok||sequenceUnverified);
+      const brokenSequence=missingNext||missingNext2||invalidNextOrder||sequenceInvalid;
+      const result={aspect:cycle||brokenSequence?'PARADA':derived.aspect,cycle:cycle||brokenSequence,reason:cycle?'Cicle de dependències entre senyals: criteri restrictiu.':brokenSequence?(sequenceCheck?.issues?.join(' ')||sequenceCheck?.warnings?.join(' ')||'Relació Senyal 1 / Senyal 2 absent, inexistent o fora d’ordre: criteri restrictiu.'):!communication?'Comunicació JMRI perduda o dades obsoletes: '+derived.reason:(blockState!=='FREE'?'Bloc no confirmat com a lliure: '+derived.reason:(!routeReserved?'Itinerari no reservat íntegrament: '+derived.reason:(!turnouts.verified||!turnouts.aligned?turnouts.reason||derived.reason:derived.reason))),blockState,routeReserved,turnoutsVerified:turnouts.verified,turnoutsAligned:turnouts.aligned,computedAt:now};
       visiting.delete(signal.id);results[signal.id]=result;return result;
     }
     for(const signal of signals)calculate(signal);
