@@ -11,3 +11,8 @@ La finestra DMI afegeix velocímetre circular analògic i digital en km/h, consi
 ## Seguretat
 
 El comandament utilitza la porta de seguretat de circulacions existent, incloent-hi adquisició, DCC armat, connexió JMRI, alimentació, sensors i home mort. No afegeix cap via alternativa per enviar ordres. Les sortides físiques continuen deshabilitades per defecte i aquesta interfície no substitueix l'E-STOP independent ni una validació ferroviària.
+
+## Comandaments verticals addicionals
+- El control vertical de velocitat té zero a baix i màxim a dalt. Els botons ➖/➕ canvien un pas DCC per pulsació.
+- El fre de servei té alliberat a dalt i màxim a baix. Modula la consigna de tracció (no és un fre físic independent).
+- El botó EMERGÈNCIA, sota el fre, envia la petició d'emergència al pont JMRI i desarma DCC. Cal mantenir una parada d'emergència física independent.
