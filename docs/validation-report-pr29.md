@@ -6,7 +6,7 @@
 - Branca: `feature/pr29-rfig-signalling-validation`
 - PR: [#29 — validació VMR i seqüència RFIG](https://github.com/tc-jmri-team/jmri-tc-app/pull/29)
 - Main de referència: `3e34d909ba1659debf270425dc4d9052bd224d1f`
-- SHA de codi cobert per la CI completa més recent: `d35a4d39a18ec91a52d2a59960124e07e778224e`
+- SHA de codi cobert per la CI completa més recent: `3960e146fdf0e3e9a7af859e851972fbf34c3a90`
 - Data de l'acta: 2026-11-16
 
 ## Evidència de CI
@@ -18,7 +18,7 @@
 | [#584](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954035805) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |
 | [#585](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954048874) | `b722e1b5269796fb2d02f8fd4b94f94701b8f393` | Dispatcher and editor tests | SUCCESS |\n| [#591](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954384152) | `d35a4d39a18ec91a52d2a59960124e07e778224e` | Dispatcher and editor tests | SUCCESS |\n| [#592](https://github.com/tc-jmri-team/jmri-tc-app/actions/runs/43954451296) | `d35a4d39a18ec91a52d2a59960124e07e778224e` | Dispatcher and editor tests | SUCCESS |
 
-Les execucions #579/#580, #584/#585 i #591/#592 van completar el workflow complet, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. #591/#592 cobreixen el SHA `d35a4d39a18ec91a52d2a59960124e07e778224e`. Els canvis documentals posteriors de revisió no queden coberts fins a una nova execució.
+Les execucions #579/#580, #584/#585, #591/#592 i #605 van completar el workflow complet, incloent Chromium/Playwright, VMR de navegador real, proves de seguretat, integració de senyalització, supervisió JMRI i dues passades de regressió/fail-safe. #605 cobreix el SHA `3960e146fdf0e3e9a7af859e851972fbf34c3a90`; tots els passos, incloses les dues regressions/fail-safe, han acabat en SUCCESS.
 
 ## Proves de fallada i recuperació afegides
 
@@ -32,20 +32,18 @@ La mateixa suite ja cobreix heartbeat i lectures caducades, alimentació OFF/UNK
 
 ## Estat de la VMR
 
-- VMR-023 — seqüència Senyal 1 / Senyal 2: PARCIAL-CI; proves unitàries verdes, però falta integrar la validació d'ordre físic del nou mòdul en el flux actiu.
+- VMR-023 — seqüència Senyal 1 / Senyal 2: PASS-CI a #605, SHA `3960e14`; validador integrat en el flux actiu i provat amb ordre de blocs i sentit.
 - VMR-024 — aspectes i transicions: PASS-CI a #591/#592, SHA `d35a4d3`.
-- VMR-025 — traçabilitat: PARCIAL; acta i matriu revisades, pendents de CI del commit documental actual.
-- VMR-026 — fallada i recuperació: PARCIAL-CI; falta demostrar transició fallada→recuperada i restauració d'una referència que abans era absent.
+- VMR-025 — traçabilitat: PASS-CI a #605, SHA `3960e14`; acta actualitzada amb evidències i límits.
+- VMR-026 — fallada i recuperació: PASS-CI a #605, SHA `3960e14`; transicions fallada→recuperada amb evidència nova verificades.
 - Requisits físics VMR-016 a VMR-020 i autorització VMR-022: PENDENT-FÍSIC.
 - VMR-021 (referència Digikeijs ADJ9000): NO-VERIFICAT.
 
-## Resultats de revisió tècnica (punt 1)
+## Resolució de les observacions tècniques (R1 i R2)
 
-- La comparació confirma 13 commits per davant de `main` i 0 per darrere; el merge-base és `3e34d909ba1659debf270425dc4d9052bd224d1f`.
-- Detectada i corregida la representació literal `\\n` a les files VMR-023…VMR-026; abans no eren files Markdown independents.
-- Observació R1: `signalling-sequence-core.js` és un validador nou però no està cridat pel flux de l'aplicació (`signalling-integration.js`/`signalling-integration-core.js`). Cal integrar-lo o retirar l'afirmació que valida l'ordre físic en execució.
-- Observació R2: les dues proves finals de recuperació de `tests/signalling-integration.cjs` són duplicades; `recoveredMissing` no parteix d'una referència absent. `recoveredCommunication` tampoc modela una seqüència temporal de pèrdua i retorn, sinó una nova avaluació amb telemetria sana.
-- Per aquests motius, VMR-023 i VMR-026 es mantenen parcials, no certificats com a PASS.
+- **R1 — resolta:** el validador de seqüències s'invoca des del nucli actiu. `index.html` carrega `signalling-sequence-core.js` abans de la integració. La suite integrada prova ordre correcte, sentit incompatible i bloqueig restrictiu.
+- **R2 — resolta:** les proves de recuperació parteixen d'estats fallits explícits. La comunicació requereix heartbeat nou; el sensor requereix lectura FREE nova; l'alimentació requereix ON confirmat; la seqüència parteix d'una referència absent i només es recupera després de reparar-la.
+- CI completa #605: SUCCESS. Les proves de navegador real, seguretat, integració, diagnòstics, supervisió, i dues passades completes de regressió/fail-safe han acabat correctament.
 
 ## Incidències i limitacions pendents
 
