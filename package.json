@@ -5,12 +5,16 @@
   "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
   "scripts": {
     "start": "node traffic-bridge.js",
-    "test": "node --check app.js && node --check signalling-core.js && node --check signalling-ui.js && node --check signalling-integration-core.js && node --check signalling-integration.js && node --check signalling-topology-core.js && node --check signalling-topology-ui.js && node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs && node tests/signalling-integration.cjs && node tests/signalling-topology.cjs && node --check physical-validation-core.js && node --check physical-validation-ui.js && node tests/physical-validation.cjs && node tests/signalling-ui-integration.cjs && node --check jmri-json-adapter.js && node tests/jmri-json-adapter.cjs && node --check jmri-dispatcher-diagnostics-core.js && node --check jmri-dispatcher-diagnostics.js && node --check jmri-turnout-supervision-core.js && node --check jmri-turnout-supervision.js && node tests/jmri-dispatcher-diagnostics.cjs && node tests/jmri-turnout-supervision.cjs && node --check validation-master-registry-core.js && node --check validation-master-registry-ui.js && node tests/validation-master-registry.cjs"
+    "test": "node --check app.js && node --check signalling-core.js && node --check signalling-ui.js && node --check signalling-integration-core.js && node --check signalling-integration.js && node --check signalling-topology-core.js && node --check signalling-topology-ui.js && node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs && node tests/signalling-integration.cjs && node tests/signalling-topology.cjs && node --check physical-validation-core.js && node --check physical-validation-ui.js && node tests/physical-validation.cjs && node tests/signalling-ui-integration.cjs && node --check jmri-json-adapter.js && node tests/jmri-json-adapter.cjs && node --check jmri-dispatcher-diagnostics-core.js && node --check jmri-dispatcher-diagnostics.js && node --check jmri-turnout-supervision-core.js && node --check jmri-turnout-supervision.js && node tests/jmri-dispatcher-diagnostics.cjs && node tests/jmri-turnout-supervision.cjs && node --check validation-master-registry-core.js && node --check validation-master-registry-ui.js && node tests/validation-master-registry.cjs",
+    "test:browser": "node tests/validation-master-registry.browser.cjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
   }
 }
