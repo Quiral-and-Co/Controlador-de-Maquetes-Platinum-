@@ -28,7 +28,7 @@ permissions:
 jobs:
   windows-installer:
     name: Build Windows 11 x64 NSIS installer
-    runs-on: windows-2022
+    runs-on: windows-latest
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -38,7 +38,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
