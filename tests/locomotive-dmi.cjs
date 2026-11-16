@@ -9,7 +9,7 @@ assert.equal(core.kmhToStep(80,160),63);
 assert.equal(core.kmhToStep(300,160),126);
 assert.equal(core.needleAngle(0,160),-135);
 assert.equal(core.needleAngle(160,160),135);
-assert.equal(core.normalizeAspect({computedAspect:'VIA_LIBRE'}), 'via lliure');
+assert.equal(core.normalizeAspect({computedAspect:'VIA_LIBRE'}), 'via libre');
 assert.deepEqual(core.signalChain([{id:'S1',nextSignalId:'S2'},{id:'S2',nextSignalId:'S3'},{id:'S3'}],{blockIds:[]}).map(s=>s.id),['S1','S2']);
 assert.equal(core.distanceLabel(850),'850 m');
 assert.equal(core.distanceLabel(1250),'1.25 km');
