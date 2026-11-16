@@ -123,5 +123,5 @@ wss.on('connection',ws=>{
  ws.on('error',closeTcp);
  report();
 });
-server.listen(HTTP_PORT,HOST,()=>{console.log('JMRI-TC local: http://'+HOST+':'+HTTP_PORT);console.log('WiThrottle bridge: ws://'+HOST+':'+HTTP_PORT+'/traffic-ws');console.log('DCC commands enabled: '+DCC_ENABLED);console.log('Safety validation enabled: '+SAFETY_VALIDATED);});
+server.listen(HTTP_PORT,HOST,()=>{const address=server.address();const port=address&&typeof address==='object'?address.port:HTTP_PORT;console.log('JMRI-TC local: http://'+HOST+':'+port);console.log('WiThrottle bridge: ws://'+HOST+':'+port+'/traffic-ws');console.log('DCC commands enabled: '+DCC_ENABLED);console.log('Safety validation enabled: '+SAFETY_VALIDATED);if(typeof process.send==='function')process.send({type:'ready',port});});
 process.on('SIGINT',()=>{for(const client of wss.clients)client.close();server.close(()=>process.exit(0));});

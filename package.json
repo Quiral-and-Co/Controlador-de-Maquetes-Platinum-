@@ -3,10 +3,13 @@
   "version": "1.3.0",
   "private": true,
   "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
+  "main": "electron/main.cjs",
   "scripts": {
     "start": "node traffic-bridge.js",
-    "test": "node --check viewport-core.js && node tests/viewport.cjs && node --check locomotive-dmi-core.js && node --check locomotive-dmi-ui.js && node tests/locomotive-dmi.cjs && node --check app.js && node --check signalling-core.js && node --check signalling-ui.js && node --check signalling-integration-core.js && node --check signalling-integration.js && node --check signalling-topology-core.js && node --check signalling-topology-ui.js && node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs && node --check signalling-sequence-core.js && node tests/signalling-sequence.cjs && node tests/signalling-integration.cjs && node tests/signalling-topology.cjs && node --check physical-validation-core.js && node --check physical-validation-ui.js && node tests/physical-validation.cjs && node tests/signalling-ui-integration.cjs && node --check jmri-json-adapter.js && node tests/jmri-json-adapter.cjs && node --check jmri-dispatcher-diagnostics-core.js && node --check jmri-dispatcher-diagnostics.js && node --check jmri-turnout-supervision-core.js && node --check jmri-turnout-supervision.js && node tests/jmri-dispatcher-diagnostics.cjs && node tests/jmri-turnout-supervision.cjs && node --check validation-master-registry-core.js && node --check validation-master-registry-ui.js && node tests/validation-master-registry.cjs && node --check command-station-core.js && node --check command-station-ui.js && node tests/command-station.cjs",
-    "test:browser": "node tests/validation-master-registry.browser.cjs"
+    "start:desktop": "electron .",
+    "test": "node --check viewport-core.js && node tests/viewport.cjs && node --check locomotive-dmi-core.js && node --check locomotive-dmi-ui.js && node tests/locomotive-dmi.cjs && node --check app.js && node --check signalling-core.js && node --check signalling-ui.js && node --check signalling-integration-core.js && node --check signalling-integration.js && node --check signalling-topology-core.js && node --check signalling-topology-ui.js && node tests/safety.cjs && node tests/safety-bridge.cjs && node tests/automation.cjs && node tests/traffic.cjs && node tests/deadman.cjs && node tests/dispatcher.cjs && node tests/dispatcher-ui.cjs && node tests/smoke.cjs && node tests/protocols.cjs && node tests/signalling.cjs && node --check signalling-sequence-core.js && node tests/signalling-sequence.cjs && node tests/signalling-integration.cjs && node tests/signalling-topology.cjs && node --check physical-validation-core.js && node --check physical-validation-ui.js && node tests/physical-validation.cjs && node tests/signalling-ui-integration.cjs && node --check jmri-json-adapter.js && node tests/jmri-json-adapter.cjs && node --check jmri-dispatcher-diagnostics-core.js && node --check jmri-dispatcher-diagnostics.js && node --check jmri-turnout-supervision-core.js && node --check jmri-turnout-supervision.js && node tests/jmri-dispatcher-diagnostics.cjs && node tests/jmri-turnout-supervision.cjs && node --check validation-master-registry-core.js && node --check validation-master-registry-ui.js && node tests/validation-master-registry.cjs && node --check command-station-core.js && node --check command-station-ui.js && node tests/command-station.cjs && node --check electron/main.cjs",
+    "test:browser": "node tests/validation-master-registry.browser.cjs",
+    "dist:win": "electron-builder --win nsis"
   },
   "engines": {
     "node": ">=20"
@@ -15,6 +18,42 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12",
     "playwright": "^1.56.1"
+  },
+  "build": {
+    "appId": "cat.jmritc.goldcustom",
+    "productName": "JMRI TC Gold Custom",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist{,/**/*}",
+      "!tests{,/**/*}",
+      "!.github{,/**/*}",
+      "!docs{,/**/*}",
+      "!*.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "JMRI-TC-Gold-Custom-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "JMRI TC Gold Custom",
+      "deleteAppDataOnUninstall": false
+    }
   }
 }
