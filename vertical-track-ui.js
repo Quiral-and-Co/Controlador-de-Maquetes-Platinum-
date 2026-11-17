@@ -41,7 +41,8 @@ function worldPorts(piece){
  return local.map(p=>({x:piece.x+p.x*c-p.y*s,y:piece.y+p.x*s+p.y*c,port:p.port}));
 }
 function insertPlan(){
- if(!plan&&!calculate())return;\n if(plan.classification.code==='brown')throw new Error('La classificació marró fosc impedeix inserir una geometria impossible segons els límits configurats.');
+ if(!plan&&!calculate())return;
+ if(plan.classification.code==='brown')throw new Error('La classificació marró fosc impedeix inserir una geometria impossible segons els límits configurats.');
  const dispatcher=window.JMRI_TC_DISPATCHER,board=window.JMRI_TC_BOARD,config=dispatcher?.getConfig?.();
  if(!config||!board?.refresh)throw new Error('L’editor principal no està preparat.');
  const level=config.levels.find(x=>String(x.id)===String(board.getSelectedLevel?.()??config.levels[0].id));if(!level)throw new Error('No hi ha cap nivell seleccionat.');
