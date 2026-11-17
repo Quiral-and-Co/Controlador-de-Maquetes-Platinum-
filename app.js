@@ -5,7 +5,7 @@
   const state = {
     config: {schemaVersion:3,name:'Maqueta Märklin H0 · 5 nivells',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,
       levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]},
-    selectedLevel:1, selectedIds:[], mode:'classic', drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
+    selectedLevel:1, selectedIds:[], filePath:null, isDirty:false, mode:'classic', drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
   };
   const level = () => state.config.levels.find(x=>x.id===state.selectedLevel);
   const pieces = () => level()?.tracks || [];
@@ -36,8 +36,8 @@
   function zoomViewport(factor,anchor){state.viewBox=viewport.zoomAt(state.viewBox,factor,anchor,BOARD);applyViewBox();}
   function fitViewport(){state.viewBox=viewport.fit(BOARD);applyViewBox();}
   function updateHistoryButtons(){ $('undoBtn').disabled=!state.history.length; $('redoBtn').disabled=!state.future.length; }
-  function checkpoint(){state.history.push(clone(state.config));if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
-  function checkpointFrom(before){state.history.push(before);if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
+  function checkpoint(){state.isDirty=true;state.history.push(clone(state.config));if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
+  function checkpointFrom(before){state.isDirty=true;state.history.push(before);if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
   function restoreConfig(config){state.config=clone(config);/* Keep selection IDs across undo/redo so a redo can restore the selected item. */render();updateHistoryButtons();}
   function undo(){if(!state.history.length)return;state.future.push(clone(state.config));restoreConfig(state.history.pop());log('Canvi desfet.');}
   function redo(){if(!state.future.length)return;state.history.push(clone(state.config));restoreConfig(state.future.pop());log('Canvi refet.');}
@@ -353,8 +353,76 @@
   }
   $('validateTopologyBtn').onclick=auditTopology;
 
-  $('exportBtn').onclick=()=>{state.config.levels.forEach(syncRelations);const blob=new Blob([JSON.stringify(state.config,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='JMRI_TC_Gold_Custom_layout_v0.9.json';a.click();URL.revokeObjectURL(url);log('Projecte exportat en JSON (model v3).');};
-  $('configFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const c=validateConfig(JSON.parse(await f.text()));state.config=c;state.selectedLevel=c.levels[0].id;state.selectedIds=[];$('configName').textContent=`Configuració: ${f.name}`;render();log(`Importat ${f.name} i normalitzat al model v3. Les assignacions heretades continuen no verificades.`);}catch(err){log(`Error d'importació: ${err.message}`);}e.target.value='';};
+  function setProjectName(name){$('configName').textContent=(state.isDirty?'* ':'')+(name||'Projecte nou');}
+  function downloadText(content,name,type='text/plain'){
+    const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }
+  async function confirmDiscard(){
+    if(!state.isDirty)return true;
+    if(window.jmriDesktop?.confirmDiscard)return window.jmriDesktop.confirmDiscard();
+    return window.confirm('Hi ha canvis sense desar. Vols descartar-los?');
+  }
+  async function openNativeProject(importMode){
+    if(!window.jmriDesktop?.openProject){log('Els diàlegs natius només estan disponibles a la versió d’escriptori.');return;}
+    const file=await window.jmriDesktop.openProject();if(file.canceled)return;
+    const ext=(file.fileName.split('.').pop()||'').toLowerCase();
+    try{
+      if(ext==='json'){
+        const parsed=validateConfig(JSON.parse(file.content));state.config=parsed;state.filePath=file.filePath;state.isDirty=false;
+        state.selectedLevel=parsed.levels[0].id;state.selectedIds=[];setProjectName(file.fileName);render();
+        log('Projecte JSON obert i validat. Les assignacions no verificades continuen en estat segur.');
+      }else if(['xtc','xti','xtm'].includes(ext)){
+        const result=window.JMRI_TC_PROJECT_FILES.parseXtc(file.content,state.config);
+        state.config=validateConfig(result.config);state.filePath=null;state.isDirty=true;state.selectedLevel=state.config.levels[0].id;state.selectedIds=[];
+        setProjectName(file.fileName+' · importat');render();
+        log(`XTrackCAD: ${result.report.imported} peces importades.`);
+        if(result.report.unsupported.length)log('Elements XTrackCAD no convertits: '+result.report.unsupported.slice(0,12).join('; '));
+      }else if(ext==='any'){
+        throw new Error('El format natiu .any d’AnyRail és propietari i no hi ha una especificació pública interoperable. A AnyRail, utilitza Fitxer > Exportar com > JMRI Layout XML; aquesta importació XML encara no està habilitada.');
+      }else if(ext==='xml'){
+        throw new Error('Aquest XML no és un projecte JMRI TC JSON ni un XTrackCAD .xtc. Cal afegir l’adaptador específic de JMRI Layout XML.');
+      }else throw new Error('Format de fitxer no admès: .'+ext);
+    }catch(err){log('No s’ha obert el fitxer: '+err.message);window.alert?.('No s’ha pogut obrir el fitxer. '+err.message);}
+  }
+  async function saveNativeProject(saveAs=false){
+    if(!window.jmriDesktop?.saveProject){downloadText(JSON.stringify(state.config,null,2),'JMRI_TC_Gold_Custom_layout.json','application/json');log('Projecte exportat en JSON.');return;}
+    state.config.levels.forEach(syncRelations);
+    const result=await window.jmriDesktop.saveProject({content:JSON.stringify(state.config,null,2),filePath:state.filePath,saveAs,defaultPath:state.filePath||'JMRI_TC_Gold_Custom_layout.json',filters:[{name:'Projecte JMRI TC (JSON)',extensions:['json']}]});
+    if(result.canceled)return;
+    state.filePath=result.filePath;state.isDirty=false;setProjectName(result.fileName);log('Projecte desat: '+result.fileName);
+  }
+  async function newProject(){
+    if(!await confirmDiscard())return;
+    state.config=window.JMRI_TC_PROJECT_FILES?.baseConfig?.()||{schemaVersion:3,name:'Projecte nou',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:'Nivell '+(i+1),elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+    state.filePath=null;state.isDirty=false;state.selectedLevel=1;state.selectedIds=[];state.history=[];state.future=[];setProjectName('Projecte nou');render();log('Projecte nou creat.');
+  }
+  async function exportXtc(){
+    try{
+      const result=window.JMRI_TC_PROJECT_FILES.exportXtc(state.config);
+      if(window.jmriDesktop?.saveProject){
+        const saved=await window.jmriDesktop.saveProject({content:result.content,saveAs:true,defaultPath:'JMRI_TC_Gold_Custom_layout.xtc',filters:[{name:'XTrackCAD Layout (*.xtc)',extensions:['xtc']}]});
+        if(!saved.canceled)log('Exportació XTrackCAD: '+result.report.exported+' peces.');
+      }else downloadText(result.content,'JMRI_TC_Gold_Custom_layout.xtc','text/plain');
+      if(result.report.unsupported.length)log('No exportats a XTrackCAD: '+result.report.unsupported.join('; '));
+    }catch(err){log('Error exportant XTrackCAD: '+err.message);}
+  }
+  $('exportBtn').onclick=()=>saveNativeProject(true);
+  $('configFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const c=validateConfig(JSON.parse(await f.text()));state.config=c;state.filePath=null;state.isDirty=false;state.selectedLevel=c.levels[0].id;state.selectedIds=[];setProjectName(f.name);render();log('Importat '+f.name+' i normalitzat al model v3.');}catch(err){log('Error d’importació: '+err.message);}e.target.value='';};
+  $('newProjectBtn')?.addEventListener('click',newProject);
+  $('openProjectBtn')?.addEventListener('click',()=>openNativeProject(false));
+  $('saveProjectBtn')?.addEventListener('click',()=>saveNativeProject(false));
+  $('saveAsProjectBtn')?.addEventListener('click',()=>saveNativeProject(true));
+  $('importXtcBtn')?.addEventListener('click',()=>openNativeProject(true));
+  $('exportXtcBtn')?.addEventListener('click',exportXtc);
+  window.jmriDesktop?.onCommand?.(command=>{
+    if(command==='new')newProject();
+    else if(command==='open')openNativeProject(false);
+    else if(command==='save')saveNativeProject(false);
+    else if(command==='saveAs')saveNativeProject(true);
+    else if(command==='importXtc')openNativeProject(true);
+    else if(command==='exportXtc')exportXtc();
+  });
   function renderModern(){$('modernBlocks').replaceChildren();state.config.levels.forEach(l=>(l.tracks||[]).forEach(p=>{const card=document.createElement('article');card.className='modern-block';card.textContent=`${p.name} · ${l.name} · ${p.blockId||'Sense bloc'} · ${p.sensorName||'Sense sensor'}`;$('modernBlocks').append(card);}));}
   function renderSensors(){const rows=state.config.levels.flatMap(l=>[...(l.tracks||[]).filter(p=>p.sensorName).map(p=>`${p.sensorName}: ${sensorStateFor(p,l).label}`),...(l.tracks||[]).filter(p=>p.type==='turnout'&&p.turnoutSystemName).map(p=>`${p.turnoutSystemName}: ${turnoutStateFor(p).label}`)]);$('sensorSummary').textContent=rows.length?rows.join(' · '):'Encara no hi ha sensors ni desviaments JMRI assignats a peces.';}
   function connect(){if(state.ws?.readyState===WebSocket.OPEN)return;const host=$('host').value.trim(),port=Number($('port').value);if(!host||!Number.isInteger(port)||port<1||port>65535){log('Servidor o port invàlid.');return;}const url=`ws://${host}:${port}/json/`;$('connectionText').textContent=`Connectant a ${url}`;state.sensors={};state.turnouts={};state.sensorUpdatedAt={};state.turnoutUpdatedAt={};state.powerUpdatedAt=0;render();try{const ws=new WebSocket(url);state.ws=ws;ws.onopen=()=>{$('connectionBadge').textContent='Connectat';$('connectionBadge').className='badge online';$('connectBtn').disabled=true;$('disconnectBtn').disabled=false;$('connectionText').textContent=`WebSocket obert: ${url}`;state.lastWsPong=Date.now();state.jmriPower='UNKNOWN';ws.send(JSON.stringify({list:'sensors'}));ws.send(JSON.stringify({list:'turnouts'}));ws.send(JSON.stringify({type:'power',method:'get'}));const names=[...new Set(state.config.levels.flatMap(l=>[...(l.tracks||[]).map(p=>p.sensorName),...(l.sensors||[]).map(s=>s.systemName)]).filter(Boolean))];names.forEach(name=>ws.send(JSON.stringify({type:'sensor',data:{name}})));const turnoutNames=[...new Set(state.config.levels.flatMap(l=>(l.tracks||[]).map(p=>p.turnoutSystemName)).filter(Boolean))];turnoutNames.forEach(name=>ws.send(JSON.stringify({type:'turnout',data:{name}})));state.wsHeartbeat=setInterval(()=>{if(ws.readyState!==WebSocket.OPEN)return;if(Date.now()-state.lastWsPong>15000){log('JMRI sense resposta al heartbeat; invalidant lectures i tancant la connexió.');ws.close();return;}try{ws.send(JSON.stringify({type:'ping'}));}catch{ws.close();}},5000);log('JMRI connectat en mode només lectura. Esperant lectures actuals dels sensors.');render();};ws.onmessage=e=>{try{const m=JSON.parse(e.data),items=Array.isArray(m)?m:[m];items.forEach(x=>{if(x.type==='pong')state.lastWsPong=Date.now();if(x.type==='power'){state.jmriPower=({2:'ON',4:'OFF',8:'IDLE'})[Number(x.data?.state)]||'UNKNOWN';state.powerUpdatedAt=Date.now();}if(x.type==='sensor'&&x.data?.name){state.sensors[x.data.name]=x.data.state;state.sensorUpdatedAt[x.data.name]=Date.now();}if(x.type==='turnout'&&x.data?.name){state.turnouts[x.data.name]=x.data.state;state.turnoutUpdatedAt[x.data.name]=Date.now();}});render();}catch{log('Missatge JMRI ignorat: JSON no vàlid.');}};ws.onerror=()=>{log('Error WebSocket: revisa el Web Server de JMRI.');};ws.onclose=()=>{clearInterval(state.wsHeartbeat);state.wsHeartbeat=null;state.ws=null;state.sensors={};state.turnouts={};state.sensorUpdatedAt={};state.turnoutUpdatedAt={};state.powerUpdatedAt=0;state.jmriPower='UNKNOWN';$('connectionBadge').textContent='Desconnectat';$('connectionBadge').className='badge offline';$('connectBtn').disabled=false;$('disconnectBtn').disabled=true;$('connectionText').textContent='No hi ha cap sessió activa. Les lectures s’han invalidat.';render();log('Connexió tancada: blocs amb sensors retornats a Desconegut.');};}catch(err){state.sensors={};render();log(err.message);}}
