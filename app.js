@@ -364,6 +364,7 @@
     return window.confirm('Hi ha canvis sense desar. Vols descartar-los?');
   }
   async function openNativeProject(importMode){
+    if(!await confirmDiscard())return;
     if(!window.jmriDesktop?.openProject){log('Els diàlegs natius només estan disponibles a la versió d’escriptori.');return;}
     const file=await window.jmriDesktop.openProject();if(file.canceled)return;
     const ext=(file.fileName.split('.').pop()||'').toLowerCase();
