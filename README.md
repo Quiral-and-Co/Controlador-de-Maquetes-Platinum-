@@ -156,3 +156,12 @@ Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm te
 - Cada moviment conjunt crea un únic pas a **Desfer/Refer**. Les connexions entre peces mogudes juntes conserven la geometria; qualsevol connexió amb peces no seleccionades s’ha de tornar a revisar amb «Validar topologia».
 - El motor de moviment és independent (`selection-move-core.js`) i no envia ordres a JMRI ni modifica estats de sensors, desviaments, blocs o sortides físiques.
 - Proves: `node --check selection-move-core.js`, `node tests/selection-move.cjs` i `node tests/smoke.cjs`.
+
+
+## Món de Jocs Märklin universal
+
+El mòdul `spielewelt-core.js` i la interfície `spielewelt-ui.js` ofereixen cabines virtuals per a locomotores mfx+, mfx, DCC, MM2/Motorola i altres descodificadors. Inclou perfils de vapor, dièsel i elèctric, modes sense consum, amb consum simulat i repostatge virtual al dipòsit. El motor diferencia explícitament la capacitat mfx+ declarada de la simulació pròpia del programa: en locomotores no mfx+ els recursos no es llegeixen ni s'escriuen al descodificador.
+
+**Límit de seguretat:** aquest mòdul és una simulació local i no envia ordres a la CS2, al bus de tracció, a JMRI ni a sortides físiques. El repostatge exigeix confirmació de dipòsit i només modifica l'estat simulat. No és una implementació del protocol propietari mfx+ ni substitueix la cabina nativa de Märklin.
+
+Proves: `node --check spielewelt-core.js`, `node --check spielewelt-ui.js` i `node tests/spielewelt.cjs`; també incorporades a `npm test`.
