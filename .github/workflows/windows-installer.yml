@@ -51,8 +51,8 @@ jobs:
           node-version: 22
           package-manager-cache: false
 
-      - name: Install locked dependencies
-        run: npm ci --no-audit --no-fund
+      - name: Install dependencies (repository has no lockfile)
+        run: npm install --no-audit --no-fund --no-package-lock
 
       - name: Run complete regression suite
         run: npm test
