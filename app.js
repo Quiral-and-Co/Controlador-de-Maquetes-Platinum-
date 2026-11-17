@@ -18,7 +18,7 @@
     const existing=new Set(state.config.levels.flatMap(l=>(l.tracks||[]).map(p=>String(p.id))));
     let id;
     do { pieceSequence+=1; id=type.toUpperCase()+'-'+Date.now().toString(36)+'-'+pieceSequence.toString(36); } while(existing.has(id));
-    return {id,type,name:pieceName(type)+' '+(pieces().length+1),x:snap(300+pieces().length*30),y:snap(300+pieces().length*25),rotation:0,levelId:state.selectedLevel,blockId:'',sensorName:'',turnoutSystemName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30}};
+    return {id,type,name:pieceName(type)+' '+(pieces().length+1),x:snap(300+pieces().length*30),y:snap(300+pieces().length*25),rotation:0,zMm:Number(level()?.elevationMm)||0,levelId:state.selectedLevel,blockId:'',sensorName:'',turnoutSystemName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30}};
   }
   function localPorts(p){const g=p.geometry||{};const len=Math.max(20,Number(g.lengthMm)||180);if(p.type==='straight')return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'}];if(p.type==='curve'){const a=Math.max(1,Math.min(179,Number(g.angleDeg)||30))*Math.PI/180,r=Math.max(20,Number(g.radiusMm)||360);return [{x:0,y:0,port:'A'},{x:r*Math.sin(a),y:r*(1-Math.cos(a)),port:'B'}];}if(p.type==='turnout')return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'},{x:len*.83,y:-Math.min(120,Number(g.branchOffsetMm)||60),port:'C'}];return [{x:0,y:0,port:'A'},{x:len,y:0,port:'B'}];}
   function worldPorts(p){const a=(p.rotation||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return localPorts(p).map(q=>({x:p.x+q.x*c-q.y*s,y:p.y+q.x*s+q.y*c,port:q.port,pieceId:p.id}));}
@@ -141,7 +141,7 @@
   function selectedPiece(){return pieces().find(x=>x.id===state.selectedIds[0]);}
   function fillSelect(el,items,selected,emptyLabel){el.innerHTML=(emptyLabel?`<option value="">${esc(emptyLabel)}</option>`:'')+items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');el.value=selected??'';}
   function syncRelations(l){l.blocks=l.blocks||[];l.sensors=l.sensors||[];l.blocks.forEach(b=>{b.trackIds=[];b.sensorIds=[];});for(const p of l.tracks||[]){const b=l.blocks.find(x=>x.id===p.blockId);if(b){b.trackIds.push(p.id);const sensor=l.sensors.find(x=>x.systemName===p.sensorName);if(sensor&&!b.sensorIds.includes(sensor.id))b.sensorIds.push(sensor.id);}}}
-  function renderProperties(){const p=selectedPiece();$('emptyProperties').classList.toggle('hidden',!!p);$('pieceProperties').classList.toggle('hidden',!p);$('selectionText').textContent=p?`${state.selectedIds.length} seleccionada/es · ${p.id}`:'Cap peça seleccionada';if(!p)return;$('propId').value=p.id;$('propName').value=p.name;$('propType').value=pieceName(p.type)+(p.catalogueRef?` · Märklin ${p.catalogueRef}`:'');$('propX').value=p.x;$('propY').value=p.y;$('propRotation').value=p.rotation||0;$('propLength').value=p.geometry?.lengthMm??180;$('propRadius').value=p.geometry?.radiusMm??360;$('propAngle').value=p.geometry?.angleDeg??30;fillSelect($('propBlock'),level().blocks.map(b=>({value:b.id,label:b.name})),p.blockId||'','Sense bloc');fillSelect($('propSensor'),level().sensors.map(x=>({value:x.systemName,label:`${x.userName||x.systemName} (${x.systemName})`})),p.sensorName||'','Sense sensor');const accessories=window.JMRI_TC_DIGITAL_CATALOGUE?.getDatabase?.().accessories||[];fillSelect($('propTurnout'),accessories.filter(x=>x.type==='TURNOUT'&&x.systemName).map(x=>({value:x.systemName,label:`${x.name} · ${x.systemName} · ${x.protocol}${x.verified?'':' · no verificat'}`})),p.turnoutSystemName||'','Sense desviament JMRI');$('propTurnout').disabled=p.type!=='turnout';fillSelect($('propLevel'),state.config.levels.map(l=>({value:String(l.id),label:`${l.name} · ${l.elevationMm} mm`})),String(p.levelId),'Nivell actual');}
+  function renderProperties(){const p=selectedPiece();$('emptyProperties').classList.toggle('hidden',!!p);$('pieceProperties').classList.toggle('hidden',!p);$('selectionText').textContent=p?`${state.selectedIds.length} seleccionada/es · ${p.id}`:'Cap peça seleccionada';if(!p)return;$('propId').value=p.id;$('propName').value=p.name;$('propType').value=pieceName(p.type)+(p.catalogueRef?` · Märklin ${p.catalogueRef}`:'');$('propX').value=p.x;$('propY').value=p.y;$('propZ').value=Number.isFinite(Number(p.zMm))?p.zMm:(Number(level()?.elevationMm)||0);$('moveTargetX').value=p.x;$('moveTargetY').value=p.y;$('moveTargetZ').value=Number.isFinite(Number(p.zMm))?p.zMm:(Number(level()?.elevationMm)||0);$('propRotation').value=p.rotation||0;$('propLength').value=p.geometry?.lengthMm??180;$('propRadius').value=p.geometry?.radiusMm??360;$('propAngle').value=p.geometry?.angleDeg??30;fillSelect($('propBlock'),level().blocks.map(b=>({value:b.id,label:b.name})),p.blockId||'','Sense bloc');fillSelect($('propSensor'),level().sensors.map(x=>({value:x.systemName,label:`${x.userName||x.systemName} (${x.systemName})`})),p.sensorName||'','Sense sensor');const accessories=window.JMRI_TC_DIGITAL_CATALOGUE?.getDatabase?.().accessories||[];fillSelect($('propTurnout'),accessories.filter(x=>x.type==='TURNOUT'&&x.systemName).map(x=>({value:x.systemName,label:`${x.name} · ${x.systemName} · ${x.protocol}${x.verified?'':' · no verificat'}`})),p.turnoutSystemName||'','Sense desviament JMRI');$('propTurnout').disabled=p.type!=='turnout';fillSelect($('propLevel'),state.config.levels.map(l=>({value:String(l.id),label:`${l.name} · ${l.elevationMm} mm`})),String(p.levelId),'Nivell actual');}
   function renderRegistries(){const l=level();$('blockRegistry').innerHTML=l.blocks.length?l.blocks.map(b=>`<div class="resource-row"><strong>${esc(b.name)}</strong><span>${(b.trackIds||[]).length} peça/es · ${(b.sensorIds||[]).length} sensor(s)</span><label><input type="checkbox" data-verify-block="${esc(b.id)}" ${b.verified?'checked':''}> Bloc verificat físicament</label></div>`).join(''):'Sense blocs definits.';$('sensorRegistry').innerHTML=l.sensors.length?l.sensors.map(x=>`<div class="resource-row"><strong>${esc(x.userName||x.systemName)}</strong><span>${esc(x.systemName)}${x.invert?' · invertit':''}</span><label><input type="checkbox" data-verify-sensor="${esc(x.id)}" ${x.verified?'checked':''}> Sensor verificat físicament</label></div>`).join(''):'Sense sensors registrats.';}
 
   $('blockRegistry').addEventListener('change',e=>{const id=e.target?.dataset?.verifyBlock;if(!id)return;const b=level().blocks.find(x=>x.id===id);if(!b)return;checkpoint();b.verified=!!e.target.checked;render();log(`Bloc ${id}: verificació física ${b.verified?'activada':'retirada'}.`);});
@@ -154,6 +154,38 @@
   $('addBlockBtn').onclick=()=>{const l=level(),allBlocks=state.config.levels.flatMap(x=>x.blocks),name=$('newBlockName').value.trim()||`B${String(allBlocks.length+1).padStart(2,'0')}`;if(allBlocks.some(b=>b.name.toLowerCase()===name.toLowerCase()||b.id===name)){log(`Ja existeix el bloc ${name}.`);return;}checkpoint();l.blocks.push({id:name,name,trackIds:[],lengthMm:0,sensorIds:[],verified:false});$('newBlockName').value='';render();log(`Bloc ${name} creat com a agrupació lògica provisional.`);};
   $('addSensorBtn').onclick=()=>{const l=level(),systemName=$('newSensorSystemName').value.trim(),userName=$('newSensorUserName').value.trim();if(!systemName){log('Introdueix el system name del sensor JMRI.');return;}if(state.config.levels.some(x=>x.sensors.some(y=>y.systemName===systemName))){log(`El sensor ${systemName} ja està registrat.`);return;}checkpoint();const safe=systemName.replace(/[^a-zA-Z0-9_-]/g,'_');let sensorId=`S-${safe}`,suffix=2;while(state.config.levels.some(x=>x.sensors.some(y=>y.id===sensorId)))sensorId=`S-${safe}-${suffix++}`;l.sensors.push({id:sensorId,systemName,userName,invert:false,verified:false});$('newSensorSystemName').value='';$('newSensorUserName').value='';render();log(`Sensor ${systemName} registrat, pendent de verificació física.`);};
   $('moveLevelBtn').onclick=()=>{const p=selectedPiece(),target=state.config.levels.find(x=>String(x.id)===String($('propLevel').value));if(!p||!target||target.id===state.selectedLevel)return;if(p.blockId||p.sensorName||p.turnoutSystemName){log('Abans de moure la peça, desassigna’n el bloc, el sensor i el desviament JMRI perquè són recursos del nivell actual.');return;}if(state.config.connections.some(c=>c.from.pieceId===p.id||c.to.pieceId===p.id)){log('Abans de canviar de nivell, elimina les connexions topològiques de la peça.');return;}checkpoint();const source=level();source.tracks=source.tracks.filter(x=>x.id!==p.id);p.levelId=target.id;target.tracks.push(p);state.selectedLevel=target.id;state.selectedIds=[p.id];render();log(`${p.id} moguda a ${target.name}; no s'ha creat cap enllaç vertical.`);};
+
+  function applyXYZSelection(){
+    const selected=pieces().filter(p=>state.selectedIds.includes(p.id)).map(p=>({...p,zMm:Number.isFinite(Number(p.zMm))?Number(p.zMm):(Number(level()?.elevationMm)||0)}));
+    if(!selected.length){log('Selecciona una o més vies abans d’aplicar el moviment XYZ.');return;}
+    const anchor=selected[0];const delta={x:Number($('moveTargetX').value)-anchor.x,y:Number($('moveTargetY').value)-anchor.y,z:Number($('moveTargetZ').value)-anchor.zMm};
+    const before=clone(state.config);
+    try{
+      const plan=selectionMove.moveXYZ(selected,delta,BOARD);
+      checkpointFrom(before);
+      for(const pos of plan.positions){const p=pieces().find(x=>x.id===pos.id);if(p){p.x=pos.x;p.y=pos.y;p.zMm=pos.zMm;}}
+      render();
+      log(`Posició XYZ de referència aplicada a ${plan.positions.length} peça/es: X ${$('moveTargetX').value} mm · Y ${$('moveTargetY').value} mm · Z ${$('moveTargetZ').value} mm; offsets relatius conservats.`);
+    }catch(error){log(`Moviment XYZ rebutjat sense modificar el projecte: ${error.message}`);}
+  }
+  $('applyXYZBtn').onclick=applyXYZSelection;
+  function generateParallelSelection(){
+    const selected=pieces().filter(p=>state.selectedIds.includes(p.id));
+    if(!selected.length){log('Selecciona una o més vies abans de generar paral·leles.');return;}
+    const distance=Number($('parallelDistance').value),side=$('parallelSide').value;
+    const before=clone(state.config);
+    try{
+      const plan=selectionMove.createParallel(selected,distance,{side,board:BOARD,idFactory:(piece,index)=>`PAR-${Date.now().toString(36)}-${index+1}-${String(piece.id).replace(/[^a-zA-Z0-9_-]/g,'_')}`});
+      checkpointFrom(before);
+      const copies=plan.tracks.map(copy=>({...copy,zMm:Number.isFinite(Number(copy.zMm))?Number(copy.zMm):(Number(level()?.elevationMm)||0),blockId:'',sensorName:'',turnoutSystemName:'',levelId:state.selectedLevel}));
+      pieces().push(...copies);
+      state.selectedIds=copies.map(p=>p.id);
+      render();
+      log(`Generades ${copies.length} via/es paral·lela/es a ${distance} mm pel costat ${side==='left'?'esquerre':'dret'}. Les assignacions de blocs, sensors i desviaments no s’han duplicat.`);
+    }catch(error){log(`Generació paral·lela rebutjada sense modificar el projecte: ${error.message}`);}
+  }
+  $('createParallelBtn').onclick=generateParallelSelection;
+
   if(!$('rotationQuadrant').value)$('rotationQuadrant').value='0';
   if(!$('rotationCustomAngle').value)$('rotationCustomAngle').value='15';
   function selectedRotationAngle(){

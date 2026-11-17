@@ -46,6 +46,9 @@ jobs:
       - name: Run complete test suite
         run: npm test
 
+      - name: Editor XYZ, parallel tracks, curves and topology acceptance gate
+        run: node tests/editor-geometry-acceptance.cjs
+
       - name: Build NSIS installer
         run: npm run dist:win
 

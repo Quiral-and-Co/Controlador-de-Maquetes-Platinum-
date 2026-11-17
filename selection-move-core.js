@@ -101,5 +101,71 @@
     });
     return { angle, center, positions };
   }
-  return Object.freeze({ createDrag, move, rotate });
+  function moveXYZ(pieces, delta, board) {
+    if (!Array.isArray(pieces) || !pieces.length) throw new TypeError('Cal seleccionar almenys una peça.');
+    const width = finite(board && board.width, 'L’amplada del tauler');
+    const height = finite(board && board.height, 'L’alçada del tauler');
+    if (!(width > 0 && height > 0)) throw new RangeError('Les dimensions del tauler han de ser positives.');
+    const dx = finite(delta && delta.x, 'El desplaçament X');
+    const dy = finite(delta && delta.y, 'El desplaçament Y');
+    const dz = finite(delta && delta.z, 'El desplaçament Z');
+    const seen = new Set();
+    const originals = pieces.map(piece => {
+      if (!piece || piece.id === undefined || piece.id === null) throw new TypeError('Cada peça ha de tenir un identificador.');
+      const id = String(piece.id);
+      if (seen.has(id)) throw new Error('La selecció conté identificadors duplicats: ' + id);
+      seen.add(id);
+      return { id: piece.id, x: finite(piece.x, 'La coordenada X de ' + id), y: finite(piece.y, 'La coordenada Y de ' + id), z: finite(piece.zMm === undefined ? 0 : piece.zMm, 'La coordenada Z de ' + id) };
+    });
+    const positions = originals.map(piece => ({ id: piece.id, x: piece.x + dx, y: piece.y + dy, zMm: piece.z + dz }));
+    for (const p of positions) {
+      if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) throw new RangeError('El moviment XYZ deixaria una peça fora de la superfície del tauler.');
+      if (p.zMm < -10000 || p.zMm > 10000) throw new RangeError('La cota Z ha de quedar entre -10000 i 10000 mm.');
+    }
+    return { delta: { x: dx, y: dy, z: dz }, positions };
+  }
+
+  function createParallel(pieces, distanceMm, options) {
+    if (!Array.isArray(pieces) || !pieces.length) throw new TypeError('Cal seleccionar almenys una via per generar-ne una paral·lela.');
+    const distance = finite(distanceMm, 'La distància entre eixos');
+    if (!(distance > 0) || distance > 1000) throw new RangeError('La distància entre eixos ha de ser superior a 0 i no superar 1000 mm.');
+    options = options || {};
+    const side = options.side === undefined ? 'left' : options.side;
+    if (side !== 'left' && side !== 'right') throw new RangeError('El costat ha de ser left o right.');
+    const sign = side === 'left' ? 1 : -1;
+    const seen = new Set();
+    const tracks = pieces.map((piece, index) => {
+      if (!piece || piece.id === undefined || piece.id === null) throw new TypeError('Cada via ha de tenir identificador.');
+      const sourceId = String(piece.id);
+      if (seen.has(sourceId)) throw new Error('La selecció conté identificadors duplicats: ' + sourceId);
+      seen.add(sourceId);
+      const x = finite(piece.x, 'La coordenada X de ' + sourceId);
+      const y = finite(piece.y, 'La coordenada Y de ' + sourceId);
+      const rotation = finite(piece.rotation === undefined ? 0 : piece.rotation, 'La rotació de ' + sourceId);
+      const radians = rotation * Math.PI / 180;
+      const copy = JSON.parse(JSON.stringify(piece));
+      copy.id = typeof options.idFactory === 'function' ? String(options.idFactory(piece, index)) : sourceId + '-P' + (index + 1);
+      if (!copy.id || seen.has(copy.id)) throw new Error('L’identificador de la via paral·lela és buit o duplicat.');
+      copy.name = (piece.name || sourceId) + ' · paral·lela ' + distance + ' mm';
+      copy.x = x + Math.sin(radians) * distance * sign;
+      copy.y = y - Math.cos(radians) * distance * sign;
+      if (copy.x < 0 || copy.x > finite(options.board && options.board.width || 3000, 'L’amplada del tauler') ||
+          copy.y < 0 || copy.y > finite(options.board && options.board.height || 1800, 'L’alçada del tauler')) {
+        throw new RangeError('La via paral·lela quedaria fora de la superfície del tauler.');
+      }
+      if (copy.type === 'curve' && copy.geometry) {
+        const radius = finite(copy.geometry.radiusMm || 360, 'El radi de la corba');
+        const adjusted = radius + sign * distance;
+        if (adjusted < 20) throw new RangeError('El radi de la corba paral·lela seria inferior a 20 mm.');
+        copy.geometry.radiusMm = adjusted;
+      }
+      copy.parallelOf = sourceId;
+      copy.parallelDistanceMm = distance;
+      copy.parallelSide = side;
+      return copy;
+    });
+    return { distanceMm: distance, side, tracks };
+  }
+
+  return Object.freeze({ createDrag, move, moveXYZ, createParallel, rotate });
 });
