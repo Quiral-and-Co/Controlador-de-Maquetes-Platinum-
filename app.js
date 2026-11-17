@@ -38,7 +38,7 @@
   function updateHistoryButtons(){ $('undoBtn').disabled=!state.history.length; $('redoBtn').disabled=!state.future.length; }
   function checkpoint(){state.isDirty=true;state.history.push(clone(state.config));if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
   function checkpointFrom(before){state.isDirty=true;state.history.push(before);if(state.history.length>100)state.history.shift();state.future=[];updateHistoryButtons();}
-  function restoreConfig(config){state.config=clone(config);/* Keep selection IDs across undo/redo so a redo can restore the selected item. */render();updateHistoryButtons();}
+  function restoreConfig(config){state.config=clone(config);state.isDirty=true;setProjectName?.($('configName').textContent.replace(/^\\*\\s*/,''));/* Keep selection IDs across undo/redo so a redo can restore the selected item. */render();updateHistoryButtons();}
   function undo(){if(!state.history.length)return;state.future.push(clone(state.config));restoreConfig(state.history.pop());log('Canvi desfet.');}
   function redo(){if(!state.future.length)return;state.history.push(clone(state.config));restoreConfig(state.future.pop());log('Canvi refet.');}
   function render(){
