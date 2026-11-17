@@ -6,7 +6,7 @@ const catalogue=[
  {ref:'24188',type:'straight',lengthMm:188.3,geometryStatus:'confirmed'},
  {ref:'24189',type:'straight',lengthMm:188.3,geometryStatus:'unverified'},
  {ref:'24230',type:'curve',radiusMm:360,angleDeg:30,geometryStatus:'confirmed'},
- {ref:'24224',type:'curve',radiusMm:437.5,angleDeg:24.3,geometryStatus:'confirmed'}
+ {ref:'24224',type:'curve',radiusMm:437.5,angleDeg:24.3,geometryStatus:'confirmed'},\n {ref:'24230',type:'curve',radiusMm:437.5,angleDeg:30,geometryStatus:'confirmed'}
 ];
 assert.equal(core.classifyGradient(1.5).code,'green');
 assert.equal(core.classifyGradient(2.5).code,'yellow');
@@ -33,7 +33,7 @@ const helixByGrade=core.helix({radiusMm:360,gradePercent:2,parallelTracks:1,spac
 assert.ok(Math.abs(helixByGrade.gradePercent-2)<1e-8);
 assert.ok(helixByGrade.riseMm>0);
 assert.equal(helix.placements.length,24);
-assert.equal(helix.lanes[1].radiusMm,437);
+assert.equal(helix.lanes[1].radiusMm,437);\nconst r2Helix=core.helix({radiusMm:437.5,riseMm:50,parallelTracks:1,spacingMm:77,turns:1,transitionLengthMm:100},catalogue);\nassert.equal(r2Helix.curve.angleDeg,30);\nassert.equal(r2Helix.pieceCountPerTrack,12);
 assert.equal(helix.lanes[0].classification.code,'red');
 assert.ok(helix.lanes.every(x=>x.closureErrorMm<1e-6));
 assert.throws(()=>core.helix({radiusMm:400,riseMm:100,parallelTracks:1,spacingMm:77,turns:1,transitionLengthMm:100},catalogue),/±2 mm/);
