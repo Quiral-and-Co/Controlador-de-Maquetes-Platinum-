@@ -102,7 +102,7 @@ check('rampes verticals, transicions, hèlix i classificació visual', () => {
   assert.match(app, /verticalRisk/);
   const html = fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
   assert.match(html, /vertical-track-ui\.js/);
-  for (const id of ['verticalMode','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRadiusMm','helixTrackCount','helixTurns','helixRiseMm','helixSpacingMm','calculateVerticalRampBtn','insertVerticalRampBtn']) {
+  for (const id of ['verticalMode','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRadiusMm','helixTrackCount','helixTurns','helixRiseMm','helixGradePercent','helixSpacingMm','calculateVerticalRampBtn','insertVerticalRampBtn']) {
     assert.ok(html.includes('id="'+id+'"'), 'Falta el control de rampa '+id);
   }
   assert.equal(vertical.classifyGradient(1.5).code,'green');
