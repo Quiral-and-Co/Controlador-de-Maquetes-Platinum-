@@ -27,6 +27,8 @@
   const clone = value => JSON.parse(JSON.stringify(value));
   const viewport = window.JMRI_TC_VIEWPORT;
   if(!viewport)throw new Error('No s’ha carregat viewport-core.js abans de app.js.');
+  const selectionMove = window.JMRI_TC_SELECTION_MOVE;
+  if(!selectionMove)throw new Error('No s’ha carregat selection-move-core.js abans de app.js.');
   function applyViewBox(){const v=state.viewBox;$('trackSvg').setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${v.height}`);$('zoomReadout').textContent=`${Math.round(viewport.zoomPercent(v,BOARD))}%`;}
   function viewportCenter(){return {x:state.viewBox.x+state.viewBox.width/2,y:state.viewBox.y+state.viewBox.height/2};}
   function zoomViewport(factor,anchor){state.viewBox=viewport.zoomAt(state.viewBox,factor,anchor,BOARD);applyViewBox();}
@@ -78,11 +80,63 @@
   $('zoomFitBtn').onclick=fitViewport;
   $('trackSvg').addEventListener('wheel',e=>{e.preventDefault();const anchor=svgPoint(e);zoomViewport(e.deltaY<0?0.85:1.18,anchor);},{passive:false});
   $('trackSvg').addEventListener('pointerdown',e=>{if(e.button!==1&&!(e.button===0&&state.spaceHeld))return;e.preventDefault();state.pan={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,view:{...state.viewBox}};$('trackSvg').classList.add('panning');$('trackSvg').setPointerCapture?.(e.pointerId);});
-  function onPieceDown(e){if(e.button!==0||state.spaceHeld)return;const id=e.currentTarget.dataset.id;if(e.ctrlKey||e.metaKey){selectPiece(id,e);return;}if(!state.selectedIds.includes(id))selectPiece(id,e);const p=pieces().find(x=>x.id===id),pt=svgPoint(e);state.drag={id,dx:pt.x-p.x,dy:pt.y-p.y,origin:{x:p.x,y:p.y},before:clone(state.config)};$('trackSvg').setPointerCapture?.(e.pointerId);}
+  function onPieceDown(e){
+    if(e.button!==0||state.spaceHeld)return;
+    const id=e.currentTarget.dataset.id;
+    if(e.ctrlKey||e.metaKey){selectPiece(id,e);return;}
+    if(!state.selectedIds.includes(id))selectPiece(id,e);
+    const pt=svgPoint(e);
+    const selected=pieces().filter(x=>state.selectedIds.includes(x.id));
+    try{
+      const plan=selectionMove.createDrag(selected,id,pt,BOARD,GRID);
+      state.drag={plan,before:clone(state.config),lastDx:0,lastDy:0,moved:false};
+    }catch(error){log(`No es pot moure la selecció: ${error.message}`);return;}
+    $('trackSvg').setPointerCapture?.(e.pointerId);
+  }
   function selectPiece(id,e){if(e.ctrlKey||e.metaKey){state.selectedIds=state.selectedIds.includes(id)?state.selectedIds.filter(x=>x!==id):[...state.selectedIds,id];}else if(!state.selectedIds.includes(id)){state.selectedIds=[id];}renderPieces();renderProperties();}
-  $('trackSvg').addEventListener('pointermove',e=>{if(state.pan&&state.pan.pointerId===e.pointerId){const rect=$('trackSvg').getBoundingClientRect();if(rect.width>0&&rect.height>0){const dx=-(e.clientX-state.pan.startX)*state.pan.view.width/rect.width,dy=-(e.clientY-state.pan.startY)*state.pan.view.height/rect.height;state.viewBox=viewport.panBy(state.pan.view,dx,dy,BOARD);applyViewBox();}return;}const pt=svgPoint(e);$('cursorCoords').textContent=`X: ${Math.round(pt.x)} · Y: ${Math.round(pt.y)} mm`;if(!state.drag)return;const p=pieces().find(x=>x.id===state.drag.id);if(!p)return;p.x=Math.max(0,Math.min(3000,snap(pt.x-state.drag.dx)));p.y=Math.max(0,Math.min(1800,snap(pt.y-state.drag.dy)));const g=[...$('pieceLayer').children].find(x=>x.dataset.id===p.id);if(g)g.setAttribute('transform',`translate(${p.x} ${p.y}) rotate(${p.rotation||0})`);$('propX').value=p.x;$('propY').value=p.y;});
-  $('trackSvg').addEventListener('pointerup',e=>{if(state.pan&&state.pan.pointerId===e.pointerId){state.pan=null;$('trackSvg').classList.remove('panning');return;}if(state.drag){const p=pieces().find(x=>x.id===state.drag.id);if(p&&(p.x!==state.drag.origin.x||p.y!==state.drag.origin.y))checkpointFrom(state.drag.before);log(`Peça ${state.drag.id} moguda a la graella.`);state.drag=null;render();}});
-  $('trackSvg').addEventListener('pointercancel',()=>{if(state.pan){state.pan=null;$('trackSvg').classList.remove('panning');}if(state.drag){state.drag=null;render();}});
+  $('trackSvg').addEventListener('pointermove',e=>{
+    if(state.pan&&state.pan.pointerId===e.pointerId){
+      const rect=$('trackSvg').getBoundingClientRect();
+      if(rect.width>0&&rect.height>0){
+        const dx=-(e.clientX-state.pan.startX)*state.pan.view.width/rect.width,dy=-(e.clientY-state.pan.startY)*state.pan.view.height/rect.height;
+        state.viewBox=viewport.panBy(state.pan.view,dx,dy,BOARD);applyViewBox();
+      }
+      return;
+    }
+    const pt=svgPoint(e);
+    $('cursorCoords').textContent=`X: ${Math.round(pt.x)} · Y: ${Math.round(pt.y)} mm`;
+    if(!state.drag)return;
+    const result=selectionMove.move(state.drag.plan,pt);
+    if(result.dx===state.drag.lastDx&&result.dy===state.drag.lastDy)return;
+    state.drag.lastDx=result.dx;state.drag.lastDy=result.dy;
+    state.drag.moved=result.dx!==0||result.dy!==0;
+    for(const position of result.positions){
+      const piece=pieces().find(x=>x.id===position.id);
+      if(piece){piece.x=position.x;piece.y=position.y;}
+    }
+    renderPieces();
+    const selected=selectedPiece();
+    if(selected){$('propX').value=selected.x;$('propY').value=selected.y;}
+  });
+  $('trackSvg').addEventListener('pointerup',e=>{
+    if(state.pan&&state.pan.pointerId===e.pointerId){state.pan=null;$('trackSvg').classList.remove('panning');return;}
+    if(state.drag){
+      const drag=state.drag;
+      if(drag.moved){
+        checkpointFrom(drag.before);
+        log(`${drag.plan.originals.length} peça/es moguda/es conjuntament a la graella.`);
+      }
+      state.drag=null;render();
+    }
+  });
+  $('trackSvg').addEventListener('pointercancel',()=>{
+    if(state.pan){state.pan=null;$('trackSvg').classList.remove('panning');}
+    if(state.drag){
+      state.config=clone(state.drag.before);
+      state.drag=null;render();
+      log('Moviment de la selecció cancel·lat; s’han restaurat les coordenades originals.');
+    }
+  });
   $('trackSvg').addEventListener('click',e=>{if(state.measuring){if(e.target.closest?.('.track-piece'))return;const pt=svgPoint(e);if(!state.measureStart){state.measureStart={x:pt.x,y:pt.y};$('measureStatus').textContent=`Origen: (${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}) mm · tria el segon punt.`;}else{const a=state.measureStart,d=Math.hypot(pt.x-a.x,pt.y-a.y);const line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',pt.x);line.setAttribute('y2',pt.y);line.setAttribute('class','measurement-line');$('connectionLayer').querySelectorAll?.('.measurement-line').forEach?.(x=>x.remove());$('connectionLayer').append(line);$('measureStatus').textContent=`Distància: ${d.toFixed(1)} mm · (${a.x.toFixed(0)}, ${a.y.toFixed(0)}) → (${pt.x.toFixed(0)}, ${pt.y.toFixed(0)})`;state.measureStart=null;}return;}if(e.target.closest?.('.track-piece')||e.target.closest?.('.track-port'))return;if(e.target===$('trackSvg')||e.target.tagName==='rect'){state.selectedIds=[];renderProperties();renderPieces();}});
   function selectedPiece(){return pieces().find(x=>x.id===state.selectedIds[0]);}
   function fillSelect(el,items,selected,emptyLabel){el.innerHTML=(emptyLabel?`<option value="">${esc(emptyLabel)}</option>`:'')+items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');el.value=selected??'';}
@@ -100,7 +154,50 @@
   $('addBlockBtn').onclick=()=>{const l=level(),allBlocks=state.config.levels.flatMap(x=>x.blocks),name=$('newBlockName').value.trim()||`B${String(allBlocks.length+1).padStart(2,'0')}`;if(allBlocks.some(b=>b.name.toLowerCase()===name.toLowerCase()||b.id===name)){log(`Ja existeix el bloc ${name}.`);return;}checkpoint();l.blocks.push({id:name,name,trackIds:[],lengthMm:0,sensorIds:[],verified:false});$('newBlockName').value='';render();log(`Bloc ${name} creat com a agrupació lògica provisional.`);};
   $('addSensorBtn').onclick=()=>{const l=level(),systemName=$('newSensorSystemName').value.trim(),userName=$('newSensorUserName').value.trim();if(!systemName){log('Introdueix el system name del sensor JMRI.');return;}if(state.config.levels.some(x=>x.sensors.some(y=>y.systemName===systemName))){log(`El sensor ${systemName} ja està registrat.`);return;}checkpoint();const safe=systemName.replace(/[^a-zA-Z0-9_-]/g,'_');let sensorId=`S-${safe}`,suffix=2;while(state.config.levels.some(x=>x.sensors.some(y=>y.id===sensorId)))sensorId=`S-${safe}-${suffix++}`;l.sensors.push({id:sensorId,systemName,userName,invert:false,verified:false});$('newSensorSystemName').value='';$('newSensorUserName').value='';render();log(`Sensor ${systemName} registrat, pendent de verificació física.`);};
   $('moveLevelBtn').onclick=()=>{const p=selectedPiece(),target=state.config.levels.find(x=>String(x.id)===String($('propLevel').value));if(!p||!target||target.id===state.selectedLevel)return;if(p.blockId||p.sensorName||p.turnoutSystemName){log('Abans de moure la peça, desassigna’n el bloc, el sensor i el desviament JMRI perquè són recursos del nivell actual.');return;}if(state.config.connections.some(c=>c.from.pieceId===p.id||c.to.pieceId===p.id)){log('Abans de canviar de nivell, elimina les connexions topològiques de la peça.');return;}checkpoint();const source=level();source.tracks=source.tracks.filter(x=>x.id!==p.id);p.levelId=target.id;target.tracks.push(p);state.selectedLevel=target.id;state.selectedIds=[p.id];render();log(`${p.id} moguda a ${target.name}; no s'ha creat cap enllaç vertical.`);};
-  $('rotateBtn').onclick=()=>{const p=pieces().find(x=>x.id===state.selectedIds[0]);if(p){checkpoint();p.rotation=((p.rotation||0)+15)%360;render();log(`${p.id}: rotació ${p.rotation}°.`);}};
+  if(!$('rotationQuadrant').value)$('rotationQuadrant').value='0';
+  if(!$('rotationCustomAngle').value)$('rotationCustomAngle').value='15';
+  function selectedRotationAngle(){
+    const quadrant=Number($('rotationQuadrant').value),local=Number($('rotationCustomAngle').value);
+    if(!Number.isInteger(quadrant)||quadrant<0||quadrant>3||!Number.isFinite(local)||local<0||local>90)throw new RangeError('Tria un quadrant vàlid i un angle entre 0° i 90°.');
+    return quadrant*90+local;
+  }
+  function refreshRotationReadout(){
+    try{$('rotationAngleReadout').textContent=`Angle total: ${Number(selectedRotationAngle().toFixed(2))}° · sentit horari al tauler`;}
+    catch(error){$('rotationAngleReadout').textContent=error.message;}
+  }
+  function rotateSelectionBy(angle){
+    const selected=pieces().filter(p=>state.selectedIds.includes(p.id));
+    if(!selected.length){log('Selecciona una o més peces abans de girar.');return;}
+    const total=((Number(angle)%360)+360)%360;
+    if(!Number.isFinite(total)){log('L’angle de rotació no és vàlid.');return;}
+    if(Math.abs(total)<1e-9){log('Rotació de 0°: no s’ha modificat cap peça.');return;}
+    const selectedIds=new Set(selected.map(p=>p.id));
+    const affected=(state.config.connections||[]).filter(c=>c.levelId===state.selectedLevel&&(selectedIds.has(c.from?.pieceId)||selectedIds.has(c.to?.pieceId)));
+    const before=clone(state.config);
+    let plan;
+    try{plan=selectionMove.rotate(selected,total,BOARD);}catch(error){log(`No es pot girar la selecció: ${error.message}`);return;}
+    for(const position of plan.positions){
+      const piece=pieces().find(p=>p.id===position.id);
+      if(piece){piece.x=position.x;piece.y=position.y;piece.rotation=position.rotation;}
+    }
+    checkpointFrom(before);
+    render();
+    const audit=auditTopology();
+    log(`Rotació conjunta de ${selected.length} peça/es +${Number(total.toFixed(2))}° al centre (${plan.center.x.toFixed(1)}, ${plan.center.y.toFixed(1)}) mm; ${affected.length} connexió/ons afectada/es revisada/es. ${audit.errors.length?'Cal revisar els errors topològics i, si escau, desfer l’operació.':'Cap error topològic detectat.'}`);
+  }
+  $('rotateBtn').onclick=()=>{try{rotateSelectionBy(selectedRotationAngle());}catch(error){log(error.message);}};
+  $('rotationQuadrant').addEventListener('change',refreshRotationReadout);
+  $('rotationCustomAngle').addEventListener('input',refreshRotationReadout);
+  $('rotationCustomAngle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('rotateBtn').onclick();}});
+  [0,30,45,60,90].forEach(degrees=>{
+    const button=$(`rotationPreset${degrees}`);
+    button.onclick=()=>{
+      $('rotationCustomAngle').value=String(degrees);
+      refreshRotationReadout();
+      $('rotateBtn').onclick();
+    };
+  });
+  refreshRotationReadout();
   $('duplicateBtn').onclick=()=>{const originals=state.selectedIds.map(id=>pieces().find(p=>p.id===id)).filter(Boolean);if(!originals.length)return;checkpoint();const copies=originals.map((p,i)=>({...clone(p),id:`${p.type.toUpperCase()}-${Date.now()}-${i+1}`,name:`${p.name} (còpia)`,x:snap(Math.min(3000,p.x+40)),y:snap(Math.min(1800,p.y+40))}));pieces().push(...copies);state.selectedIds=copies.map(p=>p.id);render();log(`${copies.length} peça/es duplicada/es.`);};
   $('undoBtn').onclick=undo;$('redoBtn').onclick=redo;
   $('measureBtn').onclick=()=>{state.measuring=!state.measuring;state.measureStart=null;$('measureBtn').classList.toggle('active',state.measuring);$('measureStatus').textContent=state.measuring?'Mesura activa: fes clic a dos punts del tauler.':'Graella: 10 mm · major: 100 mm';log(state.measuring?'Eina de mesura activada.':'Eina de mesura desactivada.');};
