@@ -133,6 +133,8 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   els.validateTopologyBtn.onclick();
   if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Manual connection should pass topology audit');
   // Multi-selection drag: one snapped translation, preserved offsets and one undo step.
+  // Keep the mock event log below its UI retention limit before exercising undo/redo.
+  els.eventLog.children=[];
   const emptyGroupProject={schemaVersion:3,name:'Group move test',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
   await els.configFile.onchange({target:{files:[{name:'group-move.json',text:async()=>JSON.stringify(emptyGroupProject)}],value:''}});
   palette[0].onclick();const groupA=els.propId.value;
