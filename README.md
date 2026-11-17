@@ -146,3 +146,13 @@ Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm te
 - El zoom està limitat entre 10% i 1000%; el desplaçament no perd l’àrea de la maqueta.
 - La navegació canvia exclusivament el `viewBox` SVG: no modifica coordenades en mm, geometries, connexions, blocs, sensors ni el JSON exportat.
 - Proves: `node --check viewport-core.js`, `node tests/viewport.cjs` i `node tests/smoke.cjs`.
+
+
+## Moviment conjunt de peces seleccionades (0.11)
+
+- Selecciona diverses peces amb **Ctrl + clic** (o **Cmd + clic** a macOS) i arrossega qualsevol peça de la selecció.
+- Totes les peces seleccionades es traslladen amb el mateix desplaçament, ajustat a la graella de 10 mm; es mantenen els offsets relatius i les rotacions.
+- La selecció completa queda dins de la superfície 3000 × 1800 mm. Si es cancel·la l’arrossegament, es restauren totes les coordenades.
+- Cada moviment conjunt crea un únic pas a **Desfer/Refer**. Les connexions entre peces mogudes juntes conserven la geometria; qualsevol connexió amb peces no seleccionades s’ha de tornar a revisar amb «Validar topologia».
+- El motor de moviment és independent (`selection-move-core.js`) i no envia ordres a JMRI ni modifica estats de sensors, desviaments, blocs o sortides físiques.
+- Proves: `node --check selection-move-core.js`, `node tests/selection-move.cjs` i `node tests/smoke.cjs`.
