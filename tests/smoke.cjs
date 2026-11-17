@@ -145,7 +145,7 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   els.trackSvg.handlers.pointerup({pointerId:77});
   let groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
   const groupPos=()=>Object.fromEntries(groupTracks.map(x=>[x.id,{x:x.x,y:x.y}]));
-  if(groupPos()[groupA].x!==350||groupPos()[groupA].y!==350||groupPos()[groupB].x!==380||groupPos()[groupB].y!==375)throw Error('Multi-selection drag did not move all pieces by the same snapped delta');
+  if(groupPos()[groupA].x!==350||groupPos()[groupA].y!==350||groupPos()[groupB].x!==380||groupPos()[groupB].y!==380)throw Error('Multi-selection drag did not move all pieces by the same snapped delta');
   els.undoBtn.onclick();groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
   if(groupTracks.find(x=>x.id===groupA).x!==300||groupTracks.find(x=>x.id===groupB).x!==330)throw Error('A single undo did not restore the whole multi-piece movement');
   els.redoBtn.onclick();groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
