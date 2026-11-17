@@ -1,0 +1,29 @@
+name: Emergency interlock CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feature/global-emergency-interlock]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Syntax check emergency bridge and UI
+        run: |
+          node --check traffic-bridge.js
+          node --check traffic.js
+          node --check emergency-core.js
+          node --check tests/emergency.cjs
+          node --check tests/emergency-bridge.cjs
+      - name: Run full test suite
+        run: npm test

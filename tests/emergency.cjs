@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict');
+const core=require('../emergency-core.js');
+const s=core.createState();
+assert.equal(s.latched,true,'must start latched');
+const first=core.trip(s,{reason:'Botó del panell',source:'operator'},new Date('2026-11-17T10:00:00Z'));
+assert.equal(first.latched,true);
+assert.equal(s.reason,'Botó del panell');
+assert.equal(core.canRearm(s,{operatorConfirmed:true,jmriConnected:true,bridgeConnected:true,jmriPower:'ON',allRunsStopped:true}).ok,false,'ON power must not permit rearm');
+assert.equal(core.rearm(s,{operatorConfirmed:true,jmriConnected:true,bridgeConnected:true,jmriPower:'OFF',allRunsStopped:false}).ok,false,'active runs must block rearm');
+const reset=core.rearm(s,{operatorConfirmed:true,jmriConnected:true,bridgeConnected:true,jmriPower:'OFF',allRunsStopped:true},new Date('2026-11-17T10:01:00Z'));
+assert.equal(reset.ok,true);
+assert.equal(reset.dccArmed,false,'rearm must never arm DCC');
+assert.equal(s.latched,false);
+assert.deepEqual(s.events.map(x=>x.type),['TRIP','REARM']);
+core.trip(s,{reason:'Pèrdua de connexió',source:'watchdog'});
+assert.equal(s.latched,true,'a new fault must relatch after rearm');
+console.log('PASS: global emergency latch, manual-only rearm, fail-closed conditions and audit history');

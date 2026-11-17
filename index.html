@@ -208,6 +208,13 @@
       <button id="trafficArm" type="button" disabled>Armar DCC</button>
       <button id="trafficEmergencyAll" type="button" class="danger">EMERGÈNCIA GLOBAL</button>
     </div>
+    <section id="globalEmergencyPanel" class="global-emergency-panel" role="alert" aria-live="assertive" data-active="true">
+      <div class="global-emergency-heading"><strong>EMERGÈNCIA GLOBAL ACTIVA</strong><span id="globalEmergencyStatus">BLOQUEIG · esperant estat del pont</span></div>
+      <p id="globalEmergencyReason">El control DCC està bloquejat. Les reserves d'itinerari es mantenen retingudes fins a inspecció.</p>
+      <label class="emergency-rearm-check"><input id="globalEmergencyConfirm" type="checkbox"> Confirmo que he inspeccionat la maqueta, que tots els trens estan aturats i que la CS2 indica OFF.</label>
+      <button id="globalEmergencyRearm" type="button" disabled>REARMAMENT MANUAL · DCC continuarà desarmat</button>
+      <h3>Registre d'incidències</h3><ol id="globalEmergencyLog" class="global-emergency-log"><li>Carregant historial del pont…</li></ol>
+    </section>
     <p id="trafficDccNote" class="dispatcher-help">DCC desactivat al pont local. La maqueta no rebrà ordres de moviment.</p>
     <div class="traffic-columns">
       <section class="dispatcher-subpanel">
