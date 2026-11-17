@@ -33,4 +33,89 @@ assert.deepEqual(rotationInput,[{id:'R1',x:100,y:100,rotation:30},{id:'R2',x:200
 assert.throws(()=>selectionMove.rotate([{id:'EDGE',x:0,y:0,rotation:0},{id:'EDGE2',x:3000,y:1800,rotation:0}],45,board),/fora de la superfície/);
 assert.throws(()=>selectionMove.rotate([{id:'DUP',x:100,y:100},{id:'DUP',x:200,y:200}],15,board),/identificadors duplicats/);
 assert.throws(()=>selectionMove.rotate([{id:'BAD',x:NaN,y:100}],15,board),/nombre finit/);
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],0,board);
+ assert.equal(result.positions[0].rotation,0,'Angle de quadrants 0°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 0°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],30,board);
+ assert.equal(result.positions[0].rotation,30,'Angle de quadrants 30°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 30°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],45,board);
+ assert.equal(result.positions[0].rotation,45,'Angle de quadrants 45°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 45°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],60,board);
+ assert.equal(result.positions[0].rotation,60,'Angle de quadrants 60°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 60°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],90,board);
+ assert.equal(result.positions[0].rotation,90,'Angle de quadrants 90°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 90°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],120,board);
+ assert.equal(result.positions[0].rotation,120,'Angle de quadrants 120°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 120°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],135,board);
+ assert.equal(result.positions[0].rotation,135,'Angle de quadrants 135°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 135°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],150,board);
+ assert.equal(result.positions[0].rotation,150,'Angle de quadrants 150°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 150°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],180,board);
+ assert.equal(result.positions[0].rotation,180,'Angle de quadrants 180°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 180°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],210,board);
+ assert.equal(result.positions[0].rotation,210,'Angle de quadrants 210°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 210°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],225,board);
+ assert.equal(result.positions[0].rotation,225,'Angle de quadrants 225°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 225°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],240,board);
+ assert.equal(result.positions[0].rotation,240,'Angle de quadrants 240°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 240°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],270,board);
+ assert.equal(result.positions[0].rotation,270,'Angle de quadrants 270°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 270°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],300,board);
+ assert.equal(result.positions[0].rotation,300,'Angle de quadrants 300°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 300°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],315,board);
+ assert.equal(result.positions[0].rotation,315,'Angle de quadrants 315°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 315°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],330,board);
+ assert.equal(result.positions[0].rotation,330,'Angle de quadrants 330°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 330°');
+}
+{
+ const result=selectionMove.rotate([{id:'A',x:100,y:100,rotation:0},{id:'B',x:200,y:100,rotation:0}],360,board);
+ assert.equal(result.positions[0].rotation,0,'Angle de quadrants 360°');
+ assert.ok(Math.abs(Math.hypot(result.positions[1].x-result.positions[0].x,result.positions[1].y-result.positions[0].y)-100)<1e-8,'Offsets conservats à 360°');
+}
 console.log('PASS: moviment conjunt, graella de 10 mm, offsets relatius, límits i validació d’entrada');
