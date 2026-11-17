@@ -56,7 +56,7 @@ function straightRamp(input,catalogue,limits={}){
 function curveCatalogue(catalogue,radius){
   const items=(catalogue||[]).filter(x=>x&&x.type==='curve'&&x.geometryStatus==='confirmed'&&Number(x.radiusMm)>0&&Number(x.angleDeg)>0&&Number(x.angleDeg)<180);
   if(!items.length)throw new Error('El catàleg no conté corbes amb geometria confirmada.');
-  return items.map(x=>({...x,radiusMm:Number(x.radiusMm),angleDeg:Number(x.angleDeg)})).sort((a,b)=>Math.abs(a.radiusMm-radius)-Math.abs(b.radiusMm-radius)||a.angleDeg-b.angleDeg);
+  return items.map(x=>({...x,radiusMm:Number(x.radiusMm),angleDeg:Number(x.angleDeg)})).sort((a,b)=>Math.abs(a.radiusMm-radius)-Math.abs(b.radiusMm-radius)||Math.abs(360/a.angleDeg-Math.round(360/a.angleDeg))-Math.abs(360/b.angleDeg-Math.round(360/b.angleDeg))||a.angleDeg-b.angleDeg);
 }
 function suggestedTurns(angleDeg,maxPieces=48){
   const a=finite(angleDeg,'L’angle');if(a<=0||a>=180)throw new RangeError('Angle de corba invàlid.');
