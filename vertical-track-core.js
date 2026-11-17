@@ -44,9 +44,11 @@ function straightRamp(input,catalogue,limits={}){
   if(requestedGrade!==null&&requestedGrade<=0)throw new RangeError('El pendent ha de ser superior a zero.');
   if(length===null)length=rise/(requestedGrade/100)+transition;
   if(length<=transition||transition>length/2)throw new RangeError('La longitud ha de superar la transició i deixar un tram central.');
-  const effectiveRun=length-transition,grade=rise/effectiveRun*100;
-  if(requestedGrade!==null&&input.lengthMm!==undefined&&input.lengthMm!==null&&input.lengthMm!==''&&Math.abs(grade-requestedGrade)>0.05)throw new Error('La longitud i el pendent introduïts no coincideixen amb l’alçada i les transicions.');
   const fit=fitStraightPieces(length,catalogue,input.toleranceMm??1);
+  length=fit.actualLengthMm;
+  if(length<=transition||transition>length/2)throw new RangeError('La combinació real de vies no deixa prou longitud per als trams de transició.');
+  const effectiveRun=length-transition,grade=rise/effectiveRun*100;
+  if(requestedGrade!==null&&input.lengthMm!==undefined&&input.lengthMm!==null&&input.lengthMm!==''&&Math.abs(grade-requestedGrade)>0.05)throw new Error('La longitud real de les vies i el pendent introduït no coincideixen amb l’alçada i les transicions.');
   const classification=classifyGradient(grade,limits);
   let s=0;const placements=fit.items.map((item,index)=>{const p={item,index,distanceStartMm:s,distanceEndMm:s+item.lengthMm,zStartMm:elevationAt(s,length,rise,transition),zEndMm:elevationAt(s+item.lengthMm,length,rise,transition)};s+=item.lengthMm;return p;});
   return {kind:'straight',lengthMm:fit.actualLengthMm,requestedLengthMm:length,riseMm:rise,transitionLengthMm:transition,gradePercent:grade,classification,placements,errorMm:fit.errorMm};
