@@ -64,13 +64,18 @@ function suggestedTurns(angleDeg,maxPieces=48){
   return out;
 }
 function helix(input,catalogue,limits={}){
-  const radius=finite(input.radiusMm,'El radi'),rise=finite(input.riseMm,'L’alçada'),lanes=Math.floor(finite(input.parallelTracks??1,'El nombre de vies')),spacing=finite(input.spacingMm??77,'La separació'),turns=finite(input.turns,'El nombre de voltes'),transition=Math.max(0,finite(input.transitionLengthMm??100,'La transició'));
-  if(radius<=0||rise<=0||lanes<1||lanes>8||spacing<=0||turns<=0||turns>8)throw new RangeError('Radi, alçada, nombre de vies o voltes fora de rang.');
+  const radius=finite(input.radiusMm,'El radi'),riseInput=input.riseMm===undefined||input.riseMm===null||input.riseMm===''?null:finite(input.riseMm,'L’alçada'),requestedGrade=input.gradePercent===undefined||input.gradePercent===null||input.gradePercent===''?null:finite(input.gradePercent,'El pendent'),lanes=Math.floor(finite(input.parallelTracks??1,'El nombre de vies')),spacing=finite(input.spacingMm??77,'La separació'),turns=finite(input.turns,'El nombre de voltes'),transition=Math.max(0,finite(input.transitionLengthMm??100,'La transició'));
+  let rise=riseInput;
+  if(radius<=0||(rise!==null&&rise<=0)||(requestedGrade!==null&&requestedGrade<=0)||(rise===null&&requestedGrade===null)||lanes<1||lanes>8||spacing<=0||turns<=0||turns>8)throw new RangeError('Radi, alçada/pendent, nombre de vies o voltes fora de rang.');
   const selected=curveCatalogue(catalogue,radius)[0],radiusError=Math.abs(selected.radiusMm-radius);
   if(radiusError>2)throw new Error('No hi ha una corba Märklin C confirmada a ±2 mm del radi sol·licitat. Radi més proper: '+selected.radiusMm+' mm.');
   const piecesExact=360*turns/selected.angleDeg,pieceCount=Math.round(piecesExact);
   if(pieceCount<2||Math.abs(piecesExact-pieceCount)>0.005)throw new Error('El nombre de voltes no és compatible amb l’angle de la via. Voltes suggerides: '+suggestedTurns(selected.angleDeg).slice(0,10).map(x=>x.turns).join(', ')+'.');
   const actualTurns=pieceCount*selected.angleDeg/360,placements=[],lanesSummary=[];
+  const baseEffective=2*Math.PI*selected.radiusMm*actualTurns-transition;
+  if(baseEffective<=0||transition>Math.PI*selected.radiusMm*actualTurns)throw new RangeError('La transició és massa llarga per a aquesta geometria helicoidal.');
+  if(rise===null)rise=baseEffective*requestedGrade/100;
+  else if(requestedGrade!==null&&Math.abs(rise/baseEffective*100-requestedGrade)>0.05)throw new Error('L’alçada i el pendent introduïts no coincideixen amb el radi, les voltes i les transicions.');
   for(let lane=0;lane<lanes;lane++){
     const r=selected.radiusMm+lane*spacing,totalLength=2*Math.PI*r*actualTurns,effective=totalLength-transition;
     if(effective<=0||transition>totalLength/2)throw new RangeError('La transició és massa llarga per a aquesta geometria helicoidal.');
