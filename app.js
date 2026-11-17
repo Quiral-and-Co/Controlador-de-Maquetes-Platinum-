@@ -275,7 +275,7 @@
       const meta=document.createElement('p');meta.className='small muted';meta.textContent=gap.from.pieceId+':'+gap.from.port+' → '+gap.to.pieceId+':'+gap.to.port;card.append(meta);
       gap.candidates.forEach(candidate=>{
         const button=document.createElement('button');button.type='button';button.className='catalogue-item';
-        button.textContent=candidate.refs.join(' + ')+' · '+candidate.totalLengthMm.toFixed(1)+' mm';
+        button.textContent=candidate.items.map(entry=>entry.item.ref+(entry.direction?' '+(entry.direction==='left'?'esquerra':'dreta'):'')).join(' + ')+' · '+candidate.totalLengthMm.toFixed(1)+' mm';
         button.addEventListener('click',()=>insertGapCandidate(gap,candidate));card.append(button);
       });
       host.append(card);
