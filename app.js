@@ -284,15 +284,16 @@
   function insertGapCandidate(gap,candidate){
     const dx=gap.to.x-gap.from.x,dy=gap.to.y-gap.from.y,distance=Math.hypot(dx,dy);
     if(Math.abs(candidate.totalLengthMm-distance)>2){log('Suggeriment rebutjat: la longitud no coincideix amb el buit.');return;}
-    const angle=Math.atan2(dy,dx)*180/Math.PI,cos=Math.cos(angle*Math.PI/180),sin=Math.sin(angle*Math.PI/180);
-    let travelled=0;const created=[];
-    for(const item of candidate.items){
-      const length=Number(item.lengthMm),piece=makePiece('straight');
+    const angle=candidate.rotationDeg,cos=Math.cos(angle*Math.PI/180),sin=Math.sin(angle*Math.PI/180);
+    const created=[];
+    for(const placement of candidate.placements){
+      const item=placement.item,piece=makePiece(item.type);
       piece.id='GAP-'+item.ref+'-'+Date.now().toString(36)+'-'+created.length;
       piece.name=item.ref+' · '+item.name;piece.catalogueRef=item.ref;piece.catalogueBrand='Märklin';piece.catalogueSystem='C-Gleis';piece.geometryStatus=item.geometryStatus;
-      piece.geometry={lengthMm:length,radiusMm:360,angleDeg:30,branchOffsetMm:60};
-      piece.x=gap.from.x+cos*travelled;piece.y=gap.from.y+sin*travelled;piece.rotation=angle;piece.levelId=gap.from.levelId;piece.zMm=Number(level()?.elevationMm)||0;
-      created.push(piece);travelled+=length;
+      piece.geometry={lengthMm:item.lengthMm||180,radiusMm:item.radiusMm||360,angleDeg:item.angleDeg||30,branchOffsetMm:60,curveDirection:placement.direction||'right'};
+      piece.x=gap.from.x+placement.x*cos-placement.y*sin;piece.y=gap.from.y+placement.x*sin+placement.y*cos;
+      piece.rotation=angle+placement.rotationDeg;piece.levelId=gap.from.levelId;piece.zMm=Number(level()?.elevationMm)||0;
+      created.push(piece);
     }
     if(!created.length||created.some(p=>p.x<0||p.x>3000||p.y<0||p.y>1800)){log('Suggeriment rebutjat: les vies sortirien de la superfície.');return;}
     const before=clone(state.config);checkpoint();
