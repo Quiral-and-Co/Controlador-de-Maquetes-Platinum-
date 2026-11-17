@@ -11,9 +11,9 @@ const DCC_ENABLED=process.env.JMRI_TC_ENABLE_DCC==='1';
 const AUDIT_DIR=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'.local','share'),'JMRI-TC-Gold-Custom');
 const AUDIT_FILE=path.join(AUDIT_DIR,'emergency-events.jsonl');
 let emergencyLatched=false,emergencyReason='',emergencySince=null;
-try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\\r?\\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{}
+try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\r?\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{}
 const SAFETY_VALIDATED=process.env.JMRI_TC_SAFETY_VALIDATED==='1';
-function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\\n',{encoding:'utf8',mode:0o600});}catch(err){console.error('Emergency audit write failed:',err.message);}return row;}
+function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\n',{encoding:'utf8',mode:0o600});}catch(err){console.error('Emergency audit write failed:',err.message);}return row;}
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{
  let pathname;
@@ -60,7 +60,7 @@ wss.on('connection',ws=>{
  ws.on('message',raw=>{
   let m;try{m=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Missatge JSON invàlid.'});}
   try{
-   if(m.type==='emergencyHistory'){let events=[];try{events=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\\r?\\n/).filter(Boolean).slice(-200).map(x=>JSON.parse(x));}catch{}send(ws,{type:'emergencyHistory',events,latched:emergencyLatched,reason:emergencyReason,since:emergencySince});
+   if(m.type==='emergencyHistory'){let events=[];try{events=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\r?\n/).filter(Boolean).slice(-200).map(x=>JSON.parse(x));}catch{}send(ws,{type:'emergencyHistory',events,latched:emergencyLatched,reason:emergencyReason,since:emergencySince});
    }else if(m.type==='connect'){
     if(tcp)closeTcp();
     const host=String(m.host||'127.0.0.1'),port=Number(m.port||12090);
@@ -93,7 +93,7 @@ wss.on('connection',ws=>{
    }else if(m.type==='emergencyStop'){
     if(!emergencyLatched){emergencyLatched=true;emergencyReason=String(m.reason||'Aturada d’emergència global');emergencySince=new Date().toISOString();audit({type:'TRIP',reason:emergencyReason,source:String(m.source||'panel'),locomotives:[...acquired]});}
     armed=false;for(const timer of pendingAcquire.values())clearTimeout(timer);const cancelled=[...pendingAcquire.keys()];pendingAcquire.clear();
-    let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\\n');stopSent=true;}catch{}}
+    let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\n');stopSent=true;}catch{}}
     acquired.clear();manualLocos.clear();deadman.pressed=false;deadman.tripped=true;deadman.phase='TRIPPED';deadman.releasedAt=null;report();send(ws,{type:'emergencyLatched',latched:true,reason:emergencyReason,since:emergencySince,cancelledAcquisitions:cancelled,stopSent,retainedReservations:true});
    }else if(m.type==='emergencyRearm'){
     if(!emergencyLatched)throw new Error('No hi ha cap emergència activa.');
