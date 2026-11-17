@@ -2,7 +2,10 @@
 const assert=require('node:assert/strict');const c=require('../protocol-core');const db=c.createDatabase();
 assert.equal(c.addLocomotive(db,{id:'l1',name:'BR 218 DCC',protocol:'DCC',addressType:'L',address:218}).ok,true);
 assert.equal(c.addLocomotive(db,{id:'l2',name:'BR 03 MM2',protocol:'MM2',address:80}).ok,true);
-assert.equal(c.addLocomotive(db,{id:'l3',name:'mfx loco',protocol:'MFX',mfxUid:'00ABCDEF1234'}).ok,true);
+assert.equal(c.addLocomotive(db,{id:'l3',name:'mfx loco',protocol:'MFX',mfxUid:'00ABCDEF1234',mfxPlus:true}).ok,true);
+assert.equal(db.locomotives[2].mfxPlus,true);
+assert.equal(c.addLocomotive(db,{id:'l4',name:'mfx normal',protocol:'MFX',mfxUid:'00ABCDEF5678'}).ok,true);
+assert.equal(db.locomotives[3].mfxPlus,false);
 assert.equal(c.addLocomotive(db,{id:'bad',name:'mfx sense UID',protocol:'MFX',address:23}).ok,false);
 assert.equal(c.addAccessory(db,{id:'t1',name:'Desviament 1',protocol:'DCC',type:'TURNOUT',address:1,systemName:'LT1'}).ok,true);
 assert.equal(c.addAccessory(db,{id:'s1',name:'Senyal 1',protocol:'MM2',type:'SIGNAL',address:12,systemName:'LT2'}).ok,true);

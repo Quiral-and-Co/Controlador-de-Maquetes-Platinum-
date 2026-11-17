@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JMRI TC Gold Custom · Circulacions 1.2 alpha</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dispatcher.css"><link rel="stylesheet" href="signalling.css"><link rel="stylesheet" href="signalling-topology.css"><link rel="stylesheet" href="physical-validation.css"><link rel="stylesheet" href="jmri-turnout-supervision.css"><link rel="stylesheet" href="command-station.css"><link rel="stylesheet" href="locomotive-dmi.css">
+  <title>JMRI TC Gold Custom · Circulacions 1.2 alpha</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="dispatcher.css"><link rel="stylesheet" href="signalling.css"><link rel="stylesheet" href="signalling-topology.css"><link rel="stylesheet" href="physical-validation.css"><link rel="stylesheet" href="jmri-turnout-supervision.css"><link rel="stylesheet" href="command-station.css"><link rel="stylesheet" href="locomotive-dmi.css"><link rel="stylesheet" href="spielewelt.css"><link rel="stylesheet" href="train-protection.css"><link rel="stylesheet" href="train-ground.css">
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>JMRI TC Gold Custom</strong><small>Gestió de maqueta · versió 1.2 alpha</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn active">Mode clàssic</button><button id="modeModern" class="mode-btn">Mode modern</button></div></header>
@@ -157,6 +157,46 @@
     <button id="safetyPhysicalConfirm" type="button">Registrar confirmació física</button>
     <p id="safetyState" class="safety-state locked" role="status" aria-live="polite">BLOQUEJAT · pendent de validació</p>
   </section>
+  <section id="trainProtectionPanel" class="train-protection-panel" aria-labelledby="tpTitle">
+    <div class="dmi-header"><div><h2 id="tpTitle">Protecció i conducció manual · ASFA / ERTMS / ETCS / LZB / PZB</h2><p class="dmi-muted">Panell del maquinista, reconeixement d’avisos i supervisió simulada</p></div><span id="tpState" class="tp-state warning">SENSE SESSIÓ</span></div>
+    <div class="tp-grid">
+      <label>Sistema<select id="tpSystem"><option value="ASFA_DIGITAL">ASFA Digital</option><option value="ETCS">ERTMS / ETCS</option><option value="LZB">LZB</option><option value="PZB">PZB</option></select></label>
+      <label>Nivell ETCS<select id="tpLevel"><option>Nivell 0</option><option selected>Nivell 1</option><option>Nivell 2</option><option>Nivell 3</option></select></label>
+      <label>Velocitat permesa (km/h)<input id="tpPermitted" type="number" min="0" max="350" value="80"></label>
+      <label>Velocitat objectiu (km/h)<input id="tpTarget" type="number" min="0" max="350" value="40"></label>
+      <label>Distància objectiu (m)<input id="tpDistance" type="number" min="0" max="100000" value="1000"></label>
+    </div>
+    <div class="tp-actions"><button id="tpStart" type="button">Iniciar supervisió manual simulada</button><button id="tpSetTarget" type="button">Actualitzar objectiu</button></div>
+    <div class="tp-readouts"><div class="tp-readout"><span>Velocitat del tren</span><strong id="tpSpeedReadout">—</strong></div><div class="tp-readout"><span>Velocitat permesa</span><strong id="tpPermittedReadout">—</strong></div><div class="tp-readout"><span>Objectiu</span><strong id="tpTargetReadout">—</strong></div><div class="tp-readout"><span>Distància</span><strong id="tpDistanceReadout">—</strong></div></div>
+    <div class="tp-grid"><label>Consigna manual de velocitat <input id="tpSpeed" type="range" min="0" max="160" value="0"><output id="tpSpeedInput">0 km/h</output></label><button id="tpSetSpeed" type="button">Aplicar velocitat simulada</button><label>Motiu d’avís<select id="tpReason"><option>ASFA · avís de senyal</option><option>ETCS · avís de cabina</option><option>LZB · ordre de supervisió</option><option>PZB · vigilància / Indusi</option></select></label><label>Finestra de reconeixement simulada<select id="tpAckWindow"><option value="3">3 segons</option><option value="4" selected>4 segons</option><option value="6">6 segons</option><option value="8">8 segons</option></select></label></div>
+    <div class="tp-actions"><button id="tpWarning" type="button">Generar avís / requerir reconeixement</button><button id="tpAck" class="tp-ack" type="button" disabled>RECONÈIXER</button><button id="tpTick" type="button" disabled>Avançar supervisió 1 segon</button><button id="tpEmergency" class="tp-emergency" type="button">FRENADA D’EMERGÈNCIA (simulada)</button><button id="tpReset" type="button">Reiniciar simulació</button></div>
+    <p id="tpEvent" class="tp-disclaimer">La sessió encara no està iniciada.</p><p id="tpStatus" role="status" aria-live="polite">Sistema inactiu.</p><ul id="tpEvents" class="tp-events" aria-live="polite"></ul>
+    <p class="tp-disclaimer"><strong>Important:</strong> mòdul de formació i simulació, no és ASFA Digital, ETCS, LZB ni PZB certificat ni interoperable amb equips ferroviaris reals. No implementa protocols de balisa/ràdio ni corbes de frenada homologades. No envia ordres a la CS2, JMRI, DCC, tracció, frens ni sortides físiques. No utilitzar per protegir persones o circulació real. Les sortides físiques continuen bloquejades per la porta de seguretat existent.</p>
+  </section>
+  <section id="trainGroundPanel" class="train-ground-panel" aria-labelledby="tgTitle">
+    <div class="tg-header"><div><h2 id="tgTitle">Terminal tren-terra · analògic / GSM-R</h2><p class="tg-sub">Interfície de cabina inspirada en terminals Alcatel/AEG de la RENFE sèrie 252 · simulació local</p></div><div class="tg-pills"><span id="tgRegistration" class="tg-pill">ANALÒGIC</span><span id="tgCallState" class="tg-pill">EN ESPERA</span></div></div>
+    <div class="tg-grid">
+      <label>Mode de comunicació<select id="tgMode"><option value="ANALOG">Tren-terra analògic</option><option value="GSMR">GSM-R digital</option></select></label>
+      <label>Canal analògic<select id="tgChannel"><option>CANAL-1</option><option>CANAL-2</option><option>CANAL-3</option><option>CANAL-MANIobres</option></select></label>
+      <label>Identificació del tren<input id="tgTrainId" maxlength="24" value="252-001"></label>
+      <label>Identificació del terminal<input id="tgRadioId" maxlength="32" value="RENFE-252"></label>
+      <label>Destinatari / número<input id="tgPeer" maxlength="40" value="Regulació"></label>
+      <label>Funció ferroviària<select id="tgFunction"><option>Maquinista</option><option>Regulació</option><option>Circulació</option><option>Emergència</option><option>Maniobres</option><option>Servei</option></select></label>
+    </div>
+    <div class="tg-actions"><button id="tgSave" type="button">Desar configuració</button><button id="tgRegister" type="button" disabled>Registrar a GSM-R (simulat)</button><button id="tgCall" class="tg-call" type="button">TRUCAR</button><button id="tgIncoming" type="button">Simular trucada entrant</button><button id="tgAnswer" type="button" disabled>ATENDRE</button><button id="tgRelease" type="button" disabled>ALLIBERAR</button></div>
+    <div class="tg-console">
+      <section class="tg-keypad"><h3>Botonera del terminal</h3><div id="tgDialKeys" class="tg-digits">
+        <button type="button" data-digit="1">1</button><button type="button" data-digit="2">2</button><button type="button" data-digit="3">3</button>
+        <button type="button" data-digit="4">4</button><button type="button" data-digit="5">5</button><button type="button" data-digit="6">6</button>
+        <button type="button" data-digit="7">7</button><button type="button" data-digit="8">8</button><button type="button" data-digit="9">9</button>
+        <button type="button" data-digit="*">*</button><button type="button" data-digit="0">0</button><button type="button" data-digit="#">#</button>
+      </div><div class="tg-actions"><button id="tgClear" type="button">ESBORRAR / CLR</button><button id="tgEmergency" class="tg-emergency" type="button">EMERGÈNCIA · PRIORITAT</button></div>
+      <div class="tg-ptt"><strong id="tgPttState">PTT · EN REPÒS</strong><button id="tgPttOn" type="button" disabled>PREMUT / PTT</button><button id="tgPttOff" type="button" disabled>ALLIBERAR PTT</button></div></section>
+      <section class="tg-communications"><h3>Missatge de veu / dades simulat</h3><label>Text del missatge<textarea id="tgText" rows="3" maxlength="240" placeholder="Escriu el missatge de prova…"></textarea></label><div class="tg-actions"><button id="tgTransmit" type="button" disabled>ENVIAR MISSATGE</button><button id="tgMessagesClear" type="button">Netejar registre</button></div><p><strong>Xarxa:</strong> <span id="tgNetwork">Xarxa analògica simulada</span></p><h4>Comunicacions</h4><ul id="tgMessages" class="tg-log" aria-live="polite"></ul><h4>Esdeveniments del terminal</h4><ul id="tgEvents" class="tg-log" aria-live="polite"></ul></section>
+    </div>
+    <p id="tgStatus" role="status" aria-live="polite">Terminal preparat en mode local de simulació.</p>
+    <p class="tg-disclaimer"><strong>Limitació:</strong> terminal didàctic, no és una rèplica exacta ni homologada del terminal Alcatel/AEG de la sèrie 252. No disposa de ràdio RF, SIM, autenticació ni xarxa GSM-R real; les trucades, PTT i missatges són locals. El botó d'emergència només crea un registre de prova. No connecta amb JMRI, CS2, DCC, tracció, frens ni sortides físiques i no s'ha d'utilitzar per comunicacions ferroviàries reals.</p>
+  </section>
     <section id="locomotiveDmiPanel" class="locomotive-dmi" aria-labelledby="dmiTitle">
     <div class="dmi-header"><div><h2 id="dmiTitle">DMI · Control de locomotora / tren</h2><p id="dmiLocoName" class="dmi-muted">Cap locomotora seleccionada</p></div><span id="dmiSafetyState" class="dmi-safety locked">CONTROL BLOQUEJAT · DCC desarmat</span></div>
     <div class="dmi-toolbar"><label>Locomotora <select id="dmiLocomotive" aria-label="Locomotora seleccionada"></select></label><label>Velocitat màxima calibrada <input id="dmiMaxSpeed" type="number" min="1" max="500" value="160"> km/h</label><button id="dmiApplyMax" type="button">Aplicar escala</button></div>
@@ -197,6 +237,20 @@
       <section class="dmi-route-panel"><h3>Senyalització del recorregut</h3><p class="dmi-help">Aspecte i tipus de les senyals següents (Senyal 1 i Senyal 2). La distància només apareix quan la telemetria de posició la proporciona.</p><div id="dmiSignals" class="dmi-signal-list"><p class="dmi-muted">Sense dades de senyalització.</p></div></section>
       <section class="dmi-route-panel"><h3>Posició de les agulles</h3><p class="dmi-help">Lectura JMRI supervisada i posició requerida per l’itinerari.</p><div id="dmiTurnouts" class="dmi-turnouts">Sense itinerari actiu.</div></section>
     </div>
+  </section>
+  <section id="spieleweltPanel" class="spielewelt-panel" aria-labelledby="spieleweltTitle">
+    <div class="dmi-header"><div><h2 id="spieleweltTitle">Märklin · Món de Jocs universal</h2><p class="dmi-muted">Cabines virtuals per a locomotores mfx+, mfx, DCC i MM2</p></div><span id="spieleweltCapability" class="dmi-safety locked">SIMULACIÓ LOCAL</span></div>
+    <div class="spielewelt-grid">
+      <label>Locomotora <select id="spieleweltLocomotive"></select></label>
+      <label>Tipus de cabina <select id="spieleweltProfile"><option value="steam">Vapor</option><option value="diesel">Dièsel</option><option value="electric">Elèctrica</option></select></label>
+      <label>Mode de joc <select id="spieleweltMode"><option value="without-consumption">Sense consum</option><option value="with-consumption">Amb consum simulat</option><option value="depot-refuel">Repostatge al dipòsit</option><option value="off">Aturat</option></select></label>
+      <label>Consigna virtual <input id="spieleweltThrottle" type="range" min="0" max="100" value="0"><output id="spieleweltThrottleValue">0%</output></label>
+    </div>
+    <div class="spielewelt-actions"><button id="spieleweltStart" type="button">Preparar cabina</button><button id="spieleweltAdvance" type="button" disabled>Simular 10 minuts</button><button id="spieleweltRefill" type="button" disabled>Reomplir al dipòsit (simulació)</button></div>
+    <div id="spieleweltInstruments" class="spielewelt-instruments" aria-live="polite"></div>
+    <div id="spieleweltResources" class="spielewelt-resources" aria-live="polite"></div>
+    <p id="spieleweltStatus" class="spielewelt-status" role="status" aria-live="polite">Selecciona una locomotora i prepara la cabina virtual.</p>
+    <p class="spielewelt-note">Els comandaments, instruments i consums d’aquest mòdul són simulació local. No envien ordres a la CS2, al descodificador ni a les sortides físiques. La compatibilitat nativa mfx+ només es declara quan consta explícitament a la fitxa de la locomotora.</p>
   </section>
   <section class="dispatcher-panel traffic-panel" aria-labelledby="trafficTitle">
     <div class="dispatcher-header"><div><h2 id="trafficTitle">Gestió de circulacions · Märklin DCC</h2><p>Conducció manual i circulacions automàtiques supervisades pel Dispatcher.</p></div><span id="trafficBridgeStatus" class="badge offline">WiThrottle desconnectat</span></div>
@@ -275,6 +329,6 @@
   <section class="monitor-grid"><div class="panel-card"><h3>Connexió JMRI · només lectura</h3><p id="connectionText" class="muted">No hi ha cap sessió activa.</p><p class="small">WebSocket: <code id="endpointText">ws://127.0.0.1:12080/json/</code></p></div><div class="panel-card"><h3>Estat dels sensors assignats</h3><div id="sensorSummary" class="muted small">Encara no hi ha sensors assignats a peces.</div></div><div class="panel-card"><h3>Registre</h3><ol id="eventLog" class="event-log"><li>Editor 0.6 iniciat.</li></ol></div></section>
   <section id="modernPanel" class="modern-panel hidden"><h2>Vista moderna · resum de peces i sensors</h2><div id="modernBlocks" class="modern-blocks"></div></section>
 </main><footer>JMRI TC Gold Custom · implementació independent · sense recursos propietaris de TrainController.</footer><script src="catalogue.js"></script><script src="project-file-interop.js"></script><script src="viewport-core.js"></script><script src="selection-move-core.js"></script><script src="track-junction-core.js"></script><script src="vertical-track-core.js"></script><script src="dispatcher-core.js"></script><script src="jmri-turnout-supervision-core.js"></script><script src="traffic-core.js"></script><script src="deadman-core.js"></script><script src="safety-core.js"></script><script src="metge-quiral-core.js"></script><script src="app.js"></script><script src="vertical-track-ui.js"></script><script src="dispatcher.js"></script><script src="traffic.js"></script><script src="protocol-core.js"></script><script src="protocol-catalogue-ui.js"></script><script src="signalling-core.js"></script><script src="signalling-ui.js"></script><script src="signalling-topology-core.js"></script><script src="signalling-sequence-core.js"></script><script src="signalling-integration-core.js"></script><script src="signalling-integration.js"></script><script src="jmri-dispatcher-diagnostics-core.js"></script><script src="jmri-dispatcher-diagnostics.js"></script><script src="jmri-turnout-supervision.js"></script><script src="signalling-topology-ui.js"></script><script src="physical-validation-core.js"></script><script src="physical-validation-ui.js"></script>
-<script src="validation-master-registry-core.js"></script><script src="validation-master-registry-ui.js"></script><script src="command-station-core.js"></script><script src="command-station-ui.js"></script><script src="locomotive-dmi-core.js"></script><script src="locomotive-dmi-ui.js"></script>
+<script src="validation-master-registry-core.js"></script><script src="validation-master-registry-ui.js"></script><script src="command-station-core.js"></script><script src="command-station-ui.js"></script><script src="locomotive-dmi-core.js"></script><script src="locomotive-dmi-ui.js"></script><script src="spielewelt-core.js"></script><script src="spielewelt-ui.js"></script><script src="train-protection-core.js"></script><script src="train-protection-ui.js"></script><script src="train-ground-core.js"></script><script src="train-ground-ui.js"></script>
 <script src="metge-quiral-ui.js"></script>
 </body></html>
