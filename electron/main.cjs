@@ -4,10 +4,13 @@ const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
 const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
+const { createProjectPathPolicy } = require('./project-path-policy.cjs');
 
 let bridge = null;
 let quitting = false;
 let mainWindow = null;
+const approvedProjectPaths = createProjectPathPolicy();
+const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
 const projectFilters = [
   { name: 'Projectes JMRI TC', extensions: ['json'] },
@@ -20,19 +23,31 @@ function installProjectHandlers() {
     const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters: projectFilters });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
-    return { canceled: false, filePath, fileName: path.basename(filePath), content: await fs.readFile(filePath, 'utf8') };
+    const content = await fs.readFile(filePath, 'utf8');
+    approvedProjectPaths.authorize(filePath);
+    return { canceled: false, filePath, fileName: path.basename(filePath), content };
   });
   ipcMain.handle('project:save', async (_event, options = {}) => {
-    let filePath = typeof options.filePath === 'string' ? options.filePath : '';
-    if (!filePath || options.saveAs) {
+    let filePath = '';
+    if (options.saveAs === true || typeof options.filePath !== 'string' || !options.filePath) {
       const result = await dialog.showSaveDialog(mainWindow, {
-        defaultPath: options.defaultPath || 'JMRI_TC_Gold_Custom_layout.json',
-        filters: options.filters || projectFilters.slice(0, 2)
+        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'JMRI_TC_Gold_Custom_layout.json'),
+        filters: projectFilters.slice(0, 2)
       });
       if (result.canceled || !result.filePath) return { canceled: true };
       filePath = result.filePath;
+      approvedProjectPaths.authorize(filePath);
+    } else {
+      filePath = options.filePath;
+      if (!approvedProjectPaths.isAuthorized(filePath)) {
+        throw new Error('Ruta de desat no autoritzada. Utilitza el diàleg natiu de desat.');
+      }
     }
-    await fs.writeFile(filePath, String(options.content ?? ''), { encoding: 'utf8', flag: 'w' });
+    const content = String(options.content ?? '');
+    if (Buffer.byteLength(content, 'utf8') > MAX_PROJECT_BYTES) {
+      throw new Error('El projecte supera la mida màxima permesa de 25 MB.');
+    }
+    await fs.writeFile(filePath, content, { encoding: 'utf8', flag: 'w' });
     return { canceled: false, filePath, fileName: path.basename(filePath) };
   });
   ipcMain.handle('project:confirm-discard', async () => {
