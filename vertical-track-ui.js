@@ -80,6 +80,8 @@ $('verticalMode').addEventListener('change',()=>{showMode();if(mode()==='helix')
 $('helixRadiusMm').addEventListener('change',refreshTurnPresets);
 $('calculateVerticalRampBtn').addEventListener('click',calculate);
 $('insertVerticalRampBtn').addEventListener('click',()=>{try{insertPlan();}catch(e){$('verticalRampResult').textContent='Inserció bloquejada: '+e.message;}});
-$('helixGradePercent').addEventListener('change',()=>{$('helixRiseMm').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});\n$('helixRiseMm').addEventListener('change',()=>{$('helixGradePercent').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});\n['rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRiseMm','helixGradePercent','helixTrackCount','helixSpacingMm','helixTurns','helixTransitionMm','rampGreenMax','rampYellowMax','rampRedMax'].forEach(id=>$(id).addEventListener('change',()=>{plan=null;$('insertVerticalRampBtn').disabled=true;}));
+$('helixGradePercent').addEventListener('change',()=>{$('helixRiseMm').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});
+$('helixRiseMm').addEventListener('change',()=>{$('helixGradePercent').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});
+['rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRiseMm','helixGradePercent','helixTrackCount','helixSpacingMm','helixTurns','helixTransitionMm','rampGreenMax','rampYellowMax','rampRedMax'].forEach(id=>$(id).addEventListener('change',()=>{plan=null;$('insertVerticalRampBtn').disabled=true;}));
 showMode();refreshTurnPresets();$('insertVerticalRampBtn').disabled=true;
 })();
