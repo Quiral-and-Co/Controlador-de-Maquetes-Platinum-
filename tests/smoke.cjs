@@ -1,7 +1,8 @@
 const fs = require('fs');
 const vm = require('vm');
 const viewport = require('../viewport-core.js');
-const selectionMove = require('../selection-move-core.js');\nconst trackJunction = require('../track-junction-core.js');
+const selectionMove = require('../selection-move-core.js');
+const trackJunction = require('../track-junction-core.js');
 class El {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.innerHTML='';this.children=[];this.dataset={};this.handlers={};this.className='';this.disabled=false;this.classList={add:()=>{},toggle:()=>{},remove:()=>{}};this.style={};}
   addEventListener(n,fn){this.handlers[n]=fn;}
