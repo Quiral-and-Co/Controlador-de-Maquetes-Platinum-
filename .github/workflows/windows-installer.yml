@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - 'package.json'
+      - 'package-lock.json'
+      - 'README.md'
+      - 'docs/**'
       - 'traffic-bridge.js'
       - 'electron/**'
       - '.github/workflows/windows-installer.yml'
@@ -15,23 +18,29 @@ on:
       - '**.cjs'
       - 'tests/**'
   pull_request:
+    branches: [main]
     paths:
       - 'package.json'
+      - 'package-lock.json'
+      - 'README.md'
+      - 'docs/**'
       - 'traffic-bridge.js'
       - 'electron/**'
       - '.github/workflows/windows-installer.yml'
       - '**.js'
       - '**.html'
       - '**.css'
+      - '**.cjs'
+      - 'tests/**'
 
 permissions:
   contents: read
 
 jobs:
   windows-installer:
-    name: Build Windows 11 x64 NSIS installer
+    name: Build and verify Windows 11 x64 NSIS installer
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -42,11 +51,17 @@ jobs:
           node-version: 22
           package-manager-cache: false
 
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
 
-      - name: Run complete test suite
+      - name: Run complete regression suite
         run: npm test
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install chromium
+
+      - name: Run real-browser integration tests
+        run: npm run test:browser
 
       - name: Editor XYZ, parallel tracks, curves and topology acceptance gate
         run: node tests/editor-geometry-acceptance.cjs
@@ -54,21 +69,33 @@ jobs:
       - name: Build NSIS installer
         run: npm run dist:win
 
-      - name: Verify installer exists
+      - name: Verify installer and calculate SHA-256
         shell: pwsh
         run: |
-          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File | Select-Object -First 1
           if (-not $installer) {
             throw 'No NSIS installer .exe was generated.'
           }
-          $installer | ForEach-Object {
-            Write-Host "Installer: $($_.FullName) ($($_.Length) bytes)"
+          if ($installer.Length -le 0) {
+            throw 'The NSIS installer is empty.'
+          }
+          $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          $manifest = "$hash  $($installer.Name)"
+          Set-Content -LiteralPath "$($installer.FullName).sha256" -Value $manifest -Encoding ascii
+          Write-Host "Installer: $($installer.Name)"
+          Write-Host "Size: $($installer.Length) bytes"
+          Write-Host "SHA-256: $hash"
+          if ((Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
+            throw 'SHA-256 verification mismatch.'
           }
 
-      - name: Upload Windows installer
+      - name: Upload installer and SHA-256 manifest
         uses: actions/upload-artifact@v4
         with:
           name: JMRI-TC-Gold-Custom-Windows-11-NSIS
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.exe.sha256
           if-no-files-found: error
           retention-days: 30
