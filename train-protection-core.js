@@ -20,7 +20,7 @@
   return{ok:true,session:{system:n.system,level:n.level,state:STATES.SUPERVISION,speedKmh:0,permittedKmh:clamp(options.permittedKmh??80,0,350),targetKmh:clamp(options.targetKmh??40,0,350),targetDistanceM:clamp(options.targetDistanceM??1000,0,100000),ackPending:false,ackSecondsRemaining:0,elapsedSeconds:0,brakeDemand:false,emergency:false,lastEvent:'Supervisió manual simulada preparada.',events:[],acknowledgements:0,profile:'SIMULATION_ONLY'}};
  }
  function event(s,message){return{...s,lastEvent:message,events:[...s.events.slice(-19),{second:s.elapsedSeconds,message}]};}
- function setSpeed(s,value){if(!s||s.state===STATES.TRIPPED)return{ok:false,error:'Sessió aturada per intervenció de seguretat.'};const v=clamp(value,0,350);let n={...s,speedKmh:v};if(v>s.permittedKmh)n={...n,brakeDemand:true,state:STATES.BRAKING};return{ok:true,session:event(n,'Velocitat manual simulada: '+v+' km/h.')};}
+ function setSpeed(s,value){if(!s||s.state===STATES.TRIPPED)return{ok:false,error:'Sessió aturada per intervenció de seguretat.'};const v=clamp(value,0,350);let n={...s,speedKmh:v};if(v>s.permittedKmh||(s.targetDistanceM<=0&&v>s.targetKmh))n={...n,brakeDemand:true,state:STATES.BRAKING};return{ok:true,session:event(n,'Velocitat manual simulada: '+v+' km/h.')};}
  function setTarget(s,{permittedKmh,targetKmh,targetDistanceM}={}){
   if(!s||s.state===STATES.TRIPPED)return{ok:false,error:'Sessió aturada per intervenció de seguretat.'};
   const n={...s,permittedKmh:clamp(permittedKmh??s.permittedKmh,0,350),targetKmh:clamp(targetKmh??s.targetKmh,0,350),targetDistanceM:clamp(targetDistanceM??s.targetDistanceM,0,100000)};
