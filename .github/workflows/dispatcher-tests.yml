@@ -89,4 +89,9 @@ jobs:
       - name: Full regression and fail-safe suite — run 1
         run: npm test
       - name: Full regression and fail-safe suite — run 2
+        id: regression2
         run: npm test
+
+      - name: Editor XYZ, parallel tracks, curves and topology acceptance gate
+        if: always() && steps.regression2.outcome == 'success'
+        run: node tests/editor-geometry-acceptance.cjs
