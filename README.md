@@ -1,6 +1,6 @@
-# JMRI TC Gold Custom — editor 0.9
+# JMRI TC Gold Custom — 1.3.0
 
-Editor web independent per a una maqueta Märklin H0 de cinc nivells. JMRI continua sent el motor extern; la connexió JSON/WebSocket és exclusivament de monitorització i només lectura. El projecte no conté un traçat ferroviari real.
+Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb JMRI i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
 
 ## Funcions disponibles
 
