@@ -23,7 +23,7 @@ assert.equal(gaps.length,1);
 assert.ok(gaps[0].candidates.some(c=>c.items.length===1&&c.items[0].item.ref==='24188'));
 const curveGap=junction.recommendGaps([
  {pieceId:'X',levelId:1,x:0,y:0},
- {pieceId:'Y',levelId:1,x:179.99999999999997,y:24.11542731880104}
+ {pieceId:'Y',levelId:1,x:179.99999999999997,y:48.230854637602064}
 ],cat,300);
 assert.ok(curveGap.length===1&&curveGap[0].candidates.some(c=>c.items[0].item.type==='curve'));
 assert.throws(()=>junction.curvePorts(0,30,'right'),/invàlida/);
