@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const quiral=require('../metge-quiral-core.js');
+const config={schemaVersion:3,levels:Array.from({length:5},(_,i)=>({id:i+1,tracks:[],blocks:[],sensors:[]})),connections:[]};
+let r=quiral.inspect(config);
+assert.equal(r.status,'HEALTHY');assert.equal(r.physicalOutputsLocked,true);assert.equal(r.counts.errors,0);
+config.levels[0].tracks.push({id:'T1',type:'straight',x:100,y:100,levelId:1,blockId:'',sensorName:''});
+config.levels[0].tracks.push({id:'T1',type:'straight',x:3010,y:100,levelId:1});
+r=quiral.inspect(config);assert.equal(r.status,'NEEDS_ATTENTION');assert.ok(r.issues.some(x=>x.id==='track-ids'));assert.ok(r.issues.some(x=>x.id==='coordinates'));
+assert.ok(quiral.recommendations(r).length>0);
+r=quiral.inspect({...config,levels:config.levels.slice(0,1)},{physicalOutputsEnabled:true});
+assert.equal(r.physicalOutputsLocked,false);assert.ok(r.checks.some(x=>x.id==='physical-lock'&&!x.ok));
+console.log('PASS: Metge Quiral health diagnostics and fail-safe default');
