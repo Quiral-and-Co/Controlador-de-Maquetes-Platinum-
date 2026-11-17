@@ -19,8 +19,7 @@ function validateOptions(options = {}) {
   const tcpPort = Number(options.tcpPort ?? DEFAULTS.tcpPort);
   const udpPort = Number(options.udpPort ?? DEFAULTS.udpPort);
   const timeoutMs = Number(options.timeoutMs ?? DEFAULTS.timeoutMs);
-  if (!host || host.length > 253 || /[\s\r
-]/.test(host)) throw new Error('Host CS2 invàlid.');
+  if (!host || host.length > 253 || [...host].some(char => char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) throw new Error('Host CS2 invàlid.');
   for (const [name, value] of [['tcpPort', tcpPort], ['udpPort', udpPort]]) {
     if (!Number.isInteger(value) || value < 1 || value > 65535) throw new Error(name + ' ha d’estar entre 1 i 65535.');
   }
