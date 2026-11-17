@@ -165,3 +165,12 @@ El mòdul `spielewelt-core.js` i la interfície `spielewelt-ui.js` ofereixen cab
 **Límit de seguretat:** aquest mòdul és una simulació local i no envia ordres a la CS2, al bus de tracció, a JMRI ni a sortides físiques. El repostatge exigeix confirmació de dipòsit i només modifica l'estat simulat. No és una implementació del protocol propietari mfx+ ni substitueix la cabina nativa de Märklin.
 
 Proves: `node --check spielewelt-core.js`, `node --check spielewelt-ui.js` i `node tests/spielewelt.cjs`; també incorporades a `npm test`.
+
+
+## Protecció ferroviària i conducció manual simulada
+
+El panell `train-protection-core.js` / `train-protection-ui.js` permet practicar procediments de reconeixement i supervisió conceptual amb ASFA Digital, ETCS dins d'ERTMS (nivells 0, 1, 2 i 3), LZB i PZB. Inclou velocitat actual, velocitat permesa, objectiu, distància, avís pendent, botó de reconeixement, rellotge de simulació pas a pas, registre d'esdeveniments i frenada d'emergència virtual per manca de reconeixement o superació de límits.
+
+**Limitació essencial:** és una simulació educativa de lògica d'interfície, no una implementació certificada ni una rèplica exacta de cap sistema ATP. No implementa protocols de balises, EuroRadio, Eurobalise, LZB/PZB reals ni corbes de frenada homologades; no controla actuadors ni frens reals. El nivell ETCS 3 és només conceptual. No s'ha d'utilitzar per protegir circulacions reals. La porta de seguretat existent i les sortides físiques romanen independents i bloquejades.
+
+Proves: `node --check train-protection-core.js`, `node --check train-protection-ui.js` i `node tests/train-protection.cjs`; incorporades a `npm test`.
