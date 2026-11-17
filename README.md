@@ -174,3 +174,12 @@ El panell `train-protection-core.js` / `train-protection-ui.js` permet practicar
 **Limitació essencial:** és una simulació educativa de lògica d'interfície, no una implementació certificada ni una rèplica exacta de cap sistema ATP. No implementa protocols de balises, EuroRadio, Eurobalise, LZB/PZB reals ni corbes de frenada homologades; no controla actuadors ni frens reals. El nivell ETCS 3 és només conceptual. No s'ha d'utilitzar per protegir circulacions reals. La porta de seguretat existent i les sortides físiques romanen independents i bloquejades.
 
 Proves: `node --check train-protection-core.js`, `node --check train-protection-ui.js` i `node tests/train-protection.cjs`; incorporades a `npm test`.
+
+
+## Terminal tren-terra analògic i GSM-R · RENFE sèrie 252 (simulació)
+
+El panell train-ground incorpora una interfície de cabina inspirada en terminals Alcatel/AEG de la sèrie 252: mode analògic per canals i mode GSM-R amb registre de xarxa simulat, funcions ferroviàries, trucades entrants/sortints, teclat numèric, PTT, missatges, alliberament i registre d'esdeveniments. Tots els botons tenen resposta local i les operacions es poden provar sense maquinari.
+
+**Límit essencial:** no és una rèplica exacta del terminal Alcatel/AEG ni implementa ràdio, SIM, autenticació, GSM-R real, EuroRadio o comunicacions amb infraestructura ferroviària. El botó d'emergència només crea un esdeveniment simulat. No controla la CS2, JMRI, DCC, tracció, frens ni sortides físiques. No s'ha d'utilitzar per comunicacions reals. Consulta [docs/train-ground-terminal.md](docs/train-ground-terminal.md).
+
+Proves: `node --check train-ground-core.js`, `node --check train-ground-ui.js` i `node tests/train-ground.cjs`; incorporades a `npm test`.
