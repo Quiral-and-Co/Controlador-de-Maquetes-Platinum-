@@ -22,7 +22,7 @@ function calculate(){
    const radius=number('helixRadiusMm'),curves=catalogue().filter(x=>x.type==='curve'&&x.geometryStatus==='confirmed'&&Math.abs(Number(x.radiusMm)-radius)<=2);
    if(!curves.length)throw new Error('No hi ha una corba confirmada del catàleg a ±2 mm del radi indicat.');
    const turns=number('helixTurns');
-   plan=core.helix({radiusMm:radius,riseMm:number('helixRiseMm'),parallelTracks:number('helixTrackCount'),spacingMm:number('helixSpacingMm'),turns,transitionLengthMm:number('helixTransitionMm')??100,direction:$('helixDirection').value},catalogue(),limits());
+   plan=core.helix({radiusMm:radius,riseMm:number('helixRiseMm'),gradePercent:number('helixGradePercent'),parallelTracks:number('helixTrackCount'),spacingMm:number('helixSpacingMm'),turns,transitionLengthMm:number('helixTransitionMm')??100,direction:$('helixDirection').value},catalogue(),limits());
   }
   showResult(plan);$('insertVerticalRampBtn').disabled=plan.classification.code==='brown';
   return plan;
@@ -80,6 +80,6 @@ $('verticalMode').addEventListener('change',()=>{showMode();if(mode()==='helix')
 $('helixRadiusMm').addEventListener('change',refreshTurnPresets);
 $('calculateVerticalRampBtn').addEventListener('click',calculate);
 $('insertVerticalRampBtn').addEventListener('click',()=>{try{insertPlan();}catch(e){$('verticalRampResult').textContent='Inserció bloquejada: '+e.message;}});
-['rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRiseMm','helixTrackCount','helixSpacingMm','helixTurns','helixTransitionMm','rampGreenMax','rampYellowMax','rampRedMax'].forEach(id=>$(id).addEventListener('change',()=>{plan=null;$('insertVerticalRampBtn').disabled=true;}));
+$('helixGradePercent').addEventListener('change',()=>{$('helixRiseMm').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});\n$('helixRiseMm').addEventListener('change',()=>{$('helixGradePercent').value='';plan=null;$('insertVerticalRampBtn').disabled=true;});\n['rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRiseMm','helixGradePercent','helixTrackCount','helixSpacingMm','helixTurns','helixTransitionMm','rampGreenMax','rampYellowMax','rampRedMax'].forEach(id=>$(id).addEventListener('change',()=>{plan=null;$('insertVerticalRampBtn').disabled=true;}));
 showMode();refreshTurnPresets();$('insertVerticalRampBtn').disabled=true;
 })();
