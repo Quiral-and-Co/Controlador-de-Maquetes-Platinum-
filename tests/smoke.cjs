@@ -17,7 +17,7 @@ class El {
   setPointerCapture(){}
   closest(){return null;}
 }
-const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propTurnout','propLevel','moveLevelBtn','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList','zoomInBtn','zoomOutBtn','zoomFitBtn','zoomReadout'];
+const ids=['levelCount','pieceCount','connectionCount','blockCount','unknownCount','levelList','currentLevelTitle','currentLevelSubtitle','pieceLayer','connectionLayer','portLayer','emptyProperties','pieceProperties','selectionText','propId','propName','propType','propX','propY','propRotation','propLength','propRadius','propAngle','propBlock','propSensor','rotateBtn','deleteBtn','duplicateBtn','undoBtn','redoBtn','measureBtn','measureStatus','connectBtn2','portModeBtn','portStatus','trackSvg','cursorCoords','eventLog','modernBlocks','sensorSummary','endpointText','host','port','connectionText','connectionBadge','connectBtn','disconnectBtn','configFile','configName','exportBtn','modeClassic','modeModern','modernPanel','newBlockName','addBlockBtn','blockRegistry','newSensorSystemName','newSensorUserName','addSensorBtn','sensorRegistry','propTurnout','propLevel','moveLevelBtn','rotationQuadrant','rotationCustomAngle','rotationAngleReadout','rotationPreset0','rotationPreset30','rotationPreset45','rotationPreset60','rotationPreset90','validateTopologyBtn','topologyReport','catalogueSearch','catalogueCategory','catalogueList','zoomInBtn','zoomOutBtn','zoomFitBtn','zoomReadout'];
 const els=Object.fromEntries(ids.map(x=>[x,new El(x)]));els.host.value='127.0.0.1';els.port.value='12080';
 const palette=['straight','curve','turnout','block'].map(type=>{const e=new El();e.dataset.piece=type;return e;});
 const shell=new El('shell');
@@ -193,6 +193,17 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==15||rotatedTracks.find(p=>p.id==='ROT-B').rotation!==15)throw Error('One redo did not reapply the complete group rotation');
   els.validateTopologyBtn.onclick();
   if(!els.topologyReport.textContent.includes('discontinuïtat geomètrica'))throw Error('Redo did not restore the affected-connection diagnostic');
+  // Quadrant II + 30° selects 120°; keyboard-entered 45° in quadrant IV selects 315°.
+  els.rotationQuadrant.value='1';
+  els.rotationPreset30.onclick();
+  rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==135)throw Error('Quadrant II 30-degree mark did not apply a 120-degree group rotation');
+  els.rotationQuadrant.value='3';
+  els.rotationCustomAngle.value='45';
+  els.rotationCustomAngle.handlers.keydown({key:'Enter',preventDefault(){}});
+  rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==90)throw Error('Keyboard-entered 45 degrees in quadrant IV did not apply 315 degrees');
+
   if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
   console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
