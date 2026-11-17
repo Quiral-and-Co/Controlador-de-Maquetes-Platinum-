@@ -17,7 +17,7 @@
  function createSession(options={}){
   const n=normalize(options.system||'ETCS',options.level||'Nivell 1');
   if(!n.ok)return n;
-  return{ok:true,system:n.system,level:n.level,state:STATES.SUPERVISION,speedKmh:0,permittedKmh:options.permittedKmh??80,targetKmh:options.targetKmh??40,targetDistanceM:options.targetDistanceM??1000,ackPending:false,ackSecondsRemaining:0,elapsedSeconds:0,brakeDemand:false,emergency:false,lastEvent:'Supervisió manual simulada preparada.',events:[],acknowledgements:0,profile:'SIMULATION_ONLY'};
+  return{ok:true,system:n.system,level:n.level,state:STATES.SUPERVISION,speedKmh:0,permittedKmh:clamp(options.permittedKmh??80,0,350),targetKmh:clamp(options.targetKmh??40,0,350),targetDistanceM:clamp(options.targetDistanceM??1000,0,100000),ackPending:false,ackSecondsRemaining:0,elapsedSeconds:0,brakeDemand:false,emergency:false,lastEvent:'Supervisió manual simulada preparada.',events:[],acknowledgements:0,profile:'SIMULATION_ONLY'};
  }
  function event(s,message){return{...s,lastEvent:message,events:[...s.events.slice(-19),{second:s.elapsedSeconds,message}]};}
  function setSpeed(s,value){if(!s||s.state===STATES.TRIPPED)return{ok:false,error:'Sessió aturada per intervenció de seguretat.'};const v=clamp(value,0,350);let n={...s,speedKmh:v};if(v>s.permittedKmh)n={...n,brakeDemand:true,state:STATES.BRAKING};return{ok:true,session:event(n,'Velocitat manual simulada: '+v+' km/h.')};}
@@ -50,7 +50,7 @@
  }
  function reset(s){
   const fresh=createSession({system:s.system,level:s.level,permittedKmh:s.permittedKmh,targetKmh:s.targetKmh,targetDistanceM:s.targetDistanceM});
-  return fresh.ok?{ok:true,session:event(fresh,'Sessió reinicialitzada; cal tornar a validar l’estat del tren.')}:fresh;
+  return fresh.ok?{ok:true,session:event(fresh.session,'Sessió reinicialitzada; cal tornar a validar l’estat del tren.')}:fresh;
  }
  function snapshot(s){return{system:SYSTEMS[s.system].label,level:s.level,state:s.state,speedKmh:s.speedKmh,permittedKmh:s.permittedKmh,targetKmh:s.targetKmh,targetDistanceM:s.targetDistanceM,ackPending:s.ackPending,ackSecondsRemaining:s.ackSecondsRemaining,brakeDemand:s.brakeDemand,emergency:s.emergency,profile:'SIMULATION_ONLY'};}
  const api={SYSTEMS,STATES,normalize,createSession,setSpeed,setTarget,requestAcknowledgement,acknowledge,trip,tick,reset,snapshot};
