@@ -44,7 +44,7 @@ window.JMRI_TC_TRAFFIC={isRouteActive,refresh:refreshProgress};
 window.JMRI_TC_TRAFFIC_CONTROL={
  getSnapshot(){
   const run=activeRun(),route=routeById(run?.routeId),gate=route?safetyGate(route):{ok:false};
-  return{config:config(),locomotives:runtime.locomotives.map(x=>({...x})),activeRun:run?{...run}:null,bridgeConnected,dccArmed,deadmanHeld,safetyReady:gate.ok};
+  return{config:config(),locomotives:runtime.locomotives.map(x=>({...x})),activeRun:run?{...run}:null,bridgeConnected,dccEnabled,dccArmed,physicalOutputsEnabled:dccEnabled&&dccArmed,deadmanHeld,safetyReady:gate.ok};
  },
  setSpeed(value){return manualSpeed(value);},
  setDirection(value){return manualDirection(value);},

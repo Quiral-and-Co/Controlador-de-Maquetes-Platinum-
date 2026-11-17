@@ -53,3 +53,27 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 .rotation-marks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
 .rotation-marks button{padding:7px 2px;font-size:11px;font-variant-numeric:tabular-nums}
 .rotation-control #rotateBtn{white-space:normal}
+
+.vertical-ramp-panel{margin-top:16px;padding:12px;background:#152537;border:1px solid #456078;border-radius:9px;display:grid;gap:9px}
+.vertical-ramp-panel>strong{font-size:13px;color:#e8f2fc}
+.vertical-ramp-panel label{display:grid;gap:5px;color:#b6c7d8;font-size:11px}
+.vertical-ramp-panel input,.vertical-ramp-panel select{width:100%;min-width:0;background:#0f1824;border:1px solid #3b4d62;border-radius:6px;color:#fff;padding:8px;font:inherit}
+.vertical-ramp-panel .vertical-result{padding:10px;border:1px solid #53647a;border-radius:7px;background:#202e40;color:#dbe8f5;font-size:12px;line-height:1.5}
+.vertical-ramp-panel .status-green{background:#153d30;border-color:#3c9b70;color:#b9f2d5}
+.vertical-ramp-panel .status-yellow{background:#4a401d;border-color:#b89a39;color:#f7e8a9}
+.vertical-ramp-panel .status-red{background:#4b252b;border-color:#bb4d59;color:#ffc5cb}
+.vertical-ramp-panel .status-brown{background:#30231d;border-color:#76513a;color:#d5a77f}
+.ramp-legend{display:grid;gap:5px;font-size:10px}
+.ramp-legend span{padding:4px 7px;border-radius:5px;border:1px solid transparent}
+
+.track-piece.vertical-risk-green .rail{stroke:#45c58b!important}
+.track-piece.vertical-risk-yellow .rail{stroke:#e5c84f!important}
+.track-piece.vertical-risk-red .rail{stroke:#ed626d!important}
+.track-piece.vertical-risk-brown .rail{stroke:#76513a!important}
+.track-piece.vertical-risk-green .sleeper{stroke:#45c58b}
+.track-piece.vertical-risk-yellow .sleeper{stroke:#e5c84f}
+.track-piece.vertical-risk-red .sleeper{stroke:#ed626d}
+.track-piece.vertical-risk-brown .sleeper{stroke:#76513a}
+
+/* Metge Quiral diagnostic panel */
+.metge-quiral-panel{border-color:#477a9b}.quiral-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.quiral-toolbar strong{font-size:12px;color:#aebdce}.quiral-toolbar strong[data-status="HEALTHY"]{color:#83dfb7}.quiral-toolbar strong[data-status="WARNINGS"]{color:#f2c879}.quiral-toolbar strong[data-status="NEEDS_ATTENTION"]{color:#ff9292}.quiral-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.quiral-check{padding:9px;border:1px solid #34465c;border-radius:7px;background:#172230;font-size:11px}.quiral-check.ok{border-color:#286d58}.quiral-check.warning{border-color:#8a6a32}.quiral-check.error{border-color:#88434e}.quiral-check p{margin:5px 0 0;color:#aebdce;overflow-wrap:anywhere}

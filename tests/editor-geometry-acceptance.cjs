@@ -81,6 +81,36 @@ check('connexions i auditoria de topologia', () => {
   }
 });
 
+check('orientació de corba, ports de desviament i suggeriments de buits integrats', () => {
+  const junction = require('../track-junction-core.js');
+  assert.match(app, /trackJunction\.curvePorts/);
+  assert.match(app, /trackJunction\.turnoutPorts/);
+  assert.match(app, /trackJunction\.recommendGaps/);
+  assert.match(app, /propCurveDirection/);
+  assert.match(app, /propJunctionConnection/);
+  assert.match(app, /suggestGapTracksBtn/);
+  assert.match(fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8'), /track-junction-core\.js/);
+  assert.equal(junction.preferredPort({type:'turnout',connectionPoint:'B'}),'B');
+});
+
+
+check('rampes verticals, transicions, hèlix i classificació visual', () => {
+  const vertical = require('../vertical-track-core.js');
+  assert.equal(typeof vertical.straightRamp, 'function');
+  assert.equal(typeof vertical.helix, 'function');
+  assert.equal(typeof vertical.suggestedTurns, 'function');
+  assert.match(app, /verticalRisk/);
+  const html = fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+  assert.match(html, /vertical-track-ui\.js/);
+  for (const id of ['verticalMode','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRadiusMm','helixTrackCount','helixTurns','helixRiseMm','helixGradePercent','helixSpacingMm','calculateVerticalRampBtn','insertVerticalRampBtn']) {
+    assert.ok(html.includes('id="'+id+'"'), 'Falta el control de rampa '+id);
+  }
+  assert.equal(vertical.classifyGradient(1.5).code,'green');
+  assert.equal(vertical.classifyGradient(2.5).code,'yellow');
+  assert.equal(vertical.classifyGradient(4).code,'red');
+  assert.equal(vertical.classifyGradient(6).code,'brown');
+});
+
 if (failures.length) {
   console.error('EDITOR GEOMETRY ACCEPTANCE BLOCKED: ' + failures.length + ' criteri(s) pendent(s).');
   process.exitCode = 1;
