@@ -23,12 +23,13 @@
       if(t[0]==='ROOMSIZE'){const w=n(t[1]),h=n(t[3]);if(w>0&&h>0)cfg.room={widthMm:w*MM_PER_INCH,heightMm:h*MM_PER_INCH};}
       if(t[0]==='TITLE1')cfg.name=t.slice(1).join(' ')||cfg.name;
       if(t[0]==='STRAIGHT'||t[0]==='CURVE'){
-        const kind=t[0],id=n(t[1],imported+1),layer=Math.max(0,Math.min(4,n(t[2],0)));
+        const kind=t[0],id=n(t[1],imported+1),rawLayer=n(t[2],0),layer=Math.max(0,Math.min(4,rawLayer));
         const data=kind==='STRAIGHT'?{x:n(t[8]),y:n(t[9])}:{cx:n(t[8]),cy:n(t[9]),radius:Math.abs(n(t[11]))};
         const endpoints=[]; let j=i+1;
         for(;j<lines.length;j++){const q=lines[j].trim();if(q.startsWith('END$SEGS'))break;if(/^[ET]\d+\s/.test(q)){const e=words(q);endpoints.push({kind:e[0][0],target:e[1]&&e[0][0]==='T'?n(e[1]):null,x:n(e[e[0][0]==='T'?2:1])*MM_PER_INCH,y:n(e[e[0][0]==='T'?3:2])*MM_PER_INCH,angle:n(e[e[0][0]==='T'?4:3])});}}
         i=j;
         if(endpoints.length<2){unsupported.push(kind+' '+id+': sense dos extrems');continue;}
+        if(rawLayer>4){unsupported.push(kind+' '+id+': capa '+rawLayer+' sense nivell corresponent');continue;}
         const a=endpoints[0],b=endpoints[1],dx=b.x-a.x,dy=b.y-a.y;
         let piece;
         if(kind==='STRAIGHT'){
@@ -59,7 +60,7 @@
         const x=n(p.x),y=n(p.y),rot=n(p.rotation)*Math.PI/180,g=p.geometry||{};
         if(p.type==='straight'){
           const len=n(g.lengthMm,180),ex=x+Math.cos(rot)*len,ey=y+Math.sin(rot)*len;
-          out.push('STRAIGHT '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 0 2 0 0 0 0');
+          out.push('STRAIGHT '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 H0 2 0.000000 0.000000');
           out.push('  E4 '+(x/MM_PER_INCH).toFixed(6)+' '+(y/MM_PER_INCH).toFixed(6)+' '+(((90-n(p.rotation))%360+360)%360).toFixed(6));
           out.push('  E4 '+(ex/MM_PER_INCH).toFixed(6)+' '+(ey/MM_PER_INCH).toFixed(6)+' '+(((270-n(p.rotation))%360+360)%360).toFixed(6));
           out.push('END$SEGS');id++;
@@ -68,7 +69,7 @@
           const cx=x+Math.sin(rot)*dir*r,cy=y-Math.cos(rot)*dir*r;
           const endX=x+Math.cos(rot)*r*Math.sin(a)-Math.sin(rot)*dir*r*(1-Math.cos(a)),endY=y+Math.sin(rot)*r*Math.sin(a)+Math.cos(rot)*dir*r*(1-Math.cos(a));
           const bearing=(px,py)=>((Math.atan2(px-cx,-(py-cy))*180/Math.PI)%360+360)%360;
-          out.push('CURVE '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 0 2 '+(cx/MM_PER_INCH).toFixed(6)+' '+(cy/MM_PER_INCH).toFixed(6)+' 0 '+((dir*r)/MM_PER_INCH).toFixed(6)+' 0 0 0');
+          out.push('CURVE '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 H0 2 '+(cx/MM_PER_INCH).toFixed(6)+' '+(cy/MM_PER_INCH).toFixed(6)+' 0 '+((dir*r)/MM_PER_INCH).toFixed(6)+' 0 0 0');
           out.push('  E4 '+(x/MM_PER_INCH).toFixed(6)+' '+(y/MM_PER_INCH).toFixed(6)+' '+bearing(x,y).toFixed(6));
           out.push('  E4 '+(endX/MM_PER_INCH).toFixed(6)+' '+(endY/MM_PER_INCH).toFixed(6)+' '+bearing(endX,endY).toFixed(6));
           out.push('END$SEGS');id++;
