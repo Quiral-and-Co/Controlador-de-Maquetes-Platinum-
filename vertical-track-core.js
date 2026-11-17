@@ -90,7 +90,9 @@ function helix(input,catalogue,limits={}){
     }
     lanesSummary.push({lane,radiusMm:r,gradePercent:grade,classification,pieceCount,actualTurns,totalLengthMm:totalLength,closureErrorMm:Math.hypot(x,y-startY)});
   }
-  return {kind:'helix',requestedRadiusMm:radius,actualRadiusMm:selected.radiusMm,radiusErrorMm:radiusError,curve:selected,parallelTracks:lanes,spacingMm:spacing,riseMm:rise,transitionLengthMm:transition,turns:actualTurns,requestedTurns:turns,pieceCountPerTrack:pieceCount,placements,lanes:lanesSummary,classification:lanesSummary.reduce((a,b)=>({green:0,yellow:1,red:2,brown:3}[a.classification.code]>({green:0,yellow:1,red:2,brown:3}[b.classification.code])?a:b).classification,gradePercent:Math.max(...lanesSummary.map(x=>x.gradePercent))};
+  const rank={green:0,yellow:1,red:2,brown:3};
+  const worstLane=lanesSummary.reduce((a,b)=>rank[a.classification.code]>rank[b.classification.code]?a:b);
+  return {kind:'helix',requestedRadiusMm:radius,actualRadiusMm:selected.radiusMm,radiusErrorMm:radiusError,curve:selected,parallelTracks:lanes,spacingMm:spacing,riseMm:rise,transitionLengthMm:transition,turns:actualTurns,requestedTurns:turns,pieceCountPerTrack:pieceCount,placements,lanes:lanesSummary,classification:worstLane.classification,gradePercent:Math.max(...lanesSummary.map(x=>x.gradePercent))};
 }
 return Object.freeze({classifyGradient,fitStraightPieces,straightRamp,helix,suggestedTurns,elevationAt});
 });
