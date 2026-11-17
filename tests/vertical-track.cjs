@@ -33,7 +33,10 @@ const helixByGrade=core.helix({radiusMm:360,gradePercent:2,parallelTracks:1,spac
 assert.ok(Math.abs(helixByGrade.gradePercent-2)<1e-8);
 assert.ok(helixByGrade.riseMm>0);
 assert.equal(helix.placements.length,24);
-assert.equal(helix.lanes[1].radiusMm,437);\nconst r2Helix=core.helix({radiusMm:437.5,riseMm:50,parallelTracks:1,spacingMm:77,turns:1,transitionLengthMm:100},catalogue);\nassert.equal(r2Helix.curve.angleDeg,30);\nassert.equal(r2Helix.pieceCountPerTrack,12);
+assert.equal(helix.lanes[1].radiusMm,437);
+const r2Helix=core.helix({radiusMm:437.5,riseMm:50,parallelTracks:1,spacingMm:77,turns:1,transitionLengthMm:100},catalogue);
+assert.equal(r2Helix.curve.angleDeg,30);
+assert.equal(r2Helix.pieceCountPerTrack,12);
 assert.equal(helix.lanes[0].classification.code,'red');
 assert.ok(helix.lanes.every(x=>x.closureErrorMm<1e-6));
 assert.throws(()=>core.helix({radiusMm:400,riseMm:100,parallelTracks:1,spacingMm:77,turns:1,transitionLengthMm:100},catalogue),/±2 mm/);
