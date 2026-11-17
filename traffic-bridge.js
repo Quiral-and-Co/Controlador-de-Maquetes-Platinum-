@@ -11,7 +11,7 @@ const DCC_ENABLED=process.env.JMRI_TC_ENABLE_DCC==='1';
 const AUDIT_DIR=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'.local','share'),'JMRI-TC-Gold-Custom');
 const AUDIT_FILE=path.join(AUDIT_DIR,'emergency-events.jsonl');
 let emergencyLatched=false,emergencyReason='',emergencySince=null;
-try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\r?\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{}
+try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\r?\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{emergencyLatched=true;emergencyReason='No s’ha pogut llegir el registre persistent; bloqueig preventiu';}
 const SAFETY_VALIDATED=process.env.JMRI_TC_SAFETY_VALIDATED==='1';
 function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\n',{encoding:'utf8',mode:0o600});return {row,persisted:true};}catch(err){console.error('Emergency audit write failed:',err.message);return {row,persisted:false,error:err.message};}}
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
