@@ -60,13 +60,13 @@
         if(p.type==='straight'){
           const len=n(g.lengthMm,180),ex=x+Math.cos(rot)*len,ey=y+Math.sin(rot)*len;
           out.push('STRAIGHT '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 0 2 0 0 0 0');
-          out.push('  E4 '+(x/MM_PER_INCH).toFixed(6)+' '+(y/MM_PER_INCH).toFixed(6)+' '+((90-n(p.rotation))%360+360)%360 .toFixed?.(6));
-          out.push('  E4 '+(ex/MM_PER_INCH).toFixed(6)+' '+(ey/MM_PER_INCH).toFixed(6)+' '+((90-n(p.rotation))%360+360)%360 .toFixed?.(6));
+          out.push('  E4 '+(x/MM_PER_INCH).toFixed(6)+' '+(y/MM_PER_INCH).toFixed(6)+' '+(((90-n(p.rotation))%360+360)%360).toFixed(6));
+          out.push('  E4 '+(ex/MM_PER_INCH).toFixed(6)+' '+(ey/MM_PER_INCH).toFixed(6)+' '+(((270-n(p.rotation))%360+360)%360).toFixed(6));
           out.push('END$SEGS');id++;
         }else if(p.type==='curve'){
           const r=n(g.radiusMm,360),a=n(g.angleDeg,30)*Math.PI/180,dir=g.curveDirection==='left'?-1:1;
           const cx=x+Math.sin(rot)*dir*r,cy=y-Math.cos(rot)*dir*r;
-          const endX=x+Math.cos(rot)*r*Math.sin(a),endY=y+Math.sin(rot)*r*Math.sin(a)+dir*r*(1-Math.cos(a));
+          const endX=x+Math.cos(rot)*r*Math.sin(a)-Math.sin(rot)*dir*r*(1-Math.cos(a)),endY=y+Math.sin(rot)*r*Math.sin(a)+Math.cos(rot)*dir*r*(1-Math.cos(a));
           const bearing=(px,py)=>((Math.atan2(px-cx,-(py-cy))*180/Math.PI)%360+360)%360;
           out.push('CURVE '+id+' '+Math.max(0,Math.min(4,n(level.id,1)-1))+' 0 0 0 0 2 '+(cx/MM_PER_INCH).toFixed(6)+' '+(cy/MM_PER_INCH).toFixed(6)+' 0 '+((dir*r)/MM_PER_INCH).toFixed(6)+' 0 0 0');
           out.push('  E4 '+(x/MM_PER_INCH).toFixed(6)+' '+(y/MM_PER_INCH).toFixed(6)+' '+bearing(x,y).toFixed(6));
