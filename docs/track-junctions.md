@@ -14,7 +14,7 @@ El camp «Punt preferit de connexió» controla quin port utilitza la connexió 
 La referència 24624 (DKW / travessa d'unió doble) exposa quatre ports A–D i dibuixa els dos itineraris creuats. El punt preferit es pot escollir entre els quatre. La seva geometria del catàleg continua marcada com no verificada: la representació no certifica l'encaix físic.
 
 ## Suggeriments de trams buits
-L'eina detecta parelles de ports oberts del mateix nivell, exclou ports ja connectats i cerca combinacions d'una a tres vies rectes amb geometria confirmada al catàleg C. Només proposa combinacions amb diferència màxima de 2 mm respecte del buit. En acceptar-ne una, insereix les peces i crea connexions geomètriques marcades \`verified: false\`. No és una verificació elèctrica ni física.
+L'eina detecta parelles de ports oberts del mateix nivell, exclou ports ja connectats i cerca combinacions d'una a tres vies rectes i corbes amb geometria confirmada al catàleg C. Per a les corbes es considera el desplaçament real entre els ports A/B i la mà esquerra/dreta. Només proposa combinacions amb diferència màxima de 2 mm respecte del buit. En acceptar-ne una, insereix les peces i crea connexions geomètriques marcades \`verified: false\`. No és una verificació elèctrica ni física.
 
 ## Validació
 \`npm test\` executa també \`tests/track-junction.cjs\`, que comprova les dues mans de corba, els tres ports del desviament, els quatre ports DKW i la cerca de combinacions de rectes. Qualsevol geometria parcial o no verificada manté el seu estat original.
