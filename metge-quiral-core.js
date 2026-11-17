@@ -34,8 +34,8 @@
     checks.push({id:'connection-verification',label:'Connexions verificades',ok:unverified===0,detail:unverified+' connexions no verificades',severity:'warning'});
     const physicalOutputsLocked=options.physicalOutputsEnabled!==true;
     checks.push({id:'physical-lock','label':'Sortides físiques bloquejades per defecte',ok:physicalOutputsLocked,detail:physicalOutputsLocked?'Bloqueig actiu':'Sortides declarades habilitades',severity:physicalOutputsLocked?'info':'critical'});
-    const errors=issues.length,warnings=checks.filter(c=>c.severity==='warning'&&!c.ok).length;
-    return {status:errors?'NEEDS_ATTENTION':warnings?'WARNINGS':'HEALTHY',checks,issues,counts:{total:checks.length,passed:checks.filter(c=>c.ok).length,errors,warnings},physicalOutputsLocked};
+    const errors=issues.length,warnings=checks.filter(c=>c.severity==='warning'&&!c.ok).length,critical=checks.filter(c=>c.severity==='critical'&&!c.ok).length;
+    return {status:errors||critical?'NEEDS_ATTENTION':warnings?'WARNINGS':'HEALTHY',checks,issues,counts:{total:checks.length,passed:checks.filter(c=>c.ok).length,errors,warnings,critical},physicalOutputsLocked};
   }
   function recommendations(report){
     return report.checks.filter(c=>!c.ok).map(c=>({checkId:c.id,message:c.id==='connection-verification'?'Revisa les connexions i executa les proves geomètriques i topològiques abans de marcar-les verificades.':c.id==='physical-lock'?'Desactiva les sortides físiques i revisa el bloqueig fail-safe.':'Revisa: '+c.label+'. '+(c.detail||'')}));}
