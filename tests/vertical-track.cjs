@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const core=require('../vertical-track-core.js');
 const catalogue=[
- {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},\n {ref:'24180',type:'straight',lengthMm:180,geometryStatus:'confirmed'},
+ {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},\n {ref:'24180',type:'straight',lengthMm:180,geometryStatus:'confirmed'},\n {ref:'24200',type:'straight',lengthMm:200,geometryStatus:'confirmed'},
  {ref:'24188',type:'straight',lengthMm:188.3,geometryStatus:'confirmed'},
  {ref:'24189',type:'straight',lengthMm:188.3,geometryStatus:'unverified'},
  {ref:'24230',type:'curve',radiusMm:360,angleDeg:30,geometryStatus:'confirmed'},
