@@ -81,6 +81,18 @@ check('connexions i auditoria de topologia', () => {
   }
 });
 
+check('orientació de corba, ports de desviament i suggeriments de buits integrats', () => {
+  const junction = require('../track-junction-core.js');
+  assert.match(app, /trackJunction\.curvePorts/);
+  assert.match(app, /trackJunction\.turnoutPorts/);
+  assert.match(app, /trackJunction\.recommendGaps/);
+  assert.match(app, /propCurveDirection/);
+  assert.match(app, /propJunctionConnection/);
+  assert.match(app, /suggestGapTracksBtn/);
+  assert.match(fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8'), /track-junction-core\.js/);
+  assert.equal(junction.preferredPort({type:'turnout',connectionPoint:'B'}),'B');
+});
+
 if (failures.length) {
   console.error('EDITOR GEOMETRY ACCEPTANCE BLOCKED: ' + failures.length + ' criteri(s) pendent(s).');
   process.exitCode = 1;
