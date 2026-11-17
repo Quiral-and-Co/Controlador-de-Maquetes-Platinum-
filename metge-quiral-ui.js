@@ -5,7 +5,7 @@ function run(){
  const host=$('metgeQuiralResults'),status=$('metgeQuiralStatus'),summary=$('metgeQuiralSummary');
  if(!host||!window.JMRI_TC_METGE_QUIRAL)return;
  const config=window.JMRI_TC_DISPATCHER?.getConfig?.()||{};
- const report=window.JMRI_TC_METGE_QUIRAL.inspect(config);
+ const runtime=window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()||{};\n const report=window.JMRI_TC_METGE_QUIRAL.inspect(config,{physicalOutputsEnabled:runtime.physicalOutputsEnabled===true});
  status.textContent=report.status==='HEALTHY'?'SALUTABLE':report.status==='WARNINGS'?'AVISOS':'REVISIÓ NECESSÀRIA';
  status.dataset.status=report.status;
  summary.textContent=report.counts.passed+'/'+report.counts.total+' comprovacions correctes · '+report.counts.errors+' errors · '+report.counts.warnings+' avisos · sortides físiques '+(report.physicalOutputsLocked?'BLOQUEJADES':'NO BLOQUEJADES');
