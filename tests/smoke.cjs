@@ -164,6 +164,35 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
   if(groupTracks.find(x=>x.id===groupB).x>3000||groupTracks.find(x=>x.id===groupB).y>1800)throw Error('Multi-selection movement escaped the board boundaries');
   els.undoBtn.onclick();
+  // Joint rotation around the selection centre, including an internal and an external connection.
+  const rotationProject={schemaVersion:3,name:'Group rotation topology',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+  const rotationPiece=(id,x)=>({id,type:'straight',name:id,x,y:100,rotation:0,levelId:1,blockId:'',sensorName:'',turnoutSystemName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30}});
+  rotationProject.levels[0].tracks=[rotationPiece('ROT-A',100),rotationPiece('ROT-B',280),rotationPiece('ROT-C',460)];
+  rotationProject.connections=[{id:'ROT-INTERNAL',levelId:1,from:{pieceId:'ROT-A',port:'B'},to:{pieceId:'ROT-B',port:'A'},verified:false},{id:'ROT-EXTERNAL',levelId:1,from:{pieceId:'ROT-B',port:'B'},to:{pieceId:'ROT-C',port:'A'},verified:false}];
+  await els.configFile.onchange({target:{files:[{name:'group-rotation.json',text:async()=>JSON.stringify(rotationProject)}],value:''}});
+  let rotA=els.pieceLayer.children.find(x=>x.dataset.id==='ROT-A'),rotB=els.pieceLayer.children.find(x=>x.dataset.id==='ROT-B');
+  rotA.handlers.pointerdown({button:0,currentTarget:rotA,ctrlKey:true,metaKey:false});
+  rotB=els.pieceLayer.children.find(x=>x.dataset.id==='ROT-B');
+  rotB.handlers.pointerdown({button:0,currentTarget:rotB,ctrlKey:true,metaKey:false});
+  if(!els.selectionText.textContent.startsWith('2 seleccionada'))throw Error('Multi-selection was not retained for rotation');
+  els.rotateBtn.onclick();
+  let rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  const rotatedA=rotatedTracks.find(p=>p.id==='ROT-A'),rotatedB=rotatedTracks.find(p=>p.id==='ROT-B'),rotatedC=rotatedTracks.find(p=>p.id==='ROT-C');
+  if(rotatedA.rotation!==15||rotatedB.rotation!==15||rotatedC.rotation!==0)throw Error('Joint rotation did not apply the same angle only to selected pieces');
+  if(Math.abs(Math.hypot(rotatedB.x-rotatedA.x,rotatedB.y-rotatedA.y)-180)>1e-8)throw Error('Joint rotation did not preserve the relative geometric offset');
+  els.validateTopologyBtn.onclick();
+  if(!els.topologyReport.textContent.includes('discontinuïtat geomètrica'))throw Error('Rotation did not diagnose the external connection affected by the group rotation');
+  // One undo restores all selected pieces and their topology; one redo reapplies the whole rotation.
+  els.undoBtn.onclick();
+  rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==0||rotatedTracks.find(p=>p.id==='ROT-B').x!==280)throw Error('One undo did not restore the complete group rotation');
+  els.validateTopologyBtn.onclick();
+  if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Undo did not restore valid connected topology');
+  els.redoBtn.onclick();
+  rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==15||rotatedTracks.find(p=>p.id==='ROT-B').rotation!==15)throw Error('One redo did not reapply the complete group rotation');
+  els.validateTopologyBtn.onclick();
+  if(!els.topologyReport.textContent.includes('discontinuïtat geomètrica'))throw Error('Redo did not restore the affected-connection diagnostic');
   if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
   console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
