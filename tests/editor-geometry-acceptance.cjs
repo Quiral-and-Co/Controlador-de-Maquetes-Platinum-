@@ -93,7 +93,24 @@ check('orientació de corba, ports de desviament i suggeriments de buits integra
   assert.equal(junction.preferredPort({type:'turnout',connectionPoint:'B'}),'B');
 });
 
-if (failures.length) {
+
+check('rampes verticals, transicions, hèlix i classificació visual', () => {
+  const vertical = require('../vertical-track-core.js');
+  assert.equal(typeof vertical.straightRamp, 'function');
+  assert.equal(typeof vertical.helix, 'function');
+  assert.equal(typeof vertical.suggestedTurns, 'function');
+  assert.match(app, /verticalRisk/);
+  assert.match(app, /vertical-track-ui\.js/);
+  const html = fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+  for (const id of ['verticalMode','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','helixRadiusMm','helixTrackCount','helixTurns','helixRiseMm','helixSpacingMm','calculateVerticalRampBtn','insertVerticalRampBtn']) {
+    assert.ok(html.includes('id="'+id+'"'), 'Falta el control de rampa '+id);
+  }
+  assert.equal(vertical.classifyGradient(1.5).code,'green');
+  assert.equal(vertical.classifyGradient(2.5).code,'yellow');
+  assert.equal(vertical.classifyGradient(4).code,'red');
+  assert.equal(vertical.classifyGradient(6).code,'brown');
+});
+\nif (failures.length) {
   console.error('EDITOR GEOMETRY ACCEPTANCE BLOCKED: ' + failures.length + ' criteri(s) pendent(s).');
   process.exitCode = 1;
 } else {
