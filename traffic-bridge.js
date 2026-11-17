@@ -4,10 +4,16 @@ const net=require('node:net');
 const DeadmanCore=require('./deadman-core.js');
 const fs=require('node:fs');
 const path=require('node:path');
+const os=require('node:os');
 const {WebSocketServer,WebSocket}=require('ws');
 const ROOT=__dirname,HOST='127.0.0.1',HTTP_PORT=Number(process.env.PORT||3000);
 const DCC_ENABLED=process.env.JMRI_TC_ENABLE_DCC==='1';
+const AUDIT_DIR=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'.local','share'),'JMRI-TC-Gold-Custom');
+const AUDIT_FILE=path.join(AUDIT_DIR,'emergency-events.jsonl');
+let emergencyLatched=false,emergencyReason='',emergencySince=null;
+try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\\r?\\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{}
 const SAFETY_VALIDATED=process.env.JMRI_TC_SAFETY_VALIDATED==='1';
+function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\\n',{encoding:'utf8',mode:0o600});}catch(err){console.error('Emergency audit write failed:',err.message);}return row;}
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{
  let pathname;
@@ -50,11 +56,12 @@ wss.on('connection',ws=>{
   connected=false;acquired.clear();clearPending();disarm();
  };
  const write=line=>{if(!connected||!tcp||tcp.destroyed)throw new Error('WiThrottle no està connectat.');tcp.write(line+'\n');};
- const requireArmed=()=>{if(!DCC_ENABLED||!armed)throw new Error('Control DCC bloquejat. Activa JMRI_TC_ENABLE_DCC=1 i arma el control de seguretat.');if(!connected)throw new Error('WiThrottle desconnectat.');};
+ const requireArmed=()=>{if(emergencyLatched)throw new Error('EMERGÈNCIA GLOBAL ACTIVA: totes les ordres de moviment estan bloquejades.');if(!DCC_ENABLED||!armed)throw new Error('Control DCC bloquejat. Activa JMRI_TC_ENABLE_DCC=1 i arma el control de seguretat.');if(!connected)throw new Error('WiThrottle desconnectat.');};
  ws.on('message',raw=>{
   let m;try{m=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Missatge JSON invàlid.'});}
   try{
-   if(m.type==='connect'){
+   if(m.type==='emergencyHistory'){let events=[];try{events=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\\r?\\n/).filter(Boolean).slice(-200).map(x=>JSON.parse(x));}catch{}send(ws,{type:'emergencyHistory',events,latched:emergencyLatched,reason:emergencyReason,since:emergencySince});
+   }else if(m.type==='connect'){
     if(tcp)closeTcp();
     const host=String(m.host||'127.0.0.1'),port=Number(m.port||12090);
     if(!validHost(host)||!Number.isInteger(port)||port<1||port>65535)throw new Error('Host o port WiThrottle invàlid.');
@@ -78,10 +85,21 @@ wss.on('connection',ws=>{
     tcp.on('error',err=>send(ws,{type:'error',message:'WiThrottle: '+err.message}));
     tcp.on('close',()=>{stopHeartbeat();connected=false;acquired.clear();clearPending();disarm();send(ws,{type:'disconnected'});});
    }else if(m.type==='arm'){
+    if(emergencyLatched)throw new Error('Emergència global activa: rearma manualment abans d’habilitar DCC.');
     if(!DCC_ENABLED)throw new Error('DCC desactivat per defecte. Cal iniciar el pont amb JMRI_TC_ENABLE_DCC=1.');
     if(!SAFETY_VALIDATED||m.safetyValidated!==true)throw new Error('Interbloqueig de seguretat: manca JMRI_TC_SAFETY_VALIDATED=1 i validació de la interfície.');
     if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
     armed=m.enabled===true;report();send(ws,{type:'armed',armed});
+   }else if(m.type==='emergencyStop'){
+    if(!emergencyLatched){emergencyLatched=true;emergencyReason=String(m.reason||'Aturada d’emergència global');emergencySince=new Date().toISOString();audit({type:'TRIP',reason:emergencyReason,source:String(m.source||'panel'),locomotives:[...acquired]});}
+    armed=false;for(const timer of pendingAcquire.values())clearTimeout(timer);const cancelled=[...pendingAcquire.keys()];pendingAcquire.clear();
+    let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\\n');stopSent=true;}catch{}}
+    acquired.clear();manualLocos.clear();deadman.pressed=false;deadman.tripped=true;deadman.phase='TRIPPED';deadman.releasedAt=null;report();send(ws,{type:'emergencyLatched',latched:true,reason:emergencyReason,since:emergencySince,cancelledAcquisitions:cancelled,stopSent,retainedReservations:true});
+   }else if(m.type==='emergencyRearm'){
+    if(!emergencyLatched)throw new Error('No hi ha cap emergència activa.');
+    if(m.operatorConfirmed!==true||m.jmriPowerOff!==true||m.allRunsStopped!==true)throw new Error('Rearmament denegat: cal confirmació manual, CS2 en OFF i totes les circulacions aturades.');
+    if(!connected)throw new Error('Rearmament denegat: pont WiThrottle desconnectat.');
+    emergencyLatched=false;emergencyReason='';emergencySince=null;audit({type:'REARM',reason:'Rearmament manual; DCC continua desarmat',source:'operator'});disarm();report();send(ws,{type:'emergencyRearmed',latched:false,dccArmed:false});
    }else if(m.type==='deadmanConfigure'){const result=DeadmanCore.configure(deadman,m.enabled===true);if(!result.ok)throw new Error(result.error);publishDeadman();
    }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(result.action==='TRIP'||deadman.tripped){emergencyDeadman();throw new Error('Temps de resposta exhaurit: frenat d’emergència activat.');}if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
    }else if(m.type==='deadmanRelease'){if(!deadman.enabled)throw new Error('Home mort no disponible.');DeadmanCore.release(deadman,Date.now());deadmanLastHeartbeat=Date.now();publishDeadman();
