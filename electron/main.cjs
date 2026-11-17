@@ -1,11 +1,66 @@
 'use strict';
 
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 let bridge = null;
 let quitting = false;
+let mainWindow = null;
+
+const projectFilters = [
+  { name: 'Projectes JMRI TC', extensions: ['json'] },
+  { name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] },
+  { name: 'Fitxers AnyRail / JMRI XML', extensions: ['any', 'xml'] },
+  { name: 'Tots els fitxers', extensions: ['*'] }
+];
+
+function installProjectHandlers() {
+  ipcMain.handle('project:open', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters: projectFilters });
+    if (result.canceled || !result.filePaths[0]) return { canceled: true };
+    const filePath = result.filePaths[0];
+    return { canceled: false, filePath, fileName: path.basename(filePath), content: await fs.readFile(filePath, 'utf8') };
+  });
+  ipcMain.handle('project:save', async (_event, options = {}) => {
+    let filePath = typeof options.filePath === 'string' ? options.filePath : '';
+    if (!filePath || options.saveAs) {
+      const result = await dialog.showSaveDialog(mainWindow, {
+        defaultPath: options.defaultPath || 'JMRI_TC_Gold_Custom_layout.json',
+        filters: options.filters || projectFilters.slice(0, 2)
+      });
+      if (result.canceled || !result.filePath) return { canceled: true };
+      filePath = result.filePath;
+    }
+    await fs.writeFile(filePath, String(options.content ?? ''), { encoding: 'utf8', flag: 'w' });
+    return { canceled: false, filePath, fileName: path.basename(filePath) };
+  });
+  ipcMain.handle('project:confirm-discard', async () => {
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'warning', buttons: ['Cancel·lar', 'Descartar canvis'], defaultId: 0, cancelId: 0,
+      title: 'Canvis sense desar', message: 'Hi ha canvis sense desar. Vols descartar-los?'
+    });
+    return result.response === 1;
+  });
+}
+
+function installApplicationMenu() {
+  const send = command => mainWindow?.webContents.send('app:command', command);
+  const template = [{ label: 'Fitxer', submenu: [
+    { label: 'Nou', accelerator: 'CmdOrCtrl+N', click: () => send('new') },
+    { label: 'Obrir…', accelerator: 'CmdOrCtrl+O', click: () => send('open') },
+    { type: 'separator' },
+    { label: 'Guardar', accelerator: 'CmdOrCtrl+S', click: () => send('save') },
+    { label: 'Guardar com…', accelerator: 'CmdOrCtrl+Shift+S', click: () => send('saveAs') },
+    { type: 'separator' },
+    { label: 'Importar XTrackCAD…', click: () => send('importXtc') },
+    { label: 'Exportar XTrackCAD…', click: () => send('exportXtc') },
+    { type: 'separator' },
+    { role: 'quit', label: 'Sortir' }
+  ] }, { label: 'Edició', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }] }, { label: 'Ajuda', submenu: [{ role: 'about' }] }];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
 
 function startBridge() {
   return new Promise((resolve, reject) => {
@@ -62,17 +117,20 @@ async function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      preload: path.join(__dirname, 'preload.cjs')
     }
   });
+  mainWindow = window;
   window.once('ready-to-show', () => window.show());
   await window.loadURL(`http://127.0.0.1:${port}`);
   window.on('closed', () => {
+    mainWindow = null;
     if (app.quit) app.quit();
   });
 }
 
-app.whenReady().then(createWindow).catch(async error => {
+app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu(); return createWindow(); }).catch(async error => {
   console.error(error);
   await dialog.showMessageBox({
     type: 'error',
