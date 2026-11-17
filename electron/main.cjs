@@ -12,7 +12,6 @@ let mainWindow = null;
 const projectFilters = [
   { name: 'Projectes JMRI TC', extensions: ['json'] },
   { name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] },
-  { name: 'Fitxers AnyRail / JMRI XML', extensions: ['any', 'xml'] },
   { name: 'Tots els fitxers', extensions: ['*'] }
 ];
 
