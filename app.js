@@ -379,10 +379,8 @@
         setProjectName(file.fileName+' · importat');render();
         log(`XTrackCAD: ${result.report.imported} peces importades.`);
         if(result.report.unsupported.length)log('Elements XTrackCAD no convertits: '+result.report.unsupported.slice(0,12).join('; '));
-      }else if(ext==='any'){
-        throw new Error('El format natiu .any d’AnyRail és propietari i no hi ha una especificació pública interoperable. A AnyRail, utilitza Fitxer > Exportar com > JMRI Layout XML; aquesta importació XML encara no està habilitada.');
       }else if(ext==='xml'){
-        throw new Error('Aquest XML no és un projecte JMRI TC JSON ni un XTrackCAD .xtc. Cal afegir l’adaptador específic de JMRI Layout XML.');
+        throw new Error('Format XML no admès; obre projectes JMRI TC JSON o fitxers XTrackCAD.');
       }else throw new Error('Format de fitxer no admès: .'+ext);
     }catch(err){log('No s’ha obert el fitxer: '+err.message);window.alert?.('No s’ha pogut obrir el fitxer. '+err.message);}
   }
