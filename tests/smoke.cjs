@@ -1,6 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const viewport = require('../viewport-core.js');
+const selectionMove = require('../selection-move-core.js');
 class El {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.innerHTML='';this.children=[];this.dataset={};this.handlers={};this.className='';this.disabled=false;this.classList={add:()=>{},toggle:()=>{},remove:()=>{}};this.style={};}
   addEventListener(n,fn){this.handlers[n]=fn;}
@@ -11,6 +12,8 @@ class El {
   getAttribute(k){return this[k]??null;}
   remove(){}
   getBoundingClientRect(){return {left:0,top:0,width:1000,height:600};}
+  createSVGPoint(){const point={x:0,y:0,matrixTransform(){return {x:this.x,y:this.y};}};return point;}
+  getScreenCTM(){return {inverse(){return {};}};}
   setPointerCapture(){}
   closest(){return null;}
 }
@@ -20,7 +23,7 @@ const palette=['straight','curve','turnout','block'].map(type=>{const e=new El()
 const shell=new El('shell');
 const docHandlers={};
 const document={addEventListener:(name,fn)=>{docHandlers[name]=fn;},getElementById:id=>els[id]||(els[id]=new El(id)),createElement:tag=>new El(tag),createElementNS:()=>new El('svg'),querySelectorAll:q=>q==='[data-piece]'?palette:[],querySelector:q=>shell};
-const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8')),JMRI_TC_VIEWPORT:viewport,addEventListener:()=>{}};
+const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8')),JMRI_TC_VIEWPORT:viewport,JMRI_TC_SELECTION_MOVE:selectionMove,addEventListener:()=>{}};
 vm.runInNewContext(fs.readFileSync(__dirname+'/../app.js','utf8'),{document,window,console,Date,Math,JSON,Number,String,Array,Set,Map,WebSocket:function(){}});
 if(els.levelCount.textContent!==5)throw Error('Expected five levels');
 if(els.zoomReadout.textContent!=='100%')throw Error('Viewport must start at 100% fit');
@@ -129,5 +132,36 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   if(els.portStatus.textContent.includes('Primer port:'))throw Error('Occupied port was accepted as a first endpoint');
   els.validateTopologyBtn.onclick();
   if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Manual connection should pass topology audit');
-  console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation and rejection of self/distant/occupied ports');
+  // Multi-selection drag: one snapped translation, preserved offsets and one undo step.
+  const emptyGroupProject={schemaVersion:3,name:'Group move test',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+  await els.configFile.onchange({target:{files:[{name:'group-move.json',text:async()=>JSON.stringify(emptyGroupProject)}],value:''}});
+  palette[0].onclick();const groupA=els.propId.value;
+  palette[0].onclick();const groupB=els.propId.value;
+  let groupAElement=els.pieceLayer.children.find(x=>x.dataset.id===groupA);
+  groupAElement.handlers.pointerdown({button:0,currentTarget:groupAElement,ctrlKey:true,metaKey:false});
+  groupAElement=els.pieceLayer.children.find(x=>x.dataset.id===groupA);
+  groupAElement.handlers.pointerdown({button:0,pointerId:77,currentTarget:groupAElement,clientX:305,clientY:305,ctrlKey:false,metaKey:false});
+  els.trackSvg.handlers.pointermove({pointerId:77,clientX:357,clientY:356});
+  els.trackSvg.handlers.pointerup({pointerId:77});
+  let groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  const groupPos=()=>Object.fromEntries(groupTracks.map(x=>[x.id,{x:x.x,y:x.y}]));
+  if(groupPos()[groupA].x!==350||groupPos()[groupA].y!==350||groupPos()[groupB].x!==380||groupPos()[groupB].y!==375)throw Error('Multi-selection drag did not move all pieces by the same snapped delta');
+  els.undoBtn.onclick();groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(groupTracks.find(x=>x.id===groupA).x!==300||groupTracks.find(x=>x.id===groupB).x!==330)throw Error('A single undo did not restore the whole multi-piece movement');
+  els.redoBtn.onclick();groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  groupAElement=els.pieceLayer.children.find(x=>x.dataset.id===groupA);
+  groupAElement.handlers.pointerdown({button:0,pointerId:78,currentTarget:groupAElement,clientX:355,clientY:355,ctrlKey:false,metaKey:false});
+  els.trackSvg.handlers.pointermove({pointerId:78,clientX:405,clientY:405});
+  els.trackSvg.handlers.pointercancel({pointerId:78});
+  groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(groupTracks.find(x=>x.id===groupA).x!==350||groupTracks.find(x=>x.id===groupB).x!==380)throw Error('Pointer cancel did not restore the full selection');
+  groupAElement=els.pieceLayer.children.find(x=>x.dataset.id===groupA);
+  groupAElement.handlers.pointerdown({button:0,pointerId:79,currentTarget:groupAElement,clientX:355,clientY:355,ctrlKey:false,metaKey:false});
+  els.trackSvg.handlers.pointermove({pointerId:79,clientX:10000,clientY:10000});
+  els.trackSvg.handlers.pointerup({pointerId:79});
+  groupTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(groupTracks.find(x=>x.id===groupB).x>3000||groupTracks.find(x=>x.id===groupB).y>1800)throw Error('Multi-selection movement escaped the board boundaries');
+  els.undoBtn.onclick();
+  if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
+  console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
