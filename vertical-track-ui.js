@@ -24,7 +24,7 @@ function calculate(){
    const turns=number('helixTurns');
    plan=core.helix({radiusMm:radius,riseMm:number('helixRiseMm'),parallelTracks:number('helixTrackCount'),spacingMm:number('helixSpacingMm'),turns,transitionLengthMm:number('helixTransitionMm')??100,direction:$('helixDirection').value},catalogue(),limits());
   }
-  showResult(plan);$('insertVerticalRampBtn').disabled=false;
+  showResult(plan);$('insertVerticalRampBtn').disabled=plan.classification.code==='brown';
   return plan;
  }catch(e){plan=null;$('verticalRampResult').className='vertical-result status-brown';$('verticalRampResult').textContent='No es pot generar: '+e.message;$('insertVerticalRampBtn').disabled=true;return null;}
 }
@@ -41,7 +41,7 @@ function worldPorts(piece){
  return local.map(p=>({x:piece.x+p.x*c-p.y*s,y:piece.y+p.x*s+p.y*c,port:p.port}));
 }
 function insertPlan(){
- if(!plan&&!calculate())return;
+ if(!plan&&!calculate())return;\n if(plan.classification.code==='brown')throw new Error('La classificació marró fosc impedeix inserir una geometria impossible segons els límits configurats.');
  const dispatcher=window.JMRI_TC_DISPATCHER,board=window.JMRI_TC_BOARD,config=dispatcher?.getConfig?.();
  if(!config||!board?.refresh)throw new Error('L’editor principal no està preparat.');
  const level=config.levels.find(x=>String(x.id)===String(board.getSelectedLevel?.()??config.levels[0].id));if(!level)throw new Error('No hi ha cap nivell seleccionat.');
