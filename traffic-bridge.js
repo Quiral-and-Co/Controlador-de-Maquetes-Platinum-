@@ -91,9 +91,10 @@ wss.on('connection',ws=>{
     if(!connected)throw new Error('Connecta primer amb el servidor WiThrottle de JMRI.');
     armed=m.enabled===true;report();send(ws,{type:'armed',armed});
    }else if(m.type==='emergencyStop'){
-    if(!emergencyLatched){emergencyLatched=true;emergencyReason=String(m.reason||'Aturada d’emergència global');emergencySince=new Date().toISOString();audit({type:'TRIP',reason:emergencyReason,source:String(m.source||'panel'),locomotives:[...acquired]});}
-    armed=false;for(const timer of pendingAcquire.values())clearTimeout(timer);const cancelled=[...pendingAcquire.keys()];pendingAcquire.clear();
-    let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\n');stopSent=true;}catch{}}
+    if(!emergencyLatched){emergencyLatched=true;emergencyReason=String(m.reason||'Aturada d’emergència global');emergencySince=new Date().toISOString();}
+    armed=false;const auditResult=audit({type:'TRIP',reason:emergencyReason,source:String(m.source||'panel'),locomotives:[...acquired]});
+    for(const timer of pendingAcquire.values())clearTimeout(timer);const cancelled=[...pendingAcquire.keys()];pendingAcquire.clear();
+    let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\nM0-*<;>r\n');stopSent=true;}catch{}}
     acquired.clear();manualLocos.clear();deadman.pressed=false;deadman.tripped=true;deadman.phase='TRIPPED';deadman.releasedAt=null;report();send(ws,{type:'emergencyLatched',latched:true,reason:emergencyReason,since:emergencySince,cancelledAcquisitions:cancelled,stopSent,retainedReservations:true,auditPersisted:auditResult.persisted});
    }else if(m.type==='emergencyRearm'){
     if(!emergencyLatched)throw new Error('No hi ha cap emergència activa.');
