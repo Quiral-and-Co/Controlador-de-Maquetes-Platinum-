@@ -5,12 +5,12 @@ const selectionMove = require('../selection-move-core.js');
 class El {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.innerHTML='';this.children=[];this.dataset={};this.handlers={};this.className='';this.disabled=false;this.classList={add:()=>{},toggle:()=>{},remove:()=>{}};this.style={};}
   addEventListener(n,fn){this.handlers[n]=fn;}
-  append(...xs){this.children.push(...xs);}
-  prepend(x){this.children.unshift(x);}
-  replaceChildren(...xs){this.children=[...xs];}
+  append(...xs){xs.forEach(x=>{x.parent=this;this.children.push(x);});}
+  prepend(x){x.parent=this;this.children.unshift(x);}
+  replaceChildren(...xs){this.children=[...xs];xs.forEach(x=>{x.parent=this;});}
   setAttribute(k,v){this[k]=v;}
   getAttribute(k){return this[k]??null;}
-  remove(){}
+  remove(){if(this.parent){const index=this.parent.children.indexOf(this);if(index>=0)this.parent.children.splice(index,1);}}
   getBoundingClientRect(){return {left:0,top:0,width:1000,height:600};}
   createSVGPoint(){const point={x:0,y:0,matrixTransform(){return {x:this.x,y:this.y};}};return point;}
   getScreenCTM(){return {inverse(){return {};}};}
