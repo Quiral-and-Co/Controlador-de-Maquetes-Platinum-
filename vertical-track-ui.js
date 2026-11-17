@@ -29,7 +29,7 @@ function calculate(){
  }catch(e){plan=null;$('verticalRampResult').className='vertical-result status-brown';$('verticalRampResult').textContent='No es pot generar: '+e.message;$('insertVerticalRampBtn').disabled=true;return null;}
 }
 function refreshTurnPresets(){
- const radius=number('helixRadiusMm'),items=catalogue().filter(x=>x.type==='curve'&&x.geometryStatus==='confirmed'&&Math.abs(Number(x.radiusMm)-radius)<=2);
+ const radius=number('helixRadiusMm'),items=catalogue().filter(x=>x.type==='curve'&&x.geometryStatus==='confirmed'&&Math.abs(Number(x.radiusMm)-radius)<=2).sort((a,b)=>Math.abs(Number(a.radiusMm)-radius)-Math.abs(Number(b.radiusMm)-radius)||Math.abs(360/Number(a.angleDeg)-Math.round(360/Number(a.angleDeg)))-Math.abs(360/Number(b.angleDeg)-Math.round(360/Number(b.angleDeg)))||Number(a.angleDeg)-Number(b.angleDeg));
  const select=$('helixTurns'),previous=select.value;select.replaceChildren();
  if(!items.length){const o=document.createElement('option');o.value='';o.textContent='Sense geometria compatible';select.append(o);return;}
  const opts=core.suggestedTurns(Number(items[0].angleDeg),48);
