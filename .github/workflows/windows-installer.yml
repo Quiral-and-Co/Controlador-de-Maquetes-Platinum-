@@ -27,9 +27,12 @@ permissions:
 
 jobs:
   windows-installer:
-    name: Build Windows 11 x64 NSIS installer
+    name: Build and report Windows 11 x64 NSIS installer
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    env:
+      JMRI_TC_ENABLE_DCC: '0'
+      JMRI_TC_SAFETY_VALIDATED: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -43,30 +46,15 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run complete test suite
-        run: npm test
+      - name: Run reproducible final validation and build
+        run: npm run validate:final
 
-      - name: Editor XYZ, parallel tracks, curves and topology acceptance gate
-        run: node tests/editor-geometry-acceptance.cjs
-
-      - name: Build NSIS installer
-        run: npm run dist:win
-
-      - name: Verify installer exists
-        shell: pwsh
-        run: |
-          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File
-          if (-not $installer) {
-            throw 'No NSIS installer .exe was generated.'
-          }
-          $installer | ForEach-Object {
-            Write-Host "Installer: $($_.FullName) ($($_.Length) bytes)"
-          }
-
-      - name: Upload Windows installer
+      - name: Upload installer and validation evidence
         uses: actions/upload-artifact@v4
         with:
-          name: JMRI-TC-Gold-Custom-Windows-11-NSIS
-          path: dist/*.exe
+          name: JMRI-TC-Gold-Custom-Final-Validation-Windows-11
+          path: |
+            dist/*.exe
+            artifacts/final-validation/**
           if-no-files-found: error
           retention-days: 30
