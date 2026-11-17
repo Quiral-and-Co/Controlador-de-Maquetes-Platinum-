@@ -46,9 +46,9 @@ function insertPlan(){
  if(!config||!board?.refresh)throw new Error('L’editor principal no està preparat.');
  const level=config.levels.find(x=>String(x.id)===String(board.getSelectedLevel?.()??config.levels[0].id));if(!level)throw new Error('No hi ha cap nivell seleccionat.');
  const newPieces=[],newConnections=[],baseZ=Number(level.elevationMm)||0,stamp=Date.now().toString(36);
- function addPiece(item,x,y,rotation,z,index,lane){
+ function addPiece(item,x,y,rotation,z,index,lane,zEnd,risk,grade){
   serial++;const isCurve=item.type==='curve',geometry=isCurve?{lengthMm:180,radiusMm:Number(item.radiusMm),angleDeg:Number(item.angleDeg),curveDirection:plan.direction||$('helixDirection').value||'right'}:{lengthMm:Number(item.lengthMm),radiusMm:360,angleDeg:30};
-  const p={id:'RAMP-'+stamp+'-'+serial,type:item.type,name:(plan.kind==='helix'?'Hèlix':'Rampa')+' '+(lane?('V'+lane+' '):'')+(index+1)+' · '+item.ref,x,y,rotation,zMm:baseZ+z,levelId:level.id,blockId:'',sensorName:'',turnoutSystemName:'',catalogueRef:item.ref,geometryStatus:'confirmed',geometry};
+  const p={id:'RAMP-'+stamp+'-'+serial,type:item.type,name:(plan.kind==='helix'?'Hèlix':'Rampa')+' '+(lane?('V'+lane+' '):'')+(index+1)+' · '+item.ref,x,y,rotation,zMm:baseZ+z,levelId:level.id,blockId:'',sensorName:'',turnoutSystemName:'',catalogueRef:item.ref,geometryStatus:'confirmed',verticalRisk:risk||plan.classification.code,verticalGeometry:{zStartMm:baseZ+z,zEndMm:baseZ+(zEnd??z),gradePercent:grade??plan.gradePercent},geometry};
   newPieces.push(p);return p;
  }
  function connectSequence(sequence,closed){
@@ -58,17 +58,17 @@ function insertPlan(){
   const x0=300,y0=700,rotation=0,total=plan.lengthMm;
   if(x0+total>2990)throw new Error('La rampa recta no cap a la superfície del tauler.');
   const seq=[];let x=x0;
-  plan.placements.forEach((p,i)=>{const piece=addPiece(p.item,x,y0,rotation,p.zStartMm,i,0);seq.push(piece);x+=p.item.lengthMm;});
+  plan.placements.forEach((p,i)=>{const piece=addPiece(p.item,x,y0,rotation,p.zStartMm,i,0,p.zEndMm,plan.classification.code,plan.gradePercent);seq.push(piece);x+=p.item.lengthMm;});
   connectSequence(seq,false);
  }else{
   const centreX=1500,centreY=900,groups=new Map();
   for(const p of plan.placements){
    const laneRadius=p.radiusMm,px=centreX+p.x,py=centreY+p.y;
    if(px-laneRadius<10||px+laneRadius>2990||py-laneRadius<10||py+laneRadius>1790)throw new Error('El radi i les vies paral·leles excedeixen els límits del tauler.');
-   const piece=addPiece(p.item,px,py,p.rotationDeg,p.zStartMm,p.index,p.lane+1);
+   const piece=addPiece(p.item,px,py,p.rotationDeg,p.zStartMm,p.index,p.lane+1,p.zEndMm,plan.lanes[p.lane].classification.code,plan.lanes[p.lane].gradePercent);
    if(!groups.has(p.lane))groups.set(p.lane,[]);groups.get(p.lane).push(piece);
   }
-  groups.forEach(seq=>connectSequence(seq,true));
+  groups.forEach(seq=>connectSequence(seq,Math.abs(plan.turns-Math.round(plan.turns))<1e-6));
  }
  if(!Array.isArray(config.verticalRoutes))config.verticalRoutes=[];
  config.verticalRoutes.push({id:'VR-'+stamp,kind:plan.kind,levelId:level.id,createdAt:new Date().toISOString(),riseMm:plan.riseMm,gradePercent:plan.gradePercent,classification:plan.classification.code,verified:false,pieceIds:newPieces.map(p=>p.id),connectionIds:newConnections.map(c=>c.id),parameters:plan.kind==='helix'?{radiusMm:plan.actualRadiusMm,parallelTracks:plan.parallelTracks,spacingMm:plan.spacingMm,turns:plan.turns}:{lengthMm:plan.lengthMm,transitionLengthMm:plan.transitionLengthMm}});
