@@ -65,3 +65,12 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 .vertical-ramp-panel .status-brown{background:#30231d;border-color:#76513a;color:#d5a77f}
 .ramp-legend{display:grid;gap:5px;font-size:10px}
 .ramp-legend span{padding:4px 7px;border-radius:5px;border:1px solid transparent}
+
+.track-piece.vertical-risk-green .rail{stroke:#45c58b!important}
+.track-piece.vertical-risk-yellow .rail{stroke:#e5c84f!important}
+.track-piece.vertical-risk-red .rail{stroke:#ed626d!important}
+.track-piece.vertical-risk-brown .rail{stroke:#76513a!important}
+.track-piece.vertical-risk-green .sleeper{stroke:#45c58b}
+.track-piece.vertical-risk-yellow .sleeper{stroke:#e5c84f}
+.track-piece.vertical-risk-red .sleeper{stroke:#ed626d}
+.track-piece.vertical-risk-brown .sleeper{stroke:#76513a}
