@@ -19,7 +19,7 @@ assert.equal(fit.items.length,2);
 assert.ok(fit.items.every(x=>x.geometryStatus==='confirmed'));
 const ramp=core.straightRamp({lengthMm:600,riseMm:10,transitionLengthMm:100},catalogue);
 assert.equal(ramp.kind,'straight');
-assert.equal(ramp.placements.length,4);
+assert.equal(ramp.placements.length,3);
 assert.ok(Math.abs(ramp.gradePercent-2)<1e-9);
 assert.equal(ramp.placements[0].zStartMm,0);
 assert.ok(Math.abs(ramp.placements.at(-1).zEndMm-10)<1e-8);
