@@ -1,6 +1,11 @@
 'use strict';
 const assert=require('node:assert/strict');
 const p=require('../train-protection-core.js');
+const fs=require('node:fs');
+const html=fs.readFileSync(require('node:path').join(__dirname,'..','index.html'),'utf8');
+const ui=fs.readFileSync(require('node:path').join(__dirname,'..','train-protection-ui.js'),'utf8');
+for(const [,id] of ui.matchAll(/\$\('([^']+)'\)/g))assert.ok(html.includes('id="'+id+'"'),'Falta el control DOM '+id+' utilitzat per train-protection-ui.js');
+
 for(const system of ['ASFA_DIGITAL','ETCS','LZB','PZB'])assert.equal(p.createSession({system}).ok,true);
 for(const level of ['Nivell 0','Nivell 1','Nivell 2','Nivell 3'])assert.equal(p.createSession({system:'ETCS',level}).ok,true);
 assert.equal(p.createSession({system:'ETCS',level:'Nivell 4'}).ok,false);
@@ -24,6 +29,9 @@ s=p.setSpeed(s,45).session;
 assert.equal(s.brakeDemand,true);
 s=p.tick(s,1).session;
 assert.equal(s.state,p.STATES.TRIPPED);
+s=p.setTarget(s,{permittedKmh:20,targetKmh:10,targetDistanceM:100}).session;
+assert.equal(s.brakeDemand,true);
+assert.equal(s.state,p.STATES.BRAKING);
 s=p.createSession({system:'ETCS',level:'Nivell 3'}).session;
 assert.equal(p.setSpeed(s,120).session.brakeDemand,true);
 assert.equal(p.setSpeed(s,-10).session.speedKmh,0);
