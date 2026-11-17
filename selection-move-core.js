@@ -61,5 +61,45 @@
     const dy = clamp(rawDy, minDy, maxDy);
     return { dx, dy, positions: drag.originals.map(piece => ({ id: piece.id, x: piece.x + dx, y: piece.y + dy })) };
   }
-  return Object.freeze({ createDrag, move });
+  function rotate(pieces, angleDeg, board) {
+    if (!Array.isArray(pieces) || pieces.length === 0) throw new TypeError('Cal seleccionar almenys una peça.');
+    const angle = finite(angleDeg, 'L’angle de rotació');
+    const width = finite(board && board.width, 'L’amplada del tauler');
+    const height = finite(board && board.height, 'L’alçada del tauler');
+    if (!(width > 0 && height > 0)) throw new RangeError('Les dimensions del tauler han de ser positives.');
+    const seen = new Set();
+    const originals = pieces.map(piece => {
+      if (!piece || piece.id === undefined || piece.id === null) throw new TypeError('Cada peça ha de tenir un identificador.');
+      const id = String(piece.id);
+      if (seen.has(id)) throw new Error('La selecció conté identificadors duplicats: ' + id);
+      seen.add(id);
+      return {
+        id,
+        x: finite(piece.x, 'La coordenada X de ' + id),
+        y: finite(piece.y, 'La coordenada Y de ' + id),
+        rotation: finite(piece.rotation === undefined ? 0 : piece.rotation, 'La rotació de ' + id)
+      };
+    });
+    const bounds = originals.reduce((box, piece) => ({
+      minX: Math.min(box.minX, piece.x), minY: Math.min(box.minY, piece.y),
+      maxX: Math.max(box.maxX, piece.x), maxY: Math.max(box.maxY, piece.y)
+    }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+    const center = { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2 };
+    const radians = angle * Math.PI / 180, c = Math.cos(radians), s = Math.sin(radians);
+    const epsilon = 1e-7;
+    const positions = originals.map(piece => {
+      let x = center.x + (piece.x - center.x) * c - (piece.y - center.y) * s;
+      let y = center.y + (piece.x - center.x) * s + (piece.y - center.y) * c;
+      if (x < -epsilon || y < -epsilon || x > width + epsilon || y > height + epsilon) {
+        throw new RangeError('La rotació deixaria una peça fora de la superfície del tauler.');
+      }
+      if (Math.abs(x) < epsilon) x = 0;
+      if (Math.abs(y) < epsilon) y = 0;
+      if (Math.abs(x - width) < epsilon) x = width;
+      if (Math.abs(y - height) < epsilon) y = height;
+      return { id: piece.id, x, y, rotation: ((piece.rotation + angle) % 360 + 360) % 360 };
+    });
+    return { angle, center, positions };
+  }
+  return Object.freeze({ createDrag, move, rotate });
 });
