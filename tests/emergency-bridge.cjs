@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const bridge=fs.readFileSync(require.resolve('../traffic-bridge.js'),'utf8');
+assert.match(bridge,/if\(emergencyLatched\)throw new Error\('EMERGÈNCIA GLOBAL ACTIVA/,'bridge must reject all armed commands while emergency is latched');
+assert.match(bridge,/pendingAcquire\.clear\(\)/,'emergency must cancel pending acquisitions');
+assert.match(bridge,/M0A\*<;>X\\n/,'emergency must send the global WiThrottle stop frame');
+assert.match(bridge,/audit\(\{type:'TRIP'/,'emergency trips must be audited');
+assert.match(bridge,/audit\(\{type:'REARM'/,'manual rearm must be audited');
+assert.match(bridge,/m\.operatorConfirmed!==true\|\|m\.jmriPowerOff!==true\|\|m\.allRunsStopped!==true/,'rearm must require explicit operator confirmation, CS2 OFF and stopped runs');
+assert.match(bridge,/if\(!auditResult\.persisted\)throw new Error\('Rearmament bloquejat/,'rearm must fail closed if audit persistence fails');
+assert.match(bridge,/retainedReservations:true/,'route reservations must remain retained during emergency');
+console.log('PASS: bridge global emergency lockout, stop broadcast, pending acquisition cancellation, retained reservations, manual rearm and persistent audit guards');
