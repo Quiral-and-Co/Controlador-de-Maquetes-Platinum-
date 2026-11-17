@@ -13,7 +13,7 @@ const AUDIT_FILE=path.join(AUDIT_DIR,'emergency-events.jsonl');
 let emergencyLatched=false,emergencyReason='',emergencySince=null;
 try{const rows=fs.readFileSync(AUDIT_FILE,'utf8').trim().split(/\r?\n/).filter(Boolean);const last=rows.length?JSON.parse(rows[rows.length-1]):null;if(last?.type==='TRIP'){emergencyLatched=true;emergencyReason=last.reason;emergencySince=last.at;}else if(last?.type==='REARM'){emergencyLatched=false;}}catch{}
 const SAFETY_VALIDATED=process.env.JMRI_TC_SAFETY_VALIDATED==='1';
-function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\n',{encoding:'utf8',mode:0o600});}catch(err){console.error('Emergency audit write failed:',err.message);}return row;}
+function audit(event){const row={...event,at:new Date().toISOString()};try{fs.mkdirSync(AUDIT_DIR,{recursive:true});fs.appendFileSync(AUDIT_FILE,JSON.stringify(row)+'\n',{encoding:'utf8',mode:0o600});return {row,persisted:true};}catch(err){console.error('Emergency audit write failed:',err.message);return {row,persisted:false,error:err.message};}}
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{
  let pathname;
@@ -94,12 +94,12 @@ wss.on('connection',ws=>{
     if(!emergencyLatched){emergencyLatched=true;emergencyReason=String(m.reason||'Aturada d’emergència global');emergencySince=new Date().toISOString();audit({type:'TRIP',reason:emergencyReason,source:String(m.source||'panel'),locomotives:[...acquired]});}
     armed=false;for(const timer of pendingAcquire.values())clearTimeout(timer);const cancelled=[...pendingAcquire.keys()];pendingAcquire.clear();
     let stopSent=false;if(connected&&tcp&&!tcp.destroyed){try{tcp.write('M0A*<;>X\n');stopSent=true;}catch{}}
-    acquired.clear();manualLocos.clear();deadman.pressed=false;deadman.tripped=true;deadman.phase='TRIPPED';deadman.releasedAt=null;report();send(ws,{type:'emergencyLatched',latched:true,reason:emergencyReason,since:emergencySince,cancelledAcquisitions:cancelled,stopSent,retainedReservations:true});
+    acquired.clear();manualLocos.clear();deadman.pressed=false;deadman.tripped=true;deadman.phase='TRIPPED';deadman.releasedAt=null;report();send(ws,{type:'emergencyLatched',latched:true,reason:emergencyReason,since:emergencySince,cancelledAcquisitions:cancelled,stopSent,retainedReservations:true,auditPersisted:auditResult.persisted});
    }else if(m.type==='emergencyRearm'){
     if(!emergencyLatched)throw new Error('No hi ha cap emergència activa.');
     if(m.operatorConfirmed!==true||m.jmriPowerOff!==true||m.allRunsStopped!==true)throw new Error('Rearmament denegat: cal confirmació manual, CS2 en OFF i totes les circulacions aturades.');
     if(!connected)throw new Error('Rearmament denegat: pont WiThrottle desconnectat.');
-    emergencyLatched=false;emergencyReason='';emergencySince=null;audit({type:'REARM',reason:'Rearmament manual; DCC continua desarmat',source:'operator'});disarm();report();send(ws,{type:'emergencyRearmed',latched:false,dccArmed:false});
+    const auditResult=audit({type:'REARM',reason:'Rearmament manual; DCC continua desarmat',source:'operator'});if(!auditResult.persisted)throw new Error('Rearmament bloquejat: no s’ha pogut desar el registre persistent.');emergencyLatched=false;emergencyReason='';emergencySince=null;disarm();report();send(ws,{type:'emergencyRearmed',latched:false,dccArmed:false});
    }else if(m.type==='deadmanConfigure'){const result=DeadmanCore.configure(deadman,m.enabled===true);if(!result.ok)throw new Error(result.error);publishDeadman();
    }else if(m.type==='deadmanPress'){if(!deadman.enabled)throw new Error('Home mort desactivat o no disponible.');if(!manualLocos.size)throw new Error('No hi ha cap locomotora en mode manual.');const result=DeadmanCore.press(deadman,Date.now());if(result.action==='TRIP'||deadman.tripped){emergencyDeadman();throw new Error('Temps de resposta exhaurit: frenat d’emergència activat.');}if(!result.ok)throw new Error(result.error);deadmanLastHeartbeat=Date.now();startDeadmanMonitor();publishDeadman();
    }else if(m.type==='deadmanRelease'){if(!deadman.enabled)throw new Error('Home mort no disponible.');DeadmanCore.release(deadman,Date.now());deadmanLastHeartbeat=Date.now();publishDeadman();
