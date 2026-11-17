@@ -3,7 +3,7 @@
 const game=window.JMRI_TC_Spielewelt;if(!game)return;
 const $=id=>document.getElementById(id);let session=null;
 function traffic(){return window.JMRI_TC_TRAFFIC_CONTROL;}
-function locomotives(){return traffic()?.getSnapshot?.()?.locomotives||[];}
+function locomotives(){const live=traffic()?.getSnapshot?.()?.locomotives||[];const catalogue=window.JMRI_TC_DIGITAL_CATALOGUE?.getDatabase?.()?.locomotives||[];const byId=new Map();[...catalogue,...live].forEach(l=>{if(l?.id!==undefined&&l?.id!==null)byId.set(String(l.id),l);});return [...byId.values()];}
 function renderLocomotives(){
  const select=$('spieleweltLocomotive'),previous=select.value;select.replaceChildren();
  locomotives().forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.name+' · '+(l.decoderProtocol||l.protocol||'protocol no indicat');select.append(o);});
