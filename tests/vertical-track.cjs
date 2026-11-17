@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const core=require('../vertical-track-core.js');
 const catalogue=[
- {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},
+ {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},\n {ref:'24180',type:'straight',lengthMm:180,geometryStatus:'confirmed'},
  {ref:'24188',type:'straight',lengthMm:188.3,geometryStatus:'confirmed'},
  {ref:'24189',type:'straight',lengthMm:188.3,geometryStatus:'unverified'},
  {ref:'24230',type:'curve',radiusMm:360,angleDeg:30,geometryStatus:'confirmed'},
@@ -27,7 +27,7 @@ assert.ok(ramp.placements.every((p,i)=>i===0||p.zStartMm>=ramp.placements[i-1].z
 const byGrade=core.straightRamp({riseMm:20,gradePercent:2,transitionLengthMm:100},catalogue);
 assert.equal(byGrade.requestedLengthMm,1100);
 assert.equal(core.suggestedTurns(30).find(x=>x.turns===1).pieces,12);
-const helix=core.helix({radiusMm:360,riseMm:110,parallelTracks:2,spacingMm:77,turns:1,transitionLengthMm:100},catalogue);
+const helix=core.helix({radiusMm:360,riseMm:90,parallelTracks:2,spacingMm:77,turns:1,transitionLengthMm:100},catalogue);
 assert.equal(helix.pieceCountPerTrack,12);
 assert.equal(helix.placements.length,24);
 assert.equal(helix.lanes[1].radiusMm,437);
