@@ -24,6 +24,7 @@
  function setTarget(s,{permittedKmh,targetKmh,targetDistanceM}={}){
   if(!s||s.state===STATES.TRIPPED)return{ok:false,error:'Sessió aturada per intervenció de seguretat.'};
   const n={...s,permittedKmh:clamp(permittedKmh??s.permittedKmh,0,350),targetKmh:clamp(targetKmh??s.targetKmh,0,350),targetDistanceM:clamp(targetDistanceM??s.targetDistanceM,0,100000)};
+  if(n.speedKmh>n.permittedKmh||(n.targetDistanceM<=0&&n.speedKmh>n.targetKmh)) { n.brakeDemand=true; n.state=STATES.BRAKING; }
   return{ok:true,session:event(n,'Objectiu de supervisió actualitzat.')};
  }
  function requestAcknowledgement(s,reason='Avís de senyal / vigilància',windowSeconds=4){
