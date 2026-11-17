@@ -21,4 +21,16 @@ assert.throws(() => selectionMove.createDrag([], 'A', { x: 0, y: 0 }, board, 10)
 assert.throws(() => selectionMove.createDrag(pieces.slice(0, 1), 'missing', { x: 0, y: 0 }, board, 10), /ancoratge/);
 assert.throws(() => selectionMove.createDrag([{ id: 'D', x: -1, y: 0 }], 'D', { x: 0, y: 0 }, board, 10), /fora de la superfície/);
 assert.throws(() => selectionMove.move(plan, { x: Infinity, y: 0 }), /nombre finit/);
+const rotationInput = [{ id: 'R1', x: 100, y: 100, rotation: 30 }, { id: 'R2', x: 200, y: 100, rotation: 90 }];
+const rotated = selectionMove.rotate(rotationInput, 90, board);
+assert.deepEqual(rotated.center, { x: 150, y: 100 }, 'El pivot ha de ser el centre de la caixa de selecció.');
+assert.ok(Math.abs(rotated.positions[0].x - 150) < 1e-9 && Math.abs(rotated.positions[0].y - 50) < 1e-9);
+assert.ok(Math.abs(rotated.positions[1].x - 150) < 1e-9 && Math.abs(rotated.positions[1].y - 150) < 1e-9);
+assert.equal(rotated.positions[0].rotation, 120);
+assert.equal(rotated.positions[1].rotation, 180);
+assert.ok(Math.abs(Math.hypot(rotated.positions[1].x-rotated.positions[0].x,rotated.positions[1].y-rotated.positions[0].y)-100)<1e-9,'La rotació ha de conservar els offsets geomètrics.');
+assert.deepEqual(rotationInput,[{id:'R1',x:100,y:100,rotation:30},{id:'R2',x:200,y:100,rotation:90}], 'La planificació de rotació no ha de mutar les peces originals.');
+assert.throws(()=>selectionMove.rotate([{id:'EDGE',x:0,y:0,rotation:0},{id:'EDGE2',x:3000,y:1800,rotation:0}],45,board),/fora de la superfície/);
+assert.throws(()=>selectionMove.rotate([{id:'DUP',x:100,y:100},{id:'DUP',x:200,y:200}],15,board),/identificadors duplicats/);
+assert.throws(()=>selectionMove.rotate([{id:'BAD',x:NaN,y:100}],15,board),/nombre finit/);
 console.log('PASS: moviment conjunt, graella de 10 mm, offsets relatius, límits i validació d’entrada');
