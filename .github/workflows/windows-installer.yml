@@ -12,6 +12,8 @@ on:
       - '**.js'
       - '**.html'
       - '**.css'
+      - '**.cjs'
+      - 'tests/**'
   pull_request:
     paths:
       - 'package.json'
