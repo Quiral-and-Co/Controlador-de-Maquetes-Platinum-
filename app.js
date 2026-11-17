@@ -154,7 +154,23 @@
   $('addBlockBtn').onclick=()=>{const l=level(),allBlocks=state.config.levels.flatMap(x=>x.blocks),name=$('newBlockName').value.trim()||`B${String(allBlocks.length+1).padStart(2,'0')}`;if(allBlocks.some(b=>b.name.toLowerCase()===name.toLowerCase()||b.id===name)){log(`Ja existeix el bloc ${name}.`);return;}checkpoint();l.blocks.push({id:name,name,trackIds:[],lengthMm:0,sensorIds:[],verified:false});$('newBlockName').value='';render();log(`Bloc ${name} creat com a agrupació lògica provisional.`);};
   $('addSensorBtn').onclick=()=>{const l=level(),systemName=$('newSensorSystemName').value.trim(),userName=$('newSensorUserName').value.trim();if(!systemName){log('Introdueix el system name del sensor JMRI.');return;}if(state.config.levels.some(x=>x.sensors.some(y=>y.systemName===systemName))){log(`El sensor ${systemName} ja està registrat.`);return;}checkpoint();const safe=systemName.replace(/[^a-zA-Z0-9_-]/g,'_');let sensorId=`S-${safe}`,suffix=2;while(state.config.levels.some(x=>x.sensors.some(y=>y.id===sensorId)))sensorId=`S-${safe}-${suffix++}`;l.sensors.push({id:sensorId,systemName,userName,invert:false,verified:false});$('newSensorSystemName').value='';$('newSensorUserName').value='';render();log(`Sensor ${systemName} registrat, pendent de verificació física.`);};
   $('moveLevelBtn').onclick=()=>{const p=selectedPiece(),target=state.config.levels.find(x=>String(x.id)===String($('propLevel').value));if(!p||!target||target.id===state.selectedLevel)return;if(p.blockId||p.sensorName||p.turnoutSystemName){log('Abans de moure la peça, desassigna’n el bloc, el sensor i el desviament JMRI perquè són recursos del nivell actual.');return;}if(state.config.connections.some(c=>c.from.pieceId===p.id||c.to.pieceId===p.id)){log('Abans de canviar de nivell, elimina les connexions topològiques de la peça.');return;}checkpoint();const source=level();source.tracks=source.tracks.filter(x=>x.id!==p.id);p.levelId=target.id;target.tracks.push(p);state.selectedLevel=target.id;state.selectedIds=[p.id];render();log(`${p.id} moguda a ${target.name}; no s'ha creat cap enllaç vertical.`);};
-  $('rotateBtn').onclick=()=>{const p=pieces().find(x=>x.id===state.selectedIds[0]);if(p){checkpoint();p.rotation=((p.rotation||0)+15)%360;render();log(`${p.id}: rotació ${p.rotation}°.`);}};
+  $('rotateBtn').onclick=()=>{
+    const selected=pieces().filter(p=>state.selectedIds.includes(p.id));
+    if(!selected.length)return;
+    const selectedIds=new Set(selected.map(p=>p.id));
+    const affected=(state.config.connections||[]).filter(c=>c.levelId===state.selectedLevel&&(selectedIds.has(c.from?.pieceId)||selectedIds.has(c.to?.pieceId)));
+    const before=clone(state.config);
+    let plan;
+    try{plan=selectionMove.rotate(selected,15,BOARD);}catch(error){log(`No es pot girar la selecció: ${error.message}`);return;}
+    for(const position of plan.positions){
+      const piece=pieces().find(p=>p.id===position.id);
+      if(piece){piece.x=position.x;piece.y=position.y;piece.rotation=position.rotation;}
+    }
+    checkpointFrom(before);
+    render();
+    const audit=auditTopology();
+    log(`Rotació conjunta de ${selected.length} peça/es +15° al centre (${plan.center.x.toFixed(1)}, ${plan.center.y.toFixed(1)}) mm; ${affected.length} connexió/ons afectada/es revisada/es. ${audit.errors.length?'Cal revisar els errors topològics i, si escau, desfer l’operació.':'Cap error topològic detectat.'}`);
+  };
   $('duplicateBtn').onclick=()=>{const originals=state.selectedIds.map(id=>pieces().find(p=>p.id===id)).filter(Boolean);if(!originals.length)return;checkpoint();const copies=originals.map((p,i)=>({...clone(p),id:`${p.type.toUpperCase()}-${Date.now()}-${i+1}`,name:`${p.name} (còpia)`,x:snap(Math.min(3000,p.x+40)),y:snap(Math.min(1800,p.y+40))}));pieces().push(...copies);state.selectedIds=copies.map(p=>p.id);render();log(`${copies.length} peça/es duplicada/es.`);};
   $('undoBtn').onclick=undo;$('redoBtn').onclick=redo;
   $('measureBtn').onclick=()=>{state.measuring=!state.measuring;state.measureStart=null;$('measureBtn').classList.toggle('active',state.measuring);$('measureStatus').textContent=state.measuring?'Mesura activa: fes clic a dos punts del tauler.':'Graella: 10 mm · major: 100 mm';log(state.measuring?'Eina de mesura activada.':'Eina de mesura desactivada.');};
