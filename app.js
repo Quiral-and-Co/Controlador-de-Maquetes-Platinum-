@@ -27,6 +27,8 @@
   const clone = value => JSON.parse(JSON.stringify(value));
   const viewport = window.JMRI_TC_VIEWPORT;
   if(!viewport)throw new Error('No s’ha carregat viewport-core.js abans de app.js.');
+  const selectionMove = window.JMRI_TC_SELECTION_MOVE;
+  if(!selectionMove)throw new Error('No s’ha carregat selection-move-core.js abans de app.js.');
   function applyViewBox(){const v=state.viewBox;$('trackSvg').setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${v.height}`);$('zoomReadout').textContent=`${Math.round(viewport.zoomPercent(v,BOARD))}%`;}
   function viewportCenter(){return {x:state.viewBox.x+state.viewBox.width/2,y:state.viewBox.y+state.viewBox.height/2};}
   function zoomViewport(factor,anchor){state.viewBox=viewport.zoomAt(state.viewBox,factor,anchor,BOARD);applyViewBox();}
@@ -78,11 +80,63 @@
   $('zoomFitBtn').onclick=fitViewport;
   $('trackSvg').addEventListener('wheel',e=>{e.preventDefault();const anchor=svgPoint(e);zoomViewport(e.deltaY<0?0.85:1.18,anchor);},{passive:false});
   $('trackSvg').addEventListener('pointerdown',e=>{if(e.button!==1&&!(e.button===0&&state.spaceHeld))return;e.preventDefault();state.pan={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,view:{...state.viewBox}};$('trackSvg').classList.add('panning');$('trackSvg').setPointerCapture?.(e.pointerId);});
-  function onPieceDown(e){if(e.button!==0||state.spaceHeld)return;const id=e.currentTarget.dataset.id;if(e.ctrlKey||e.metaKey){selectPiece(id,e);return;}if(!state.selectedIds.includes(id))selectPiece(id,e);const p=pieces().find(x=>x.id===id),pt=svgPoint(e);state.drag={id,dx:pt.x-p.x,dy:pt.y-p.y,origin:{x:p.x,y:p.y},before:clone(state.config)};$('trackSvg').setPointerCapture?.(e.pointerId);}
+  function onPieceDown(e){
+    if(e.button!==0||state.spaceHeld)return;
+    const id=e.currentTarget.dataset.id;
+    if(e.ctrlKey||e.metaKey){selectPiece(id,e);return;}
+    if(!state.selectedIds.includes(id))selectPiece(id,e);
+    const pt=svgPoint(e);
+    const selected=pieces().filter(x=>state.selectedIds.includes(x.id));
+    try{
+      const plan=selectionMove.createDrag(selected,id,pt,BOARD,GRID);
+      state.drag={plan,before:clone(state.config),lastDx:0,lastDy:0,moved:false};
+    }catch(error){log(`No es pot moure la selecció: ${error.message}`);return;}
+    $('trackSvg').setPointerCapture?.(e.pointerId);
+  }
   function selectPiece(id,e){if(e.ctrlKey||e.metaKey){state.selectedIds=state.selectedIds.includes(id)?state.selectedIds.filter(x=>x!==id):[...state.selectedIds,id];}else if(!state.selectedIds.includes(id)){state.selectedIds=[id];}renderPieces();renderProperties();}
-  $('trackSvg').addEventListener('pointermove',e=>{if(state.pan&&state.pan.pointerId===e.pointerId){const rect=$('trackSvg').getBoundingClientRect();if(rect.width>0&&rect.height>0){const dx=-(e.clientX-state.pan.startX)*state.pan.view.width/rect.width,dy=-(e.clientY-state.pan.startY)*state.pan.view.height/rect.height;state.viewBox=viewport.panBy(state.pan.view,dx,dy,BOARD);applyViewBox();}return;}const pt=svgPoint(e);$('cursorCoords').textContent=`X: ${Math.round(pt.x)} · Y: ${Math.round(pt.y)} mm`;if(!state.drag)return;const p=pieces().find(x=>x.id===state.drag.id);if(!p)return;p.x=Math.max(0,Math.min(3000,snap(pt.x-state.drag.dx)));p.y=Math.max(0,Math.min(1800,snap(pt.y-state.drag.dy)));const g=[...$('pieceLayer').children].find(x=>x.dataset.id===p.id);if(g)g.setAttribute('transform',`translate(${p.x} ${p.y}) rotate(${p.rotation||0})`);$('propX').value=p.x;$('propY').value=p.y;});
-  $('trackSvg').addEventListener('pointerup',e=>{if(state.pan&&state.pan.pointerId===e.pointerId){state.pan=null;$('trackSvg').classList.remove('panning');return;}if(state.drag){const p=pieces().find(x=>x.id===state.drag.id);if(p&&(p.x!==state.drag.origin.x||p.y!==state.drag.origin.y))checkpointFrom(state.drag.before);log(`Peça ${state.drag.id} moguda a la graella.`);state.drag=null;render();}});
-  $('trackSvg').addEventListener('pointercancel',()=>{if(state.pan){state.pan=null;$('trackSvg').classList.remove('panning');}if(state.drag){state.drag=null;render();}});
+  $('trackSvg').addEventListener('pointermove',e=>{
+    if(state.pan&&state.pan.pointerId===e.pointerId){
+      const rect=$('trackSvg').getBoundingClientRect();
+      if(rect.width>0&&rect.height>0){
+        const dx=-(e.clientX-state.pan.startX)*state.pan.view.width/rect.width,dy=-(e.clientY-state.pan.startY)*state.pan.view.height/rect.height;
+        state.viewBox=viewport.panBy(state.pan.view,dx,dy,BOARD);applyViewBox();
+      }
+      return;
+    }
+    const pt=svgPoint(e);
+    $('cursorCoords').textContent=`X: ${Math.round(pt.x)} · Y: ${Math.round(pt.y)} mm`;
+    if(!state.drag)return;
+    const result=selectionMove.move(state.drag.plan,pt);
+    if(result.dx===state.drag.lastDx&&result.dy===state.drag.lastDy)return;
+    state.drag.lastDx=result.dx;state.drag.lastDy=result.dy;
+    state.drag.moved=result.dx!==0||result.dy!==0;
+    for(const position of result.positions){
+      const piece=pieces().find(x=>x.id===position.id);
+      if(piece){piece.x=position.x;piece.y=position.y;}
+    }
+    renderPieces();
+    const selected=selectedPiece();
+    if(selected){$('propX').value=selected.x;$('propY').value=selected.y;}
+  });
+  $('trackSvg').addEventListener('pointerup',e=>{
+    if(state.pan&&state.pan.pointerId===e.pointerId){state.pan=null;$('trackSvg').classList.remove('panning');return;}
+    if(state.drag){
+      const drag=state.drag;
+      if(drag.moved){
+        checkpointFrom(drag.before);
+        log(`${drag.plan.originals.length} peça/es moguda/es conjuntament a la graella.`);
+      }
+      state.drag=null;render();
+    }
+  });
+  $('trackSvg').addEventListener('pointercancel',()=>{
+    if(state.pan){state.pan=null;$('trackSvg').classList.remove('panning');}
+    if(state.drag){
+      state.config=clone(state.drag.before);
+      state.drag=null;render();
+      log('Moviment de la selecció cancel·lat; s’han restaurat les coordenades originals.');
+    }
+  });
   $('trackSvg').addEventListener('click',e=>{if(state.measuring){if(e.target.closest?.('.track-piece'))return;const pt=svgPoint(e);if(!state.measureStart){state.measureStart={x:pt.x,y:pt.y};$('measureStatus').textContent=`Origen: (${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}) mm · tria el segon punt.`;}else{const a=state.measureStart,d=Math.hypot(pt.x-a.x,pt.y-a.y);const line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',pt.x);line.setAttribute('y2',pt.y);line.setAttribute('class','measurement-line');$('connectionLayer').querySelectorAll?.('.measurement-line').forEach?.(x=>x.remove());$('connectionLayer').append(line);$('measureStatus').textContent=`Distància: ${d.toFixed(1)} mm · (${a.x.toFixed(0)}, ${a.y.toFixed(0)}) → (${pt.x.toFixed(0)}, ${pt.y.toFixed(0)})`;state.measureStart=null;}return;}if(e.target.closest?.('.track-piece')||e.target.closest?.('.track-port'))return;if(e.target===$('trackSvg')||e.target.tagName==='rect'){state.selectedIds=[];renderProperties();renderPieces();}});
   function selectedPiece(){return pieces().find(x=>x.id===state.selectedIds[0]);}
   function fillSelect(el,items,selected,emptyLabel){el.innerHTML=(emptyLabel?`<option value="">${esc(emptyLabel)}</option>`:'')+items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');el.value=selected??'';}
