@@ -29,6 +29,7 @@ s=p.setSpeed(s,45).session;
 assert.equal(s.brakeDemand,true);
 s=p.tick(s,1).session;
 assert.equal(s.state,p.STATES.TRIPPED);
+s=p.setSpeed(s,35).session;
 s=p.setTarget(s,{permittedKmh:20,targetKmh:10,targetDistanceM:100}).session;
 assert.equal(s.brakeDemand,true);
 assert.equal(s.state,p.STATES.BRAKING);
