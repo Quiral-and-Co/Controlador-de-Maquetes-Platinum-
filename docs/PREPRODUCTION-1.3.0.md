@@ -17,7 +17,7 @@ Aquesta fase no habilita automàticament DCC, sortides físiques, automatismes n
 - El repositori té `main` com a branca principal i `package.json` declara `1.3.0`.
 - El paquet requereix Node.js >=20; el workflow NSIS configura Node.js 22.
 - El paquet defineix `npm test`, `npm run test:browser` i `npm run dist:win`.
-- El workflow `.github/workflows/windows-installer.yml` executa `npm ci`, `npm test`, les proves reals de navegador amb Playwright i `node tests/editor-geometry-acceptance.cjs`; després genera l'instal·lador NSIS x64, verifica que l'EXE no és buit i calcula el SHA-256 en un manifest adjunt.
+- El workflow `.github/workflows/windows-installer.yml` executa `npm install --no-package-lock` (el repositori no conté lockfile), `npm test`, les proves reals de navegador amb Playwright i `node tests/editor-geometry-acceptance.cjs`; després genera l'instal·lador NSIS x64, verifica que l'EXE no és buit i calcula el SHA-256 en un manifest adjunt.
 - La CI de regressió #940 ha acabat correctament sobre el SHA `0553de422c01d8c9a69e3aa5b5411bc63be6034e`; això no substitueix l'execució Windows NSIS, les proves d'instal·lació ni la CI sobre el `main` final.
 - El `README.md` ja s'ha actualitzat per identificar el producte com a 1.3.0 i descriure els límits de seguretat; cal mantenir-lo coherent amb `package.json` i les notes de versió.
 - La documentació de circulacions identifica explícitament limitacions del MVP: DCC no equival a suport físic mfx/MM2, el mode automàtic no és apte per a circulació real i el sistema no és un enclavament ferroviari certificat.
@@ -68,7 +68,7 @@ npm run dist:win
 ```
 
 - [ ] Workflow Windows 11 completat amb èxit sobre el SHA candidat.
-- [ ] `npm ci`, `npm test`, `npm run test:browser` i la porta geomètrica completats amb èxit al workflow Windows.
+- [ ] `npm install --no-package-lock`, `npm test`, `npm run test:browser` i la porta geomètrica completats amb èxit al workflow Windows.
 - [ ] EXE NSIS generat i no buit.
 - [ ] Nom i versió de l'artefacte coherents amb 1.3.0.
 - [ ] SHA-256 calculat, verificat de nou i publicat amb l'artefacte.
