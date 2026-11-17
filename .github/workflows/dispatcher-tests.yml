@@ -86,6 +86,8 @@ jobs:
         run: node tests/jmri-turnout-supervision.cjs
       - name: Digital command station configuration tests
         run: node tests/command-station.cjs
+      - name: Märklin CS2 60215 MCAN monitor tests
+        run: node --check marklin-cs2-driver.js && node tests/marklin-cs2-driver.cjs
       - name: Full regression and fail-safe suite — run 1
         run: npm test
       - name: Full regression and fail-safe suite — run 2
