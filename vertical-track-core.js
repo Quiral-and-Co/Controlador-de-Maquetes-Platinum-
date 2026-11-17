@@ -60,7 +60,7 @@ function curveCatalogue(catalogue,radius){
 }
 function suggestedTurns(angleDeg,maxPieces=48){
   const a=finite(angleDeg,'L’angle');if(a<=0||a>=180)throw new RangeError('Angle de corba invàlid.');
-  const out=[];for(let n=1;n<=maxPieces;n++){const turns=n*a/360;const label=Number(turns.toFixed(3));if(!out.some(x=>Math.abs(x.turns-label)<1e-6))out.push({turns:label,pieces:n,angleDeg:a});}
+  const out=[];for(let n=2;n<=maxPieces;n++){const turns=n*a/360;const label=Number(turns.toFixed(3));if(!out.some(x=>Math.abs(x.turns-label)<1e-6))out.push({turns:label,pieces:n,angleDeg:a});}
   return out;
 }
 function helix(input,catalogue,limits={}){
