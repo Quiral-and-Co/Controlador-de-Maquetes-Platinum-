@@ -2,11 +2,14 @@
 const assert=require('node:assert/strict');
 const core=require('../vertical-track-core.js');
 const catalogue=[
- {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},\n {ref:'24180',type:'straight',lengthMm:180,geometryStatus:'confirmed'},\n {ref:'24200',type:'straight',lengthMm:200,geometryStatus:'confirmed'},
+ {ref:'24172',type:'straight',lengthMm:171.7,geometryStatus:'confirmed'},
+ {ref:'24180',type:'straight',lengthMm:180,geometryStatus:'confirmed'},
+ {ref:'24200',type:'straight',lengthMm:200,geometryStatus:'confirmed'},
  {ref:'24188',type:'straight',lengthMm:188.3,geometryStatus:'confirmed'},
  {ref:'24189',type:'straight',lengthMm:188.3,geometryStatus:'unverified'},
  {ref:'24230',type:'curve',radiusMm:360,angleDeg:30,geometryStatus:'confirmed'},
- {ref:'24224',type:'curve',radiusMm:437.5,angleDeg:24.3,geometryStatus:'confirmed'},\n {ref:'24230',type:'curve',radiusMm:437.5,angleDeg:30,geometryStatus:'confirmed'}
+ {ref:'24224',type:'curve',radiusMm:437.5,angleDeg:24.3,geometryStatus:'confirmed'},
+ {ref:'24230',type:'curve',radiusMm:437.5,angleDeg:30,geometryStatus:'confirmed'}
 ];
 assert.equal(core.classifyGradient(1.5).code,'green');
 assert.equal(core.classifyGradient(2.5).code,'yellow');
