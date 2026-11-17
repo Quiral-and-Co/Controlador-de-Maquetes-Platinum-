@@ -10,8 +10,8 @@ function mode(){return $('verticalMode').value;}
 function showMode(){const helixMode=mode()==='helix';$('straightRampFields').classList.toggle('hidden',helixMode);$('helixRampFields').classList.toggle('hidden',!helixMode);$('rampLengthLabel').textContent=helixMode?'Longitud calculada per volta':'Longitud total de la rampa';}
 function showResult(p){
  const c=p.classification;$('verticalRampResult').className='vertical-result status-'+c.code;
- if(p.kind==='straight')$('verticalRampResult').innerHTML='<strong>'+c.label+'</strong> · Pendent màxim '+p.gradePercent.toFixed(2)+'% · longitud '+p.lengthMm.toFixed(1)+' mm · '+p.placements.length+' rectes · desnivell '+p.riseMm.toFixed(1)+' mm.';
- else $('verticalRampResult').innerHTML='<strong>'+c.label+'</strong> · Pendent màxim '+p.gradePercent.toFixed(2)+'% · radi '+p.actualRadiusMm+' mm · '+p.parallelTracks+' via/es · '+p.turns.toFixed(3)+' voltes · '+p.pieceCountPerTrack+' corbes per via.';
+ if(p.kind==='straight')$('verticalRampResult').innerHTML='<strong>'+c.label+'</strong> · Pendent màxim '+p.gradePercent.toFixed(2)+'% · longitud '+p.lengthMm.toFixed(1)+' mm · '+p.placements.length+' rectes · desnivell '+p.riseMm.toFixed(1)+' mm · ajust '+Math.abs(p.errorMm).toFixed(1)+' mm.';
+ else $('verticalRampResult').innerHTML='<strong>'+c.label+'</strong> · Pendent màxim '+p.gradePercent.toFixed(2)+'% · desnivell '+p.riseMm.toFixed(1)+' mm · radi '+p.actualRadiusMm+' mm · '+p.parallelTracks+' via/es · '+p.turns.toFixed(3)+' voltes · '+p.pieceCountPerTrack+' corbes per via.';
  $('verticalRampResult').dataset.status=c.code;
 }
 function calculate(){
