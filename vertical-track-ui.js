@@ -64,7 +64,7 @@ function insertPlan(){
   const centreX=1500,centreY=900,groups=new Map();
   for(const p of plan.placements){
    const laneRadius=p.radiusMm,px=centreX+p.x,py=centreY+p.y;
-   if(px-laneRadius<10||px+laneRadius>2990||py-laneRadius<10||py+laneRadius>1790)throw new Error('El radi i les vies paral·leles excedeixen els límits del tauler.');
+   if(centreX-laneRadius<10||centreX+laneRadius>2990||centreY-laneRadius<10||centreY+laneRadius>1790)throw new Error('El radi i les vies paral·leles excedeixen els límits del tauler.');
    const piece=addPiece(p.item,px,py,p.rotationDeg,p.zStartMm,p.index,p.lane+1,p.zEndMm,plan.lanes[p.lane].classification.code,plan.lanes[p.lane].gradePercent);
    if(!groups.has(p.lane))groups.set(p.lane,[]);groups.get(p.lane).push(piece);
   }
