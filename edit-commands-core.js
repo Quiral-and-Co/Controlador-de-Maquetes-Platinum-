@@ -17,9 +17,8 @@
   function removeSelection(config,levelId,selectedIds){
     const next=clone(config),level=levelFor(next,levelId),ids=new Set((selectedIds||[]).map(String));
     if(!level||!ids.size)return {config:next,removedIds:[],changed:false};
-    const before=(level.tracks||[]).length;
+    const removedIds=(level.tracks||[]).filter(piece=>ids.has(String(piece.id))).map(piece=>String(piece.id));
     level.tracks=(level.tracks||[]).filter(piece=>!ids.has(String(piece.id)));
-    const removedIds=[...ids].filter(id=>before>(level.tracks||[]).length && !(level.tracks||[]).some(piece=>String(piece.id)===id));
     if(!removedIds.length)return {config:next,removedIds:[],changed:false};
     const removed=new Set(removedIds);
     next.connections=(next.connections||[]).filter(connection=>
