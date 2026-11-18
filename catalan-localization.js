@@ -33,9 +33,7 @@ function translateNode(node){
  if(node.nodeType!==Node.ELEMENT_NODE)return;
  for(const attr of ['title','placeholder','aria-label','aria-description','alt','data-tooltip'])if(node.hasAttribute(attr)){const before=node.getAttribute(attr),after=translate(before);if(after!==before)node.setAttribute(attr,after);}
  if(node.tagName==='INPUT'&&['button','submit','reset'].includes((node.type||'').toLowerCase())){const before=node.value,after=translate(before);if(after!==before)node.value=after;}
- if(node.tagName==='OPTION'||node.tagName==='BUTTON'||node.tagName==='SUMMARY'||node.tagName==='LABEL'||node.tagName==='LEGEND'||node.tagName==='H1'||node.tagName==='H2'||node.tagName==='H3'||node.tagName==='H4'||node.tagName==='P'||node.tagName==='SPAN'||node.tagName==='STRONG'||node.tagName==='SMALL'||node.tagName==='LI'||node.tagName==='A'||node.tagName==='TH'||node.tagName==='TD'){
-   for(const child of [...node.childNodes])if(child.nodeType===Node.TEXT_NODE)translateNode(child);
- }
+ for(const child of [...node.childNodes])if(child.nodeType===Node.TEXT_NODE)translateNode(child);
 }
 function translateTree(root=document){if(root.nodeType===Node.TEXT_NODE){translateNode(root);return;}if(root.nodeType===Node.ELEMENT_NODE)translateNode(root);root.querySelectorAll?.('*').forEach(translateNode);}
 function install(){
