@@ -389,6 +389,14 @@
       }else throw new Error('Format de fitxer no admès: .'+ext);
     }catch(err){log('No s’ha obert el fitxer: '+err.message);window.alert?.('No s’ha pogut obrir el fitxer. '+err.message);}
   }
+  async function createProjectBackup(){if(!state.filePath||!window.jmriDesktop?.createBackup){log('Desa primer el projecte per poder crear-ne una còpia de seguretat.');return;}try{const result=await window.jmriDesktop.createBackup(state.filePath);log('Còpia de seguretat creada: '+result.fileName);}catch(err){log('No s’ha pogut crear la còpia de seguretat: '+err.message);window.alert?.(err.message);}}
+  function exportSelectedElements(){const selected=state.config.levels.flatMap(l=>(l.tracks||[]).filter(p=>state.selectedIds.includes(p.id)).map(p=>({...p,levelId:l.id})));if(!selected.length){log('Selecciona elements del tauler abans d’exportar-los.');return;}const ids=new Set(selected.map(p=>p.id));const payload={format:'jmri-tc-elements',version:1,elements:selected,connections:(state.config.connections||[]).filter(c=>ids.has(c.from?.pieceId)&&ids.has(c.to?.pieceId))};downloadText(JSON.stringify(payload,null,2),'JMRI_TC_elements.json','application/json');log(selected.length+' element(s) exportat(s) a JSON.');}
+  async function importSelectedElements(file){try{const data=JSON.parse(await file.text());if(data.format!=='jmri-tc-elements'||data.version!==1||!Array.isArray(data.elements))throw Error('Fitxer d’elements no compatible. Utilitza un JSON exportat des de JMRI TC Gold Custom.');const target=level();if(!target)throw Error('No hi ha cap nivell actiu.');const existing=new Set(state.config.levels.flatMap(l=>(l.tracks||[]).map(p=>String(p.id))));const map=new Map();const imported=data.elements.map((p,i)=>{if(!p||!['straight','curve','turnout','block','special'].includes(p.type)||!Number.isFinite(Number(p.x))||!Number.isFinite(Number(p.y)))throw Error('El fitxer conté un element invàlid.');let id=p.id,seq=i;while(!id||existing.has(String(id)))id='IMP-'+Date.now().toString(36)+'-'+seq++;existing.add(String(id));map.set(p.id,id);return {...p,id,levelId:target.id,zMm:Number(target.elevationMm)||0,x:snap(Math.max(0,Math.min(BOARD.width,Number(p.x)))),y:snap(Math.max(0,Math.min(BOARD.height,Number(p.y))))};});checkpoint();target.tracks.push(...imported);for(const c of (data.connections||[])){const from=map.get(c.from?.pieceId),to=map.get(c.to?.pieceId);if(from&&to)state.config.connections.push({...c,id:'IMP-C-'+Date.now().toString(36)+'-'+state.config.connections.length,levelId:target.id,from:{...c.from,pieceId:from},to:{...c.to,pieceId:to},verified:false});}state.selectedIds=imported.map(p=>p.id);state.isDirty=true;render();log(imported.length+' element(s) importat(s) al nivell actiu. Connexions importades no verificades.');}catch(err){log('Error important elements: '+err.message);window.alert?.(err.message);}}
+  function openElementsImport(){const input=$('elementsImportFile');if(input)input.click();else log('No està disponible el selector d’importació d’elements.');}
+  async function showPreferences(){const current=Number(localStorage.getItem('jmriTcAutosaveMinutes')||0);const answer=window.prompt('Desament automàtic en minuts (0 desactivat; 5, 10 o 15). Només s’aplica a projectes que ja tenen una ruta desada.',String(current));if(answer===null)return;const minutes=Number(answer);if(![0,5,10,15].includes(minutes)){window.alert('Introdueix 0, 5, 10 o 15 minuts.');return;}localStorage.setItem('jmriTcAutosaveMinutes',String(minutes));log('Preferències desades: desament automàtic '+(minutes?minutes+' min':'desactivat')+'.');}
+  let autosaveTimer=null;
+  function configureAutosave(){if(autosaveTimer)clearInterval(autosaveTimer);const minutes=Number(localStorage.getItem('jmriTcAutosaveMinutes')||0);if(minutes>0)autosaveTimer=setInterval(()=>{if(state.isDirty&&state.filePath)saveNativeProject(false).catch(err=>log('Error en desament automàtic: '+err.message));},minutes*60000);}
+  configureAutosave();
   async function saveNativeProject(saveAs=false){
     if(!window.jmriDesktop?.saveProject){downloadText(JSON.stringify(state.config,null,2),'JMRI_TC_Gold_Custom_layout.json','application/json');log('Projecte exportat en JSON.');return;}
     state.config.levels.forEach(syncRelations);
@@ -412,6 +420,7 @@
     }catch(err){log('Error exportant XTrackCAD: '+err.message);}
   }
   $('exportBtn').onclick=()=>saveNativeProject(true);
+  $('elementsImportFile')?.addEventListener('change',async e=>{const f=e.target.files?.[0];if(f)await importSelectedElements(f);e.target.value='';});
   $('configFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const c=validateConfig(JSON.parse(await f.text()));state.config=c;state.filePath=null;state.isDirty=false;state.selectedLevel=c.levels[0].id;state.selectedIds=[];setProjectName(f.name);render();log('Importat '+f.name+' i normalitzat al model v3.');}catch(err){log('Error d’importació: '+err.message);}e.target.value='';};
   $('newProjectBtn')?.addEventListener('click',newProject);
   $('openProjectBtn')?.addEventListener('click',()=>openNativeProject(false));
@@ -426,6 +435,13 @@
     else if(command==='saveAs')saveNativeProject(true);
     else if(command==='importXtc')openNativeProject(true);
     else if(command==='exportXtc')exportXtc();
+    else if(command==='backup')createProjectBackup();
+    else if(command==='importElements')openElementsImport();
+    else if(command==='exportElements')exportSelectedElements();
+    else if(command==='pageSetup')window.jmriDesktop?.pageSetup?.().then(r=>log(r.success?'Diàleg de configuració d’impressió completat.':'Impressió no completada: '+r.failureReason));
+    else if(command==='printPreview')window.jmriDesktop?.printPreview?.().then(()=>log('Vista prèvia PDF oberta amb el visor del sistema.')).catch(err=>log('Error en la vista prèvia: '+err.message));
+    else if(command==='print')window.jmriDesktop?.printDocument?.().then(r=>log(r.success?'Document enviat a la cua d’impressió.':'Impressió cancel·lada o fallida: '+r.failureReason));
+    else if(command==='preferences'){showPreferences().then(configureAutosave);}
     else if(command==='setClassicMode')setMode('classic');
     else if(command==='setModernMode')setMode('modern');
     else if(command==='undo')undo();
