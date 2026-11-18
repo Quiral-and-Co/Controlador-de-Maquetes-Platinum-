@@ -103,7 +103,7 @@ jobs:
       - name: Upload installer and SHA-256 manifest
         uses: actions/upload-artifact@v4
         with:
-          name: JMRI-TC-Gold-Custom-Windows-11-NSIS
+          name: Maquetes-by-Quiral-Platinum-Windows-11-NSIS
           path: |
             dist/*.exe
             dist/*.exe.sha256
