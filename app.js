@@ -475,11 +475,11 @@
     else if(command==='preferences'){showPreferences().then(configureAutosave);}
     else if(command==='setClassicMode')setMode('classic');
     else if(command==='setModernMode')setMode('modern');
-    else if(command==='windowShowAll')window.JMRI_TC_DESKTOP?.showAll?.();
+    else if(command==='windowShowAll'){if(window.JMRI_TC_DESKTOP?.getWindows?.().length)window.JMRI_TC_DESKTOP.showAll();else window.scrollTo({top:0,behavior:'smooth'});}
     else if(command==='windowMinimizeAll')window.JMRI_TC_DESKTOP?.minimizeAll?.();
     else if(command==='windowCascade')window.JMRI_TC_DESKTOP?.cascade?.();
     else if(command==='windowTile')window.JMRI_TC_DESKTOP?.tile?.();
-    else if(command==='windowRestoreLayout')window.JMRI_TC_DESKTOP?.restoreLayout?.();
+    else if(command==='windowRestoreLayout'){if(window.JMRI_TC_DESKTOP?.getWindows?.().length)window.JMRI_TC_DESKTOP.restoreLayout();else window.scrollTo({top:0,behavior:'smooth'});}
     else if(command==='windowShowEditor'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Tauler de disseny'))$('currentLevelTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowDispatcher'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Despatxador'))$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowTraffic'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Gestió de circulacions'))$('trafficTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
@@ -489,7 +489,8 @@
     else if(command==='helpQuick')showHelp('quick');
     else if(command==='helpContents')showHelp('contents');
     else if(command==='helpShortcuts')showHelp('shortcuts');
-    else if(command==='helpDiagnostics'){showHelp('diagnostics');$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='helpDiagnostics')showHelp('diagnostics');
+    else if(command==='helpRunMetgeQuiral'){$('helpDialog')?.close?.();$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('metgeQuiralRun')?.click?.();}
     else if(command==='helpAbout')showHelp('about');
     else if(command==='undo')undo();
     else if(command==='redo')redo();
