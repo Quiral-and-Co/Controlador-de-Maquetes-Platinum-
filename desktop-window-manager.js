@@ -108,10 +108,9 @@
     main.append(workspace, taskbar);
 
     let x = 18, y = 18;
-    const add = (node, title, w, h, left, top, initiallyHidden = false) => {
+    const add = (node, title, w, h, left, top) => {
       if (!node) return;
-      const record = makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h });
-      if (initiallyHidden) record.win.hidden = true;
+      makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h });
       x += 34; y += 28;
       if (x > 760) x = 18;
       if (y > 500) y = 18;
@@ -139,8 +138,10 @@
       if (node.classList.contains('summary-grid')) title = 'Estat de la maqueta';
       if (node.id === 'commandStationPanel') title = 'Centrals digitals';
       const wide = /dispatcher|traffic|signalling|spielewelt|locomotive|train|protection|ground/i.test(node.className + ' ' + node.id);
-      add(node, title, wide ? 760 : 520, wide ? 520 : 360, undefined, undefined, true);
+      const index = records.length - 3;
+      add(node, title, 700, 500, 18 + (index % 2) * 720, 680 + Math.floor(index / 2) * 540);
     });
+    workspace.style.minHeight = (700 + Math.ceil(direct.length / 2) * 540) + 'px';
     if (notice) notice.classList.add('desktop-notice');
     if (toolbar) toolbar.classList.add('desktop-commandbar');
   }
