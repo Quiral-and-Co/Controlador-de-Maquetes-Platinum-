@@ -32,12 +32,15 @@ function samePersistedFields(actual, expected, label) {
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const port = server.address().port;
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vmr-playwright-'));
+  let browser;
   let context;
   try {
-    context = await chromium.launchPersistentContext(profile, { headless:true, acceptDownloads:true, args:['--no-sandbox'] });
+    // A regular isolated context surfaces Blob downloads reliably in headless CI.
+    browser = await chromium.launch({ headless:true, args:['--no-sandbox'] });
+    context = await browser.newContext({ acceptDownloads:true });
     let page = await context.newPage();
     page.on('pageerror', error => console.error('Browser page error:', error.stack || error.message));
+    page.on('console', message => { if (message.type() === 'error') console.error('Browser console error:', message.text()); });
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
 
@@ -155,7 +158,7 @@ function samePersistedFields(actual, expected, label) {
     // Close the browser context, reopen Chromium with the same profile, then import the exported project.
     await page.close();
     await context.close();
-    context = await chromium.launchPersistentContext(profile, { headless:true, args:['--no-sandbox'] });
+    context = await browser.newContext();
     page = await context.newPage();
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
@@ -165,7 +168,7 @@ function samePersistedFields(actual, expected, label) {
     console.log('PASS: Chromium UI project isolation, project JSON download/import, browser close/reopen, VMR IDs/status/notes/audit persistence, and unique consecutive validation acts');
   } finally {
     if (context) await context.close().catch(() => {});
+    await browser?.close().catch(() => {});
     await new Promise(resolve => server.close(resolve));
-    fs.rmSync(profile, { recursive:true, force:true });
   }
 })().catch(err => { console.error(err); process.exitCode = 1; });
