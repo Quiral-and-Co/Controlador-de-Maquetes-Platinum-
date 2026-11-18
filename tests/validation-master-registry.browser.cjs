@@ -35,8 +35,9 @@ function samePersistedFields(actual, expected, label) {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vmr-playwright-'));
   let context;
   try {
-    context = await chromium.launchPersistentContext(profile, { headless:true, args:['--no-sandbox'] });
+    context = await chromium.launchPersistentContext(profile, { headless:true, acceptDownloads:true, args:['--no-sandbox'] });
     let page = await context.newPage();
+    page.on('pageerror', error => console.error('Browser page error:', error.stack || error.message));
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
 
@@ -83,7 +84,17 @@ function samePersistedFields(actual, expected, label) {
         s.audit.some(e => e.action === 'NOTE_ADDED');
     });
 
-    const projectExportDownload = page.waitForEvent('download');
+    const exportDiagnostics = await page.evaluate(() => ({
+      buttonPresent: !!document.querySelector('#exportBtn'),
+      buttonDisabled: !!document.querySelector('#exportBtn')?.disabled,
+      handlerInstalled: typeof document.querySelector('#exportBtn')?.onclick === 'function',
+      nativeSaveBridge: typeof window.jmriDesktop?.saveProject === 'function'
+    }));
+    assert.ok(exportDiagnostics.buttonPresent && !exportDiagnostics.buttonDisabled && exportDiagnostics.handlerInstalled,
+      'browser project export button must be present, enabled, and wired: ' + JSON.stringify(exportDiagnostics));
+    assert.equal(exportDiagnostics.nativeSaveBridge, false,
+      'browser test must exercise the browser-download fallback, not Electron native save');
+    const projectExportDownload = page.waitForEvent('download', { timeout:15000 });
     await page.locator('#exportBtn').click();
     const projectDownload = await projectExportDownload;
     const projectPath = await projectDownload.path();
