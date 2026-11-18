@@ -361,7 +361,7 @@
   function setProjectName(name){$('configName').textContent=(state.isDirty?'* ':'')+(name||'Projecte nou');}
   function downloadText(content,name,type='text/plain'){
     const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   async function confirmDiscard(){
     if(!state.isDirty)return true;
