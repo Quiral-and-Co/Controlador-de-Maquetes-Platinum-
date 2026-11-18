@@ -47,6 +47,11 @@ jobs:
           node --check jmri-dispatcher-diagnostics.js
           node --check jmri-turnout-supervision-core.js
           node --check jmri-turnout-supervision.js
+      - name: Train roster and menu functional-core tests
+        run: |
+          node --check train-roster-core.js
+          node tests/train-roster.cjs
+          node tests/train-menu-contract.cjs
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Install Chromium for Playwright
