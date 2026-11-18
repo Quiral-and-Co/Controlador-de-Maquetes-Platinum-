@@ -108,9 +108,10 @@
     main.append(workspace, taskbar);
 
     let x = 18, y = 18;
-    const add = (node, title, w, h, left, top) => {
+    const add = (node, title, w, h, left, top, initiallyHidden = false) => {
       if (!node) return;
-      makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h });
+      const record = makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h });
+      if (initiallyHidden) record.win.hidden = true;
       x += 34; y += 28;
       if (x > 760) x = 18;
       if (y > 500) y = 18;
@@ -123,9 +124,9 @@
       const sidebar = editor.querySelector('.editor-sidebar');
       const board = editor.querySelector('.track-area');
       const properties = editor.querySelector('.properties-panel');
-      add(sidebar, 'Nivells i catàleg de vies', 340, 720, 18, 18);
-      add(board, 'Tauler de disseny de la maqueta', 980, 720, 380, 18);
-      add(properties, 'Propietats i geometria XYZ', 360, 720, 1380, 18);
+      add(sidebar, 'Nivells i catàleg de vies', 310, 650, 12, 12);
+      add(board, 'Tauler de disseny de la maqueta', 780, 650, 332, 12);
+      add(properties, 'Propietats i geometria XYZ', 320, 650, 1120, 12);
       editor.remove();
     }
 
@@ -138,7 +139,7 @@
       if (node.classList.contains('summary-grid')) title = 'Estat de la maqueta';
       if (node.id === 'commandStationPanel') title = 'Centrals digitals';
       const wide = /dispatcher|traffic|signalling|spielewelt|locomotive|train|protection|ground/i.test(node.className + ' ' + node.id);
-      add(node, title, wide ? 760 : 520, wide ? 520 : 360);
+      add(node, title, wide ? 760 : 520, wide ? 520 : 360, undefined, undefined, true);
     });
     if (notice) notice.classList.add('desktop-notice');
     if (toolbar) toolbar.classList.add('desktop-commandbar');
