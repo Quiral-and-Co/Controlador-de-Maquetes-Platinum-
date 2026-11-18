@@ -2,8 +2,10 @@
 'use strict';
 const $=id=>document.getElementById(id),core=window.JMRI_TC_VERTICAL_TRACK;
 if(!core)throw new Error('No s’ha carregat vertical-track-core.js.');
-// This optional panel is not present in every application shell.
-if(!$('verticalMode'))return;
+// This optional panel may be absent or only partially mounted in some application shells.
+// Do not initialise it unless every element used by its handlers is available.
+const requiredPanelElements=['verticalMode','straightRampFields','helixRampFields','rampLengthLabel','verticalRampResult','insertVerticalRampBtn','calculateVerticalRampBtn','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','rampGreenMax','rampYellowMax','rampRedMax','helixRadiusMm','helixTurns','helixRiseMm','helixGradePercent','helixTrackCount','helixSpacingMm','helixDirection','helixTransitionMm'];
+if(!requiredPanelElements.every(id=>$(id)))return;
 let plan=null,serial=0;
 const number=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
 const catalogue=()=>{const c=window.MARKLIN_C_CATALOGUE||window.JMRI_TC_CATALOGUE||{};return Array.isArray(c)?c:(c.items||[]);};
