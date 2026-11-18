@@ -133,6 +133,7 @@
 
     const direct = [...main.children].filter(node =>
       node !== notice && node !== toolbar && node !== workspace && node !== taskbar &&
+      !node.matches('.modern-ribbon') &&
       node !== shellRecord?.placeholder && node.matches('section, .resource-grid, .monitor-grid')
     );
     direct.forEach(node => {
