@@ -31,6 +31,7 @@
   function couple(roster,trainId,carId){
     const r=ensure(roster),train=r.trains.find(x=>x.id===trainId),car=r.cars.find(x=>x.id===carId);
     if(!train||!car)return{ok:false,error:'No s’ha trobat el tren o el vagó.'};
+    if(car.trainSetId)return{ok:false,error:'Retira el vagó de la composició fixa abans d’acoblar-lo directament a un tren.'};
     if(car.trainId&&car.trainId!==train.id)return{ok:false,error:'El vagó ja està acoblat a un altre tren.'};
     if(train.carIds.includes(car.id))return{ok:false,error:'El vagó ja forma part d’aquest tren.'};
     train.carIds.push(car.id);car.trainId=train.id;return{ok:true,train,car};
@@ -43,6 +44,7 @@
   function coupleToSet(roster,setId,carId){
     const r=ensure(roster),set=r.trainSets.find(x=>x.id===setId),car=r.cars.find(x=>x.id===carId);
     if(!set||!car)return{ok:false,error:'No s’ha trobat la composició fixa o el vagó.'};
+    if(car.trainId)return{ok:false,error:'Desacobla el vagó del tren abans d’afegir-lo a una composició fixa.'};
     if(car.trainSetId&&car.trainSetId!==set.id)return{ok:false,error:'El vagó ja pertany a una altra composició fixa.'};
     if(set.carIds.includes(car.id))return{ok:false,error:'El vagó ja forma part d’aquesta composició fixa.'};
     set.carIds.push(car.id);car.trainSetId=set.id;return{ok:true,trainSet:set,car};
