@@ -15,7 +15,7 @@
   function portZ(piece,level,port){
     if(!piece||!level)return NaN;
     const vertical=piece.verticalGeometry;
-    if(piece.type==='straight'&&vertical){
+    if(vertical){
       const key=port==='A'?'zStartMm':port==='B'?'zEndMm':null;
       if(key&&Object.prototype.hasOwnProperty.call(vertical,key)){
         const value=optionalFinite(vertical[key]);
