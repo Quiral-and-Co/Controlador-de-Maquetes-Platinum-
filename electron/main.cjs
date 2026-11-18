@@ -161,6 +161,8 @@ function installApplicationMenu(mode = 'modern') {
     ] }
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  // Classic mode uses the native Windows menu; modern mode uses the in-app ribbon.
+  mainWindow?.setMenuBarVisibility(activeMode === 'classic');
 }
 
 function startBridge() {
@@ -213,7 +215,7 @@ async function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     show: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     backgroundColor: '#101b28',
     webPreferences: {
       contextIsolation: true,
@@ -223,6 +225,7 @@ async function createWindow() {
     }
   });
   mainWindow = window;
+  window.setMenuBarVisibility(false);
   window.once('ready-to-show', () => window.show());
   await window.loadURL(`http://127.0.0.1:${port}`);
   window.on('closed', () => {
