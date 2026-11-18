@@ -481,7 +481,15 @@
     else if(command==='portMode')$('portModeBtn').click();
     else if(command==='createParallel')$('createParallelBtn').click();
     else if(command==='suggestGaps')$('suggestGapTracksBtn').click();
-    else if(command==='dispatcherOpen')$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});\n    else if(command==='dispatcherCreateRoute'){$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('dispatcherRouteName')?.focus?.();}\n    else if(command==='trafficPlan'){$('trafficTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('trafficLoco')?.focus?.();}\n    else if(command==='trafficList')$('trafficRunList')?.scrollIntoView?.({behavior:'smooth',block:'center'});\n    else if(command==='scheduleOpen')window.JMRI_TC_SCHEDULE_UI?.open?.();\n    else if(command==='scheduleCreate')window.JMRI_TC_SCHEDULE_UI?.create?.();\n    else if(command==='scheduleList')window.JMRI_TC_SCHEDULE_UI?.list?.();\n    else if(command==='scheduleSuccessors')window.JMRI_TC_SCHEDULE_UI?.successors?.();\n    else if(command==='openCommandStation'){const panel=$('commandStationPanel');panel?.scrollIntoView?.({behavior:'smooth',block:'start'});$('csName')?.focus?.({preventScroll:true});log('Configuració del sistema digital oberta. Desar un perfil no connecta ni habilita sortides físiques.');}
+    else if(command==='dispatcherOpen')$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+    else if(command==='dispatcherCreateRoute'){$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('dispatcherRouteName')?.focus?.();}
+    else if(command==='trafficPlan'){$('trafficTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('trafficLoco')?.focus?.();}
+    else if(command==='trafficList')$('trafficRunList')?.scrollIntoView?.({behavior:'smooth',block:'center'});
+    else if(command==='scheduleOpen')window.JMRI_TC_SCHEDULE_UI?.open?.();
+    else if(command==='scheduleCreate')window.JMRI_TC_SCHEDULE_UI?.create?.();
+    else if(command==='scheduleList')window.JMRI_TC_SCHEDULE_UI?.list?.();
+    else if(command==='scheduleSuccessors')window.JMRI_TC_SCHEDULE_UI?.successors?.();
+    else if(command==='openCommandStation'){const panel=$('commandStationPanel');panel?.scrollIntoView?.({behavior:'smooth',block:'start'});$('csName')?.focus?.({preventScroll:true});log('Configuració del sistema digital oberta. Desar un perfil no connecta ni habilita sortides físiques.');}
     else if(command==='trainNewEngine')trainCreateEngine();
     else if(command==='trainNewCar')trainCreateCar();
     else if(command==='trainNewTrainSet')trainCreateSet();
