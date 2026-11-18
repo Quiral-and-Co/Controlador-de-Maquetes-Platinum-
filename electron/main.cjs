@@ -59,20 +59,58 @@ function installProjectHandlers() {
   });
 }
 
-function installApplicationMenu() {
+function installApplicationMenu(mode = 'modern') {
+  const activeMode = mode === 'classic' ? 'classic' : 'modern';
   const send = command => mainWindow?.webContents.send('app:command', command);
-  const template = [{ label: 'Fitxer', submenu: [
-    { label: 'Nou', accelerator: 'CmdOrCtrl+N', click: () => send('new') },
-    { label: 'Obrir…', accelerator: 'CmdOrCtrl+O', click: () => send('open') },
+  const item = (label, command, accelerator) => ({ label, ...(accelerator ? { accelerator } : {}), click: () => send(command) });
+  const fileItems = [
+    item('Nou', 'new', 'CmdOrCtrl+N'),
+    item('Obrir…', 'open', 'CmdOrCtrl+O'),
     { type: 'separator' },
-    { label: 'Guardar', accelerator: 'CmdOrCtrl+S', click: () => send('save') },
-    { label: 'Guardar com…', accelerator: 'CmdOrCtrl+Shift+S', click: () => send('saveAs') },
+    item('Guardar', 'save', 'CmdOrCtrl+S'),
+    item('Guardar com…', 'saveAs', 'CmdOrCtrl+Shift+S'),
     { type: 'separator' },
-    { label: 'Importar XTrackCAD…', click: () => send('importXtc') },
-    { label: 'Exportar XTrackCAD…', click: () => send('exportXtc') },
+    item('Importar XTrackCAD…', 'importXtc'),
+    item('Exportar XTrackCAD…', 'exportXtc'),
+    { type: 'separator' },
+    item(activeMode === 'modern' ? 'Menús clàssics' : 'Menús moderns', activeMode === 'modern' ? 'setClassicMode' : 'setModernMode'),
     { type: 'separator' },
     { role: 'quit', label: 'Sortir' }
-  ] }, { label: 'Edició', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }] }, { label: 'Ajuda', submenu: [{ role: 'about' }] }];
+  ];
+  const template = [
+    { label: 'Fitxer', submenu: fileItems },
+    { label: 'Edició', submenu: [
+      item('Desfer', 'undo', 'CmdOrCtrl+Z'),
+      item('Refer', 'redo', 'CmdOrCtrl+Y'),
+      { type: 'separator' },
+      { role: 'selectAll', label: 'Seleccionar-ho tot' }
+    ] },
+    { label: 'Visualització', submenu: [
+      item('Apropar', 'zoomIn', 'Ctrl+='),
+      item('Allunyar', 'zoomOut', 'Ctrl+-'),
+      item('Ajustar a la superfície', 'zoomFit', 'Ctrl+0')
+    ] },
+    { label: 'Maqueta', submenu: [
+      item('Validar topologia', 'validateTopology'),
+      item('Mesurar distància', 'measure')
+    ] },
+    { label: 'Vies', submenu: [
+      item('Activar connexió manual de ports', 'portMode'),
+      item('Crear vies paral·leles', 'createParallel'),
+      item('Suggerir vies per als buits', 'suggestGaps')
+    ] },
+    { label: 'Digital i analògic', submenu: [
+      item('Connectar amb JMRI (lectura)', 'connect'),
+      item('Desconnectar de JMRI', 'disconnect')
+    ] },
+    { label: 'Ajuda', submenu: [
+      { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
+        type: 'info', title: 'JMRI TC Gold Custom',
+        message: 'JMRI TC Gold Custom',
+        detail: 'Aplicació d’escriptori. Les sortides físiques i DCC continuen bloquejades per defecte.'
+      }) }
+    ] }
+  ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
@@ -126,7 +164,7 @@ async function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     backgroundColor: '#101b28',
     webPreferences: {
       contextIsolation: true,
@@ -144,7 +182,7 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu(); return createWindow(); }).catch(async error => {
+app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('modern'); return createWindow(); }).catch(async error => {
   console.error(error);
   await dialog.showMessageBox({
     type: 'error',
@@ -154,6 +192,8 @@ app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu();
   });
   app.quit();
 });
+
+ipcMain.on('ui:mode', (_event, mode) => installApplicationMenu(mode));
 
 app.on('before-quit', () => {
   quitting = true;
