@@ -176,6 +176,23 @@ function installApplicationMenu(mode = 'modern') {
       item('Activar/desactivar mode d’edició de trens', 'trainToggleEditMode'),
       item('Eliminar tren o vagó…', 'trainDelete')
     ] },
+    { label: 'Dispatcher', submenu: [
+      item('Obrir el Dispatcher', 'dispatcherOpen'),
+      item('Crear itinerari…', 'dispatcherCreateRoute')
+    ] },
+    { label: 'Trànsit', submenu: [
+      item('Planificar circulació…', 'trafficPlan'),
+      item('Llista de circulacions', 'trafficList'),
+      { type: 'separator' },
+      { label: 'Aturar totes les circulacions (bloquejat per seguretat)', enabled: false },
+      { label: 'Emergència global DCC (sortides físiques bloquejades)', enabled: false }
+    ] },
+    { label: 'Horaris', submenu: [
+      item('Obrir gestor d’horaris', 'scheduleOpen'),
+      item('Crear horari…', 'scheduleCreate'),
+      item('Llista d’horaris', 'scheduleList'),
+      item('Gestionar successors d’horaris…', 'scheduleSuccessors')
+    ] },
     { label: 'Ajuda', submenu: [
       { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
         type: 'info', title: 'JMRI TC Gold Custom',
