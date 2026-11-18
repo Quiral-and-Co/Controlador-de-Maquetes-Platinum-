@@ -19,7 +19,7 @@ Durant tot el protocol es mantenen:
 Registrar abans de començar:
 - Commit exacte (SHA complet) i branca.
 - Versió de l'aplicació.
-- Nom complet de l'instal·lador, que inclourà data i hora local de Catalunya: `YYYYMMDD-HHMMSS`.
+- Nom complet de l'instal·lador, que inclourà hora i data local de Catalunya: `HHMMSS-DDMMAA`.
 - Mida del fitxer i SHA-256 del mateix EXE.
 - Enllaç i identificador de l'artefacte de CI.
 - Versió de Windows 11, arquitectura i data/hora de la prova.
