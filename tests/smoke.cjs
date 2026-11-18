@@ -3,6 +3,7 @@ const vm = require('vm');
 const viewport = require('../viewport-core.js');
 const selectionMove = require('../selection-move-core.js');
 const trackJunction = require('../track-junction-core.js');
+const trackTopology3D = require('../track-topology-3d-core.js');
 class El {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.innerHTML='';this.children=[];this.dataset={};this.handlers={};this.className='';this.disabled=false;this.classList={add:()=>{},toggle:()=>{},remove:()=>{}};this.style={};}
   addEventListener(n,fn){this.handlers[n]=fn;}
@@ -24,7 +25,7 @@ const palette=['straight','curve','turnout','block'].map(type=>{const e=new El()
 const shell=new El('shell');
 const docHandlers={};
 const document={addEventListener:(name,fn)=>{docHandlers[name]=fn;},getElementById:id=>els[id]||(els[id]=new El(id)),createElement:tag=>new El(tag),createElementNS:()=>new El('svg'),querySelectorAll:q=>q==='[data-piece]'?palette:[],querySelector:q=>shell};
-const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8')),JMRI_TC_VIEWPORT:viewport,JMRI_TC_SELECTION_MOVE:selectionMove,JMRI_TC_TRACK_JUNCTION:trackJunction,addEventListener:()=>{}};
+const window={MARKLIN_C_CATALOGUE:JSON.parse(fs.readFileSync(__dirname+'/../catalogue-marklin-c.json','utf8')),JMRI_TC_VIEWPORT:viewport,JMRI_TC_SELECTION_MOVE:selectionMove,JMRI_TC_TRACK_JUNCTION:trackJunction,JMRI_TC_TRACK_TOPOLOGY_3D:trackTopology3D,addEventListener:()=>{}};
 vm.runInNewContext(fs.readFileSync(__dirname+'/../app.js','utf8'),{document,window,console,Date,Math,JSON,Number,String,Array,Set,Map,WebSocket:function(){}});
 if(els.levelCount.textContent!==5)throw Error('Expected five levels');
 if(els.zoomReadout.textContent!=='100%')throw Error('Viewport must start at 100% fit');
@@ -206,5 +207,19 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==90)throw Error('Keyboard-entered 45 degrees in quadrant IV did not apply 315 degrees');
 
   if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
-  console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
+  // XYZ topology audit: equal plan coordinates must not hide an elevation discontinuity.
+  const xyzProject={schemaVersion:3,name:'XYZ topology',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:'Nivell '+(i+1),elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+  const xyzPiece=(id,x,z,verticalGeometry)=>({id,type:'straight',name:id,x,y:100,rotation:0,zMm:z,levelId:1,blockId:'',sensorName:'',geometry:{lengthMm:180,radiusMm:360,angleDeg:30},...(verticalGeometry?{verticalGeometry}:{})});
+  xyzProject.levels[0].tracks=[xyzPiece('XYZ-A',100,0),xyzPiece('XYZ-B',280,110)];
+  xyzProject.connections=[{id:'XYZ-MISMATCH',levelId:1,from:{pieceId:'XYZ-A',port:'B'},to:{pieceId:'XYZ-B',port:'A'},verified:false}];
+  await els.configFile.onchange({target:{files:[{name:'xyz-mismatch.json',text:async()=>JSON.stringify(xyzProject)}],value:''}});
+  els.validateTopologyBtn.onclick();
+  if(!els.topologyReport.textContent.includes('discontinuïtat geomètrica XYZ')||!els.topologyReport.textContent.includes('ΔZ 110.0 mm'))throw Error('XYZ topology audit failed to detect a same-XY elevation mismatch');
+  // Vertical-ramp straight endpoints use zStartMm/zEndMm rather than one piece-wide Z.
+  xyzProject.levels[0].tracks=[xyzPiece('XYZ-RAMP',100,0,{zStartMm:0,zEndMm:110}),xyzPiece('XYZ-TOP',280,110)];
+  xyzProject.connections=[{id:'XYZ-RAMP-END',levelId:1,from:{pieceId:'XYZ-RAMP',port:'B'},to:{pieceId:'XYZ-TOP',port:'A'},verified:false}];
+  await els.configFile.onchange({target:{files:[{name:'xyz-ramp-aligned.json',text:async()=>JSON.stringify(xyzProject)}],value:''}});
+  els.validateTopologyBtn.onclick();
+  if(!els.topologyReport.textContent.includes('0 error(s)'))throw Error('Aligned vertical-ramp endpoints were incorrectly rejected by XYZ topology audit');
+  console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, 2D/XYZ topology audit, vertical-ramp endpoint elevations, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
