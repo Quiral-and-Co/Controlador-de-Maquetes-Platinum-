@@ -23,6 +23,7 @@ assert.equal(core.remove(roster,'car',carB.car.id,{editMode:true}).ok,false,'att
 assert.equal(core.setSpeedProfile(roster,'LOCO-1',{maxKmh:120,points:[{step:0,kmh:0},{step:126,kmh:120}]}).ok,true);
 assert.equal(roster.speedProfiles['LOCO-1'].verified,false,'manual estimate is never considered verified calibration');
 assert.equal(core.remove(roster,'train',train.train.id).ok,false,'delete requires edit mode');
+assert.equal(core.uncouple(roster,train.train.id,carB.car.id).ok,true);
 assert.equal(core.coupleToSet(roster,set.trainSet.id,carB.car.id).ok,true);
 assert.equal(core.remove(roster,'set',set.trainSet.id,{editMode:true}).ok,false,'non-empty fixed sets cannot be deleted');
 assert.equal(core.uncoupleFromSet(roster,set.trainSet.id,carB.car.id).ok,true);
