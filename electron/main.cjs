@@ -195,7 +195,10 @@ function installApplicationMenu(mode = 'modern') {
       item('Gestionar successors d’horaris…', 'scheduleSuccessors')
     ] },
     { label: 'Operació', submenu: [
-      item('Obrir Operació', 'operationOpen'), item('Crear macro…', 'operationMacroCreate'), item('Crear bandera…', 'operationFlagCreate'), item('Crear comptador…', 'operationCounterCreate'), item('Programar esdeveniment…', 'operationEventCreate'), item('Comprovar esdeveniments pendents', 'operationRefreshEvents')
+      { label: 'Macros', submenu: [item('Obrir Operació', 'operationOpen'), item('Crear macro…', 'operationMacroCreate')] },
+      { label: 'Banderes', submenu: [item('Crear bandera…', 'operationFlagCreate')] },
+      { label: 'Comptadors', submenu: [item('Crear comptador…', 'operationCounterCreate')] },
+      { label: 'Esdeveniments programats', submenu: [item('Programar esdeveniment…', 'operationEventCreate'), item('Comprovar esdeveniments pendents', 'operationRefreshEvents')] }
     ] },
     { label: 'Ajuda', submenu: [
       { label: 'Ajuda ràpida en català', click: () => dialog.showMessageBox(mainWindow, {
