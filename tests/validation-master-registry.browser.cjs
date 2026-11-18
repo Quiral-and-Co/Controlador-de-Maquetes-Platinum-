@@ -42,6 +42,10 @@ function samePersistedFields(actual, expected, label) {
     page.on('console', message => { if (message.type() === 'error') console.error('Browser console error:', message.text()); });
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
+    // This integration test specifically exercises the browser fallback behind the
+    // legacy toolbar command. The app's active desktop mode may hide that toolbar;
+    // expose it in the test viewport without changing production UI behavior.
+    await page.addStyleTag({ content: '.toolbar { display:flex !important; visibility:visible !important; } #exportBtn { display:inline-flex !important; visibility:visible !important; }' });
 
     const makeProjectFixture = async (projectId, suffix, name) => page.evaluate(({projectId,suffix,name}) => {
       const c = JSON.parse(JSON.stringify(window.JMRI_TC_DISPATCHER.getConfig()));
