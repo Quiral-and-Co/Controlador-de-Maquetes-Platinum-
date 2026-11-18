@@ -4,9 +4,9 @@ Estat: OPCIÓ GRATUÏTA SELECCIONADA — pendent de sol·licitud i acceptació d
 
 ## Decisió
 
-S'adopta SignPath Foundation com a primera opció per obtenir signatura Authenticode gratuïta per a JMRI TC Gold Custom, subjecte a l'aprovació de la sol·licitud i al compliment de totes les condicions del programa.
+S'adopta SignPath Foundation com a primera opció per obtenir signatura Authenticode gratuïta per a Maquetes by Quiral & Co. Platinum, subjecte a l'aprovació de la sol·licitud i al compliment de totes les condicions del programa.
 
-**Identitat del publicador:** la signatura mostrarà SignPath Foundation, no el nom personal del mantenidor ni el nom comercial JMRI TC Gold Custom com a titular del certificat. La fundació custodia la clau privada en un HSM i proporciona el servei de signatura sense cost als projectes OSS acceptats.
+**Identitat del publicador:** la signatura mostrarà SignPath Foundation, no el nom personal del mantenidor ni el nom comercial Maquetes by Quiral & Co. Platinum com a titular del certificat. La fundació custodia la clau privada en un HSM i proporciona el servei de signatura sense cost als projectes OSS acceptats.
 
 Aquesta opció compleix la preferència de cost zero, però no la preferència d'un certificat emès a nom de la persona física. Si és imprescindible que Windows mostri el nom personal del titular, caldrà un certificat comercial individual i aquesta opció gratuïta no ho resol.
 
@@ -102,8 +102,8 @@ La clau privada del certificat de SignPath Foundation no es descarrega ni s'emma
 ## Verificació a Windows
 
 ```powershell
-signtool verify /pa /all /v .\\JMRI-TC-Gold-Custom-Setup-*.exe
-Get-AuthenticodeSignature .\\JMRI-TC-Gold-Custom-Setup-*.exe | Format-List Status,StatusMessage,SignerCertificate,TimeStamperCertificate
+signtool verify /pa /all /v .\\Maquetes-by-Quiral-Platinum-Setup-*.exe
+Get-AuthenticodeSignature .\\Maquetes-by-Quiral-Platinum-Setup-*.exe | Format-List Status,StatusMessage,SignerCertificate,TimeStamperCertificate
 ```
 
 El workflow ha de fallar si la signatura no és vàlida, si la cadena no és de confiança, si el certificat no és el de SignPath Foundation o si falta la marca de temps.
