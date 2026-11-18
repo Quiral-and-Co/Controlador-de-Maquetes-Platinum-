@@ -1,6 +1,7 @@
 (() => {
 'use strict';
-const EXACT = new Map(Object.entries({\n  'Stop Layout':'Aturar la maqueta','Universal Spielwelt':'Món de Jocs universal','Spielwelt':'Món de Jocs','Dispatcher · despatxador':'Despatxador','Schedules · Horaris':'Horaris',
+const EXACT = new Map(Object.entries({
+  'Stop Layout':'Aturar la maqueta','Universal Spielwelt':'Món de Jocs universal','Spielwelt':'Món de Jocs','Dispatcher · despatxador':'Despatxador','Schedules · Horaris':'Horaris',
   'Dispatcher':'Despatxador','dispatcher':'despatxador','Schedules':'Horaris','Schedule Successors':'Horaris successors','Schedule Successor':'Horari successor','Validation Master Registry':'Registre mestre de validació','Märklin · JMRI Universal Spielwelt':'Märklin · Món de Jocs universal',
   'Timeout (ms)':'Temps d’espera (ms)','Baud rate':'Velocitat de transmissió','System name':'Identificador JMRI','System name del sensor':'Identificador JMRI del sensor','UID hexadecimal CS2':'Identificador hexadecimal CS2','Endpoint':'Punt final de connexió','endpoint':'punt final de connexió','Host':'Servidor','host':'servidor','Firmware':'Microprogramari','JSON':'JSON','WiThrottle':'WiThrottle','DCC':'DCC','JMRI':'JMRI',
   'Open':'Obrir','Save':'Desar','Save As':'Desar com a','Cancel':'Cancel·lar','Close':'Tancar','Apply':'Aplicar','OK':'D’acord','Yes':'Sí','No':'No','Retry':'Torna-ho a provar','Browse':'Navegar','Help':'Ajuda','Settings':'Configuració','Preferences':'Preferències','General':'General','Advanced':'Avançat','Diagnostics':'Diagnòstics','Status':'Estat','Details':'Detalls','Warning':'Avís','Error':'Error','Success':'Correcte','Loading…':'S’està carregant…','Please wait…':'Espera, si us plau…',
