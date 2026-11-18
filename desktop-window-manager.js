@@ -92,7 +92,7 @@
     });
     win.addEventListener('pointerdown', () => { win.style.zIndex = String(++zIndex); });
     taskbar.append(task);
-    records.push({ node, placeholder, win, task });
+    records.push({ node, placeholder, win, task, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h } });
   }
 
   function enterModern() {
@@ -177,6 +177,39 @@
       if (next === 'modern') enterModern();
       else leaveModern();
     },
-    getWindows() { return records.map(({ win }) => ({ title: win.getAttribute('aria-label'), visible: !win.hidden })); }
+    getWindows() { return records.map(({ win }) => ({ title: win.getAttribute('aria-label'), visible: !win.hidden })); },
+    showAll() { records.forEach(({ win, task }) => { win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open'); }); },
+    minimizeAll() { records.forEach(({ win, task }) => { win.hidden = true; task.classList.remove('is-open'); }); },
+    focusWindow(query) {
+      const needle = String(query || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+      const record = records.find(({ win }) => win.getAttribute('aria-label').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().includes(needle));
+      if (!record) return false;
+      record.win.hidden = false; record.win.style.zIndex = String(++zIndex); record.task.classList.add('is-open'); return true;
+    },
+    restoreLayout() {
+      records.forEach(({ win, task, initial }) => {
+        win.hidden = false; win.style.left = initial.x + 'px'; win.style.top = initial.y + 'px';
+        win.style.width = initial.w + 'px'; win.style.height = initial.h + 'px';
+        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+      });
+    },
+    cascade() {
+      records.forEach(({ win, task }, index) => {
+        win.hidden = false; win.style.left = (18 + index * 34) + 'px'; win.style.top = (18 + index * 28) + 'px';
+        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+      });
+    },
+    tile() {
+      if (!workspace || !records.length) return;
+      const count = records.length, columns = Math.ceil(Math.sqrt(count)), rows = Math.ceil(count / columns);
+      const width = Math.max(280, Math.floor((workspace.clientWidth || 1440) / columns));
+      const height = Math.max(220, Math.floor(760 / rows));
+      records.forEach(({ win, task }, index) => {
+        const col = index % columns, row = Math.floor(index / columns);
+        win.hidden = false; win.style.left = (col * width + 8) + 'px'; win.style.top = (row * height + 8) + 'px';
+        win.style.width = Math.max(260, width - 16) + 'px'; win.style.height = Math.max(200, height - 16) + 'px';
+        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+      });
+    }
   });
 })();
