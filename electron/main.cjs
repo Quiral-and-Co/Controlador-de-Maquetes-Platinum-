@@ -15,14 +15,14 @@ const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
 const projectFilters = [
   { name: 'Projectes JMRI TC', extensions: ['json'] },
-  { name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] },
+  { name: 'Disseny XTrackCAD', extensions: ['xtc', 'xti', 'xtm'] },
   { name: 'Tots els fitxers', extensions: ['*'] }
 ];
 
 function installProjectHandlers() {
   ipcMain.handle('project:open', async (_event, options = {}) => {
     const filters = options.importXtc === true ? [{ name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] }, projectFilters[2]] : projectFilters;
-    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters });
+    const result = await dialog.showOpenDialog(mainWindow, { title: 'Obrir un projecte', buttonLabel: 'Obrir', properties: ['openFile'], filters });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
     const content = await fs.readFile(filePath, 'utf8');
@@ -33,6 +33,7 @@ function installProjectHandlers() {
     let filePath = '';
     if (options.saveAs === true || typeof options.filePath !== 'string' || !options.filePath) {
       const result = await dialog.showSaveDialog(mainWindow, {
+        title: 'Desar el projecte', buttonLabel: 'Desar',
         defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'JMRI_TC_Gold_Custom_layout.json'),
         filters: projectFilters.slice(0, 2)
       });
@@ -148,7 +149,7 @@ function installApplicationMenu(mode = 'modern') {
       { type: 'separator' },
       { label: 'Activar alimentació de via (sortides físiques bloquejades)', enabled: false },
       { label: 'Desactivar alimentació de via (ordre física no habilitada)', enabled: false },
-      { label: 'Aturar maqueta / Stop Layout (pendent de validació física)', enabled: false },
+      { label: 'Aturar la maqueta (pendent de validació física)', enabled: false },
       { type: 'separator' },
       { label: 'Diagnòstic del sistema digital (només lectura)', click: () => send('showDigitalStatus') }
     ] },
@@ -176,7 +177,7 @@ function installApplicationMenu(mode = 'modern') {
       item('Activar/desactivar mode d’edició de trens', 'trainToggleEditMode'),
       item('Eliminar tren o vagó…', 'trainDelete')
     ] },
-    { label: 'Dispatcher', submenu: [
+    { label: 'Despatxador', submenu: [
       item('Obrir el Dispatcher', 'dispatcherOpen'),
       item('Crear itinerari…', 'dispatcherCreateRoute')
     ] },
@@ -194,6 +195,11 @@ function installApplicationMenu(mode = 'modern') {
       item('Gestionar successors d’horaris…', 'scheduleSuccessors')
     ] },
     { label: 'Ajuda', submenu: [
+      { label: 'Ajuda ràpida en català', click: () => dialog.showMessageBox(mainWindow, {
+        type: 'info', title: 'Ajuda ràpida · JMRI TC Gold Custom',
+        message: 'Guia d’ús',
+        detail: 'EDITOR DE MAQUETA\\nDissenya les vies, els nivells, els blocs, els sensors i els desviaments. Les connexions dibuixades no queden verificades físicament automàticament.\\n\\nDESPATXADOR I CIRCULACIONS\\nDefineix blocs i itineraris, consulta l’ocupació i planifica circulacions. Un estat desconegut mai no es considera lliure.\\n\\nHORARIS\\nCrea horaris, dies de circulació i successors. Els horaris són planificació supervisada: no posen trens en moviment ni envien ordres físiques.\\n\\nMETGE QUIRAL\\nExecuta l’autodiagnòstic per revisar la coherència del projecte, les referències, les connexions i els bloquejos de seguretat. Les recomanacions no substitueixen les proves de regressió, fail-safe ni les comprovacions físiques.\\n\\nSEGURETAT\\nLes sortides DCC i físiques romanen bloquejades fins que s’hagin completat i autoritzat totes les validacions requerides.'
+      }) },
       { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
         type: 'info', title: 'JMRI TC Gold Custom',
         message: 'JMRI TC Gold Custom',
