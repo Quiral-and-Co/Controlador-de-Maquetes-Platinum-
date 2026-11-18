@@ -23,7 +23,7 @@ assert.match(html,/<html lang="ca">/);
 assert.ok(html.includes('catalan-localization.js'),'localization layer must load in the application');
 assert.ok(html.includes('Metge Quiral · salut del sistema'),'Metge Quiral diagnostics must remain visible');
 assert.ok(main.includes("label: 'Despatxador'"));
-assert.ok(main.includes("label: 'Ajuda ràpida en català'"));
+assert.ok(main.includes("item('Guia ràpida', 'helpQuick')"),'native help menu must open the Catalan quick guide');
 assert.ok(main.includes("buttonLabel: 'Obrir'")&&main.includes("buttonLabel: 'Desar'"));
 assert.ok(main.includes('METGE QUIRAL'));
 console.log('PASS: Catalan localization, dynamic phrase dictionary, technical identifier safety, native dialogs and Metge Quiral help contract');
