@@ -200,17 +200,29 @@ function installApplicationMenu(mode = 'modern') {
       { label: 'Comptadors', submenu: [item('Crear comptador…', 'operationCounterCreate')] },
       { label: 'Esdeveniments programats', submenu: [item('Programar esdeveniment…', 'operationEventCreate'), item('Comprovar esdeveniments pendents', 'operationRefreshEvents')] }
     ] },
+    { label: 'Finestres', submenu: [
+      item('Mostrar totes les finestres', 'windowShowAll'),
+      item('Minimitzar totes les finestres', 'windowMinimizeAll'),
+      { type: 'separator' },
+      item('Disposar en cascada', 'windowCascade'),
+      item('Disposar en mosaic', 'windowTile'),
+      item('Restaurar disposició inicial', 'windowRestoreLayout'),
+      { type: 'separator' },
+      item('Editor de maqueta', 'windowShowEditor'),
+      item('Despatxador', 'windowShowDispatcher'),
+      item('Gestió de circulacions', 'windowShowTraffic'),
+      item('Horaris', 'windowShowSchedules'),
+      item('Operació', 'windowShowOperation'),
+      item('Metge Quiral', 'windowShowMetgeQuiral')
+    ] },
     { label: 'Ajuda', submenu: [
-      { label: 'Ajuda ràpida en català', click: () => dialog.showMessageBox(mainWindow, {
-        type: 'info', title: 'Ajuda ràpida · JMRI TC Gold Custom', buttons: ['D’acord'],
-        message: 'Guia d’ús',
-        detail: 'EDITOR DE MAQUETA\\nDissenya les vies, els nivells, els blocs, els sensors i els desviaments. Les connexions dibuixades no queden verificades físicament automàticament.\\n\\nDESPATXADOR I CIRCULACIONS\\nDefineix blocs i itineraris, consulta l’ocupació i planifica circulacions. Un estat desconegut mai no es considera lliure.\\n\\nHORARIS\\nCrea horaris, dies de circulació i successors. Els horaris són planificació supervisada: no posen trens en moviment ni envien ordres físiques.\\n\\nOPERACIÓ\\nCrea macros amb passos lògics, banderes i comptadors. Els esdeveniments programats només queden pendents i exigeixen confirmació manual. Cap macro no envia ordres DCC ni activa sortides físiques.\\n\\nMETGE QUIRAL\\nExecuta l’autodiagnòstic per revisar la coherència del projecte, les referències, les connexions i els bloquejos de seguretat. Les recomanacions no substitueixen les proves de regressió, fail-safe ni les comprovacions físiques.\\n\\nSEGURETAT\\nLes sortides DCC i físiques romanen bloquejades fins que s’hagin completat i autoritzat totes les validacions requerides.'
-      }) },
-      { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
-        type: 'info', title: 'JMRI TC Gold Custom', buttons: ['D’acord'],
-        message: 'JMRI TC Gold Custom',
-        detail: 'Aplicació d’escriptori. Les sortides físiques i DCC continuen bloquejades per defecte.'
-      }) }
+      item('Guia ràpida', 'helpQuick'),
+      item('Contingut de l’ajuda', 'helpContents'),
+      item('Dreceres de teclat', 'helpShortcuts'),
+      { type: 'separator' },
+      item('Seguretat i diagnòstics del Metge Quiral', 'helpDiagnostics'),
+      { type: 'separator' },
+      item('Sobre JMRI TC Gold Custom', 'helpAbout')
     ] }
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
