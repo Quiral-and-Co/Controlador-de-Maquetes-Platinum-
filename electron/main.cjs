@@ -1,6 +1,7 @@
 'use strict';
 
-const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
+const os = require('node:os');
 const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
@@ -51,6 +52,24 @@ function installProjectHandlers() {
     await fs.writeFile(filePath, content, { encoding: 'utf8', flag: 'w' });
     return { canceled: false, filePath, fileName: path.basename(filePath) };
   });
+  ipcMain.handle('project:backup', async (_event, filePath) => {
+    if (typeof filePath !== 'string' || !approvedProjectPaths.isAuthorized(filePath)) throw new Error('No hi ha cap projecte desat i autoritzat per fer-ne una còpia de seguretat.');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = filePath.replace(/(\\.[^.]+)?$/, `.backup-${stamp}$1`);
+    await fs.copyFile(filePath, backupPath, require('node:fs').constants.COPYFILE_EXCL);
+    return { backupPath, fileName: path.basename(backupPath) };
+  });
+  ipcMain.handle('document:print', async () => new Promise(resolve => mainWindow.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => resolve({ success, failureReason: failureReason || '' }))));
+  ipcMain.handle('document:preview', async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'jmri-tc-preview-'));
+    const pdfPath = path.join(dir, 'JMRI-TC-vista-previa.pdf');
+    const pdf = await mainWindow.webContents.printToPDF({ pageSize: 'A4', landscape: false, printBackground: true, margins: { top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 } });
+    await fs.writeFile(pdfPath, pdf);
+    const error = await shell.openPath(pdfPath);
+    if (error) throw new Error(error);
+    return { opened: true };
+  });
+  ipcMain.handle('document:page-setup', async () => new Promise(resolve => mainWindow.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => resolve({ success, failureReason: failureReason || '' }))));
   ipcMain.handle('project:confirm-discard', async () => {
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning', buttons: ['Cancel·lar', 'Descartar canvis'], defaultId: 0, cancelId: 0,
@@ -70,9 +89,19 @@ function installApplicationMenu(mode = 'modern') {
     { type: 'separator' },
     item('Guardar', 'save', 'CmdOrCtrl+S'),
     item('Guardar com…', 'saveAs', 'CmdOrCtrl+Shift+S'),
+    item('Crea còpia de seguretat', 'backup'),
     { type: 'separator' },
     item('Importar XTrackCAD…', 'importXtc'),
+    item('Importar elements…', 'importElements'),
+    item('Exportar elements seleccionats…', 'exportElements'),
+    item('Importar XTrackCAD…', 'importXtc'),
     item('Exportar XTrackCAD…', 'exportXtc'),
+    { type: 'separator' },
+    item('Configura la pàgina…', 'pageSetup'),
+    item('Vista prèvia d’impressió…', 'printPreview'),
+    item('Imprimeix…', 'print', 'CmdOrCtrl+P'),
+    { type: 'separator' },
+    item('Opcions / Preferències…', 'preferences'),
     { type: 'separator' },
     item(activeMode === 'modern' ? 'Menús clàssics' : 'Menús moderns', activeMode === 'modern' ? 'setClassicMode' : 'setModernMode'),
     { type: 'separator' },
