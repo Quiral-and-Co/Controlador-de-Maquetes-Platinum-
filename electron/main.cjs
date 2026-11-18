@@ -269,8 +269,8 @@ function startBridge() {
     bridge.once('exit', (code, signal) => {
       if (!quitting) finish(new Error(`El pont local s'ha tancat (codi ${code ?? signal}).`));
     });
-    bridge.stdout.on('data', chunk => console.log('[JMRI bridge]', chunk.toString().trim()));
-    bridge.stderr.on('data', chunk => console.error('[JMRI bridge]', chunk.toString().trim()));
+    bridge.stdout.on('data', chunk => console.log('[Pont del sistema de control]', chunk.toString().trim()));
+    bridge.stderr.on('data', chunk => console.error('[Pont del sistema de control]', chunk.toString().trim()));
   });
 }
 
