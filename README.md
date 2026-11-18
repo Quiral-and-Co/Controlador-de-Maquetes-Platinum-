@@ -1,6 +1,6 @@
-# JMRI TC Gold Custom — 1.3.0
+# Controlador de Maquetes by Quiral & Co. Platinum — 1.3.0
 
-Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb JMRI i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
+Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb serveis externs de control i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
 
 ## Funcions disponibles
 
@@ -19,7 +19,7 @@ Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a
 
 ## Execució i proves
 
-Obre `index.html` en un navegador modern. No cal servidor per editar offline. Per monitoritzar JMRI, activa el Web Server de JMRI i configura l'adreça i el port a la interfície (habitualment 12080).
+Obre `index.html` en un navegador modern. No cal servidor per editar offline. Per monitoritzar els sensors, activa el servei Web del sistema de control i configura l'adreça i el port a la interfície (habitualment 12080).
 
 Executa:
 
@@ -36,7 +36,7 @@ El fitxer `config/layout.example.json` ha de validar contra `schema/layout-v3.sc
 
 El panell Dispatcher permet:
 - Consultar els blocs lògics creats al projecte i el nivell al qual pertanyen.
-- Calcular automàticament l'ocupació dels blocs a partir de sensors JMRI verificats.
+- Calcular automàticament l'ocupació dels blocs a partir de sensors del sistema de control verificats.
 - Simular els estats **Desconegut**, **Lliure** i **Ocupat** només als blocs sense sensors assignats.
 - Definir itineraris com una seqüència de blocs (identificadors separats per comes).
 - Reservar i alliberar itineraris de manera atòmica dins del simulador.
@@ -45,7 +45,7 @@ El panell Dispatcher permet:
 
 Les definicions dels itineraris es desen a `dispatcher.routes` dins del projecte JSON. Els estats simulats i les reserves són temporals i es reinicien en tornar a carregar la pàgina.
 
-**Integració JMRI:** els sensors es llegeixen pel WebSocket JSON en mode només lectura. ACTIVE (2) significa ocupat i INACTIVE (4) significa lliure. Cal marcar sensor i bloc com a verificats físicament des dels registres de recursos. Si falta una lectura, el valor és invàlid o es perd el heartbeat/connexió, el bloc passa a desconegut; els blocs amb sensors no accepten canvis manuals. No s'envien ordres a locomotores, desviaments ni rutes. La reserva continua sent local i no és un interbloqueig ferroviari certificat. Consulta [docs/dispatcher.md](docs/dispatcher.md).
+**Integració amb el sistema de control:** els sensors es llegeixen pel WebSocket JSON en mode només lectura. ACTIVE (2) significa ocupat i INACTIVE (4) significa lliure. Cal marcar sensor i bloc com a verificats físicament des dels registres de recursos. Si falta una lectura, el valor és invàlid o es perd el heartbeat/connexió, el bloc passa a desconegut; els blocs amb sensors no accepten canvis manuals. No s'envien ordres a locomotores, desviaments ni rutes. La reserva continua sent local i no és un interbloqueig ferroviari certificat. Consulta [docs/dispatcher.md](docs/dispatcher.md).
 
 Proves del motor i de la integració de sensors:
 ```bash
@@ -97,7 +97,7 @@ El tipus `special` s'afegeix al model v3 i es manté compatible amb projectes an
 
 ## Gestió de circulacions Märklin DCC (1.2 alpha)
 
-El panell de circulacions incorpora registre de locomotores DCC, itineraris, mode manual i mode automàtic supervisat. La lectura de sensors/alimentació continua al JSON WebSocket JMRI; les ordres de locomotora passen pel pont local WiThrottle TCP. Consulta [docs/traffic-management.md](docs/traffic-management.md) per instal·lació, configuració Märklin, ports, seguretat i limitacions.
+El panell de circulacions incorpora registre de locomotores DCC, itineraris, mode manual i mode automàtic supervisat. La lectura de sensors/alimentació continua al JSON WebSocket del sistema de control; les ordres de locomotora passen pel pont local WiThrottle TCP. Consulta [docs/traffic-management.md](docs/traffic-management.md) per instal·lació, configuració Märklin, ports, seguretat i limitacions.
 
 **Seguretat per defecte:** el pont DCC està desactivat. Per provar només la interfície, executa `npm install` i `npm start` i obre `http://127.0.0.1:3000`. Les ordres reals exigeixen `JMRI_TC_ENABLE_DCC=1` i armar el control. L'automàtic rebutja rutes amb desviaments no verificats i atura davant lectures desconegudes. No és un enclavament ferroviari certificat.
 
@@ -108,12 +108,12 @@ Proves addicionals: `node tests/traffic.cjs`.
 
 La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre local de locomotores i accessoris amb exportació/importació JSON. Admet fitxes DCC, MM2 i mfx per UID; tipus d'accessori: desviaments, senyals, llums, desacobladors, relés i altres. Consulta [docs/marklin-multiprotocol.md](docs/marklin-multiprotocol.md).
 
-**Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC via JMRI JSON, pendent d'integració i prova física. No s'ha provat amb una CS2 real.
+**Límit funcional:** el registre no és una importació automàtica de la base interna de la CS2 ni una base oficial completa de models. El control MM2/mfx i els mapes d'aspectes de senyals/llums encara no estan connectats. Les ordres MM2/mfx es bloquegen deliberadament; només hi ha un constructor per a una ordre de desviament DCC mitjançant el servei JSON del sistema de control, pendent d'integració i prova física. No s'ha provat amb una CS2 real.
 
 
 ## Validació i bloqueig de seguretat (1.2.1 · en revisió)
 
-El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una llista explícita de validacions, confirmació física de l'operador, JMRI connectat, alimentació ON, pont WiThrottle connectat i sensors vàlids abans de permetre armar el control DCC. La interfície de circulacions, les ordres manuals i l'inici de circulacions passen per aquesta porta. El pont local exigeix també `JMRI_TC_SAFETY_VALIDATED=1` a més de `JMRI_TC_ENABLE_DCC=1`.
+El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una llista explícita de validacions, confirmació física de l'operador, sistema de control connectat, alimentació ON, pont WiThrottle connectat i sensors vàlids abans de permetre armar el control DCC. La interfície de circulacions, les ordres manuals i l'inici de circulacions passen per aquesta porta. El pont local exigeix també `JMRI_TC_SAFETY_VALIDATED=1` a més de `JMRI_TC_ENABLE_DCC=1`.
 
 La confirmació és una declaració de l'operador, no una certificació ni una lectura del circuit d'emergència. Cal mantenir una parada física independent que talli la tracció; el programari no substitueix proteccions elèctriques ni un enclavament ferroviari certificat. Consulta `docs/safety-validation.md`.
 
@@ -122,7 +122,7 @@ Prova específica: `node tests/safety.cjs`. La suite completa inclou aquesta pro
 
 ## Planificació supervisada d’horaris (1.3.0)
 
-El motor `automation-core.js` valida horaris, dies, finestres d’inici i velocitats limitades a 20 passos. El preflight exigeix explícitament la validació de seguretat de PR #7, JMRI i WiThrottle connectats, alimentació ON, DCC armat, sensors vàlids, primer bloc ocupat, blocs següents lliures, absència de conflictes de reserva i feedback verificat dels desviaments requerits (`CLOSED` o `THROWN`). La protecció contra execucions duplicades impedeix reclamar el mateix horari dues vegades el mateix dia.
+El motor `automation-core.js` valida horaris, dies, finestres d’inici i velocitats limitades a 20 passos. El preflight exigeix explícitament la validació de seguretat de PR #7, sistema de control i WiThrottle connectats, alimentació ON, DCC armat, sensors vàlids, primer bloc ocupat, blocs següents lliures, absència de conflictes de reserva i feedback verificat dels desviaments requerits (`CLOSED` o `THROWN`). La protecció contra execucions duplicades impedeix reclamar el mateix horari dues vegades el mateix dia.
 
 **Límit deliberat:** el planificador només valida i registra; no envia ordres físiques ni inicia trens. `safetyValidated` s’ha de derivar de l’estat actual de `JMRI_TC_SAFETY.canEnablePhysical(runtime)`, mai d’un valor persistent. La parada d’emergència física independent i les proteccions elèctriques continuen sent obligatòries. Consulta `docs/automation-1.3.md`.
 
@@ -154,7 +154,7 @@ Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm te
 - Totes les peces seleccionades es traslladen amb el mateix desplaçament, ajustat a la graella de 10 mm; es mantenen els offsets relatius i les rotacions.
 - Les coordenades d’origen de totes les peces seleccionades queden dins de la superfície 3000 × 1800 mm. Si es cancel·la l’arrossegament, es restauren totes les coordenades.
 - Cada moviment conjunt crea un únic pas a **Desfer/Refer**. Les connexions entre peces mogudes juntes conserven la geometria; qualsevol connexió amb peces no seleccionades s’ha de tornar a revisar amb «Validar topologia».
-- El motor de moviment és independent (`selection-move-core.js`) i no envia ordres a JMRI ni modifica estats de sensors, desviaments, blocs o sortides físiques.
+- El motor de moviment és independent (`selection-move-core.js`) i no envia ordres al sistema de control ni modifica estats de sensors, desviaments, blocs o sortides físiques.
 - Proves: `node --check selection-move-core.js`, `node tests/selection-move.cjs` i `node tests/smoke.cjs`.
 
 
@@ -162,7 +162,7 @@ Prova específica: `node tests/physical-validation.cjs`; suite completa: `npm te
 
 El mòdul `spielewelt-core.js` i la interfície `spielewelt-ui.js` ofereixen cabines virtuals per a locomotores mfx+, mfx, DCC, MM2/Motorola i altres descodificadors. Inclou perfils de vapor, dièsel i elèctric, modes sense consum, amb consum simulat i repostatge virtual al dipòsit. El motor diferencia explícitament la capacitat mfx+ declarada de la simulació pròpia del programa: en locomotores no mfx+ els recursos no es llegeixen ni s'escriuen al descodificador.
 
-**Límit de seguretat:** aquest mòdul és una simulació local i no envia ordres a la CS2, al bus de tracció, a JMRI ni a sortides físiques. El repostatge exigeix confirmació de dipòsit i només modifica l'estat simulat. No és una implementació del protocol propietari mfx+ ni substitueix la cabina nativa de Märklin.
+**Límit de seguretat:** aquest mòdul és una simulació local i no envia ordres a la CS2, al bus de tracció, al sistema de control ni a sortides físiques. El repostatge exigeix confirmació de dipòsit i només modifica l'estat simulat. No és una implementació del protocol propietari mfx+ ni substitueix la cabina nativa de Märklin.
 
 Proves: `node --check spielewelt-core.js`, `node --check spielewelt-ui.js` i `node tests/spielewelt.cjs`; també incorporades a `npm test`.
 
@@ -180,6 +180,6 @@ Proves: `node --check train-protection-core.js`, `node --check train-protection-
 
 El panell train-ground incorpora una interfície de cabina inspirada en terminals Alcatel/AEG de la sèrie 252: mode analògic per canals i mode GSM-R amb registre de xarxa simulat, funcions ferroviàries, trucades entrants/sortints, teclat numèric, PTT, missatges, alliberament i registre d'esdeveniments. Tots els botons tenen resposta local i les operacions es poden provar sense maquinari.
 
-**Límit essencial:** no és una rèplica exacta del terminal Alcatel/AEG ni implementa ràdio, SIM, autenticació, GSM-R real, EuroRadio o comunicacions amb infraestructura ferroviària. El botó d'emergència només crea un esdeveniment simulat. No controla la CS2, JMRI, DCC, tracció, frens ni sortides físiques. No s'ha d'utilitzar per comunicacions reals. Consulta [docs/train-ground-terminal.md](docs/train-ground-terminal.md).
+**Límit essencial:** no és una rèplica exacta del terminal Alcatel/AEG ni implementa ràdio, SIM, autenticació, GSM-R real, EuroRadio o comunicacions amb infraestructura ferroviària. El botó d'emergència només crea un esdeveniment simulat. No controla la central digital, DCC, tracció, frens ni sortides físiques. No s'ha d'utilitzar per comunicacions reals. Consulta [docs/train-ground-terminal.md](docs/train-ground-terminal.md).
 
 Proves: `node --check train-ground-core.js`, `node --check train-ground-ui.js` i `node tests/train-ground.cjs`; incorporades a `npm test`.
