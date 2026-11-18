@@ -26,7 +26,7 @@ function translate(value){
  const trimmed=source.trim();
  if(EXACT.has(trimmed))return source.replace(trimmed,EXACT.get(trimmed));
  let out=source;
- ['System health','Estat de salut del sistema'],['System health diagnostics','Diagnòstic de salut del sistema'],
+ ['System health','Estat de salut del sistema'],['Host','Servidor'],['Firmware','Microprogramari'],['Properties','Propietats'],['Speed','Velocitat'],['Model','Model'],['Status','Estat'],['Engine','Motor'],['Car','Vagó/cotxe'],['Layout','Maqueta'],['System health diagnostics','Diagnòstic de salut del sistema'],
  for(const [from,to] of REPLACEMENTS)out=out.replace(new RegExp('\\b'+from+'\\b','gi'),to);
  return out;
 }
