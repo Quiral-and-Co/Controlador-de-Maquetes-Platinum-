@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const html=fs.readFileSync('index.html','utf8'),menu=fs.readFileSync('electron/main.cjs','utf8'),app=fs.readFileSync('app.js','utf8');
 for(const label of ['Dispatcher','Trànsit','Horaris','Schedule Successors'])assert.ok(html.includes(label), 'missing ribbon or UI label '+label);
 for(const command of ['dispatcherOpen','dispatcherCreateRoute','trafficPlan','trafficList','scheduleCreate','scheduleList','scheduleSuccessors'])assert.ok(html.includes('data-ribbon-command="'+command+'"'), 'missing ribbon command '+command);
-for(const label of ['Dispatcher','Trànsit','Horaris'])assert.ok(menu.includes("label: '"+label+"'"),'missing native menu '+label);
+for(const label of ['Despatxador','Trànsit','Horaris'])assert.ok(menu.includes("label: '"+label+"'"),'missing native menu '+label);
 for(const command of ['dispatcherOpen','dispatcherCreateRoute','trafficPlan','trafficList','scheduleOpen','scheduleCreate','scheduleList','scheduleSuccessors'])assert.ok(app.includes("command==='"+command+"'"),'missing command handler '+command);
 for(const id of ['scheduleRoute','scheduleLoco','scheduleTime','scheduleSpeed','scheduleWindow','scheduleList','scheduleSuccessorSource','scheduleSuccessorTarget','scheduleSuccessorRemove'])assert.ok(html.includes('id="'+id+'"'),'missing schedule control '+id);
 assert.ok(html.includes('schedule-management-core.js')&&html.includes('schedule-management-ui.js'),'schedule scripts not loaded');

@@ -13,7 +13,11 @@ assert.equal(i18n.translate('Validation Master Registry'),'Registre mestre de va
 assert.equal(i18n.translate('System name'),'Identificador JMRI');
 assert.equal(i18n.translate('Stop Layout'),'Aturar la maqueta');
 assert.equal(i18n.translate('autosave'),'autosave','Do not translate technical substrings inside other words');
-assert.equal(i18n.translate('Metge Quiral · System health'),'Metge Quiral · System health');
+const nestedText={nodeType:3,nodeValue:'Dispatcher'};
+const nestedElement={nodeType:1,tagName:'DIV',childNodes:[nestedText],hasAttribute:()=>false,querySelectorAll:()=>[]};
+i18n.translateTree(nestedElement);
+assert.equal(nestedText.nodeValue,'Despatxador','Dynamically rendered text in generic containers must be translated');
+assert.equal(i18n.translate('Metge Quiral · System health'),'Metge Quiral · Estat de salut del sistema');
 const html=fs.readFileSync('index.html','utf8'),main=fs.readFileSync('electron/main.cjs','utf8');
 assert.match(html,/<html lang="ca">/);
 assert.ok(html.includes('catalan-localization.js'),'localization layer must load in the application');
