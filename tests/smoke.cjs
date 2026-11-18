@@ -206,6 +206,40 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   rotatedTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
   if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==90)throw Error('Keyboard-entered 45 degrees in quadrant IV did not apply 315 degrees');
 
+  // Multi-edit applies common values to the whole compatible selection and preserves relative coordinates.
+  const multiEditProject={schemaVersion:3,name:'Multi edit',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+  multiEditProject.levels[0].tracks=[
+    {id:'ME-A',type:'straight',name:'Recta A',x:100,y:100,rotation:0,levelId:1,geometry:{lengthMm:180,radiusMm:360,angleDeg:30}},
+    {id:'ME-B',type:'curve',name:'Corba B',x:280,y:100,rotation:0,levelId:1,geometry:{lengthMm:180,radiusMm:360,angleDeg:30}}
+  ];
+  multiEditProject.connections=[{id:'ME-C',levelId:1,from:{pieceId:'ME-A',port:'B'},to:{pieceId:'ME-B',port:'A'},verified:true}];
+  await els.configFile.onchange({target:{files:[{name:'multi-edit.json',text:async()=>JSON.stringify(multiEditProject)}],value:''}});
+  const key=(key,extra={})=>docHandlers.keydown({key,ctrlKey:true,metaKey:false,target:{tagName:'BODY'},preventDefault(){},...extra});
+  key('a');
+  if(!els.selectionText.textContent.startsWith('2 seleccionada'))throw Error('Ctrl+A did not select all pieces for multi-edit');
+  els.propLength.value='240';els.propLength.handlers.change({target:els.propLength});
+  let multiTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(multiTracks.some(p=>p.geometry.lengthMm!==240))throw Error('Length multi-edit did not update every selected piece');
+  els.propRadius.value='420';els.propRadius.handlers.change({target:els.propRadius});
+  multiTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(multiTracks.find(p=>p.id==='ME-B').geometry.radiusMm!==420||multiTracks.find(p=>p.id==='ME-A').geometry.radiusMm!==360)throw Error('Curve radius multi-edit changed an incompatible straight piece');
+  els.newBlockName.value='B-MULTI';els.addBlockBtn.onclick();
+  els.propBlock.value='B-MULTI';els.propBlock.handlers.change({target:els.propBlock});
+  multiTracks=window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks;
+  if(multiTracks.some(p=>p.blockId!=='B-MULTI'))throw Error('Block assignment multi-edit did not update all selected pieces');
+  key('c');key('x');
+  if(window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks.length!==0)throw Error('Ctrl+X did not cut the multi-selection');
+  key('v');
+  let multiConfig=window.JMRI_TC_DISPATCHER.getConfig();
+  if(multiConfig.levels[0].tracks.length!==2||multiConfig.connections.length!==1)throw Error('Ctrl+V did not restore the multi-selection and its internal connection');
+  if(multiConfig.connections[0].verified!==false)throw Error('Pasted connection incorrectly inherited verification');
+  els.undoBtn.onclick();
+  if(window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks.length!==0)throw Error('Undo did not revert the complete multi-paste');
+  els.redoBtn.onclick();
+  if(window.JMRI_TC_DISPATCHER.getConfig().levels[0].tracks.length!==2)throw Error('Redo did not restore the complete multi-paste');
+  key('a');key('Delete');
+  multiConfig=window.JMRI_TC_DISPATCHER.getConfig();
+  if(multiConfig.levels[0].tracks.length!==0||multiConfig.connections.length!==0)throw Error('Delete did not remove all selected pieces and affected connections');
   if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
   console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
