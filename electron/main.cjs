@@ -21,7 +21,7 @@ const projectFilters = [
 
 function installProjectHandlers() {
   ipcMain.handle('project:open', async (_event, options = {}) => {
-    const filters = options.importXtc === true ? [{ name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] }, projectFilters[2]] : projectFilters;
+    const filters = options.importXtc === true ? [{ name: 'Disseny XTrackCAD', extensions: ['xtc', 'xti', 'xtm'] }, projectFilters[2]] : projectFilters;
     const result = await dialog.showOpenDialog(mainWindow, { title: 'Obrir un projecte', buttonLabel: 'Obrir', properties: ['openFile'], filters });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
@@ -196,12 +196,12 @@ function installApplicationMenu(mode = 'modern') {
     ] },
     { label: 'Ajuda', submenu: [
       { label: 'Ajuda ràpida en català', click: () => dialog.showMessageBox(mainWindow, {
-        type: 'info', title: 'Ajuda ràpida · JMRI TC Gold Custom',
+        type: 'info', title: 'Ajuda ràpida · JMRI TC Gold Custom', buttons: ['D’acord'],
         message: 'Guia d’ús',
         detail: 'EDITOR DE MAQUETA\\nDissenya les vies, els nivells, els blocs, els sensors i els desviaments. Les connexions dibuixades no queden verificades físicament automàticament.\\n\\nDESPATXADOR I CIRCULACIONS\\nDefineix blocs i itineraris, consulta l’ocupació i planifica circulacions. Un estat desconegut mai no es considera lliure.\\n\\nHORARIS\\nCrea horaris, dies de circulació i successors. Els horaris són planificació supervisada: no posen trens en moviment ni envien ordres físiques.\\n\\nMETGE QUIRAL\\nExecuta l’autodiagnòstic per revisar la coherència del projecte, les referències, les connexions i els bloquejos de seguretat. Les recomanacions no substitueixen les proves de regressió, fail-safe ni les comprovacions físiques.\\n\\nSEGURETAT\\nLes sortides DCC i físiques romanen bloquejades fins que s’hagin completat i autoritzat totes les validacions requerides.'
       }) },
       { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
-        type: 'info', title: 'JMRI TC Gold Custom',
+        type: 'info', title: 'JMRI TC Gold Custom', buttons: ['D’acord'],
         message: 'JMRI TC Gold Custom',
         detail: 'Aplicació d’escriptori. Les sortides físiques i DCC continuen bloquejades per defecte.'
       }) }
@@ -284,7 +284,7 @@ async function createWindow() {
 app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('modern'); return createWindow(); }).catch(async error => {
   console.error(error);
   await dialog.showMessageBox({
-    type: 'error',
+    type: 'error', buttons: ['D’acord'],
     title: 'JMRI TC Gold Custom',
     message: 'No s’ha pogut iniciar el pont local.',
     detail: error.message

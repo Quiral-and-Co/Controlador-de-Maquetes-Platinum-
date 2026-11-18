@@ -16,7 +16,7 @@
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="view">Visualització</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="railroad">Ferrocarril</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="train">Tren</button>
-      <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="dispatcher">Dispatcher</button>
+      <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="dispatcher">Despatxador</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="traffic">Trànsit</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="schedules">Horaris</button>
     </div>
@@ -42,7 +42,7 @@
       <p class="ribbon-safety">Les sortides físiques i DCC continuen bloquejades fins a superar la validació de seguretat.</p>
     </div>
     <div class="ribbon-page" role="tabpanel" data-ribbon-page="dispatcher" hidden>
-      <div class="ribbon-group"><strong>Despatxador</strong><div><button data-ribbon-command="dispatcherOpen">Obrir Dispatcher</button><button data-ribbon-command="dispatcherCreateRoute">Crear itinerari</button></div></div>
+      <div class="ribbon-group"><strong>Despatxador</strong><div><button data-ribbon-command="dispatcherOpen">Obrir el despatxador</button><button data-ribbon-command="dispatcherCreateRoute">Crear itinerari</button></div></div>
       <div class="ribbon-group"><strong>Supervisió</strong><div><button data-ribbon-command="dispatcherOpen">Estat dels blocs i reserves</button></div></div>
     </div>
     <div class="ribbon-page" role="tabpanel" data-ribbon-page="traffic" hidden>
@@ -169,7 +169,7 @@
   </section>
   <section class="panel-card topology-card"><h3>Diagnòstic topològic</h3><p id="topologyReport" class="small muted">Encara no s’ha executat la validació. Les boques obertes són informatives mentre el traçat no estigui definit.</p></section>
   <section class="dispatcher-panel" aria-labelledby="dispatcherTitle">
-    <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Dispatcher · despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Sensors JMRI + simulació</span></div>
+    <div class="dispatcher-header"><div><h2 id="dispatcherTitle">Despatxador</h2><p>Supervisió de blocs i planificació d’itineraris.</p></div><span class="badge neutral">Sensors JMRI + simulació</span></div>
     <div class="dispatcher-warning"><strong>Mode segur:</strong> els blocs amb sensors verificats calculen l’ocupació des de JMRI; els blocs sense sensors continuen en simulació. Les reserves són locals; les ordres de locomotora només s'envien des del mòdul de circulacions amb DCC armat. No es controlen desviaments. Un bloc desconegut mai no es considera lliure.</div>
     <div class="dispatcher-metrics">
       <article class="dispatcher-metric"><span>Blocs lliures</span><strong id="dispatcherFreeCount">0</strong></article>
@@ -196,7 +196,7 @@
     <p id="dispatcherMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Crea blocs al registre de recursos per començar.</p>
   </section>
   <section id="schedulePanel" class="dispatcher-panel" aria-labelledby="scheduleTitle">
-    <div class="dispatcher-header"><div><h2 id="scheduleTitle">Horaris · Schedules</h2><p>Planificació de circulacions, dies, franges horàries i successors.</p></div><span class="badge offline">PLANIFICACIÓ · SENSE EXECUCIÓ</span></div>
+    <div class="dispatcher-header"><div><h2 id="scheduleTitle">Horaris</h2><p>Planificació de circulacions, dies, franges horàries i successors.</p></div><span class="badge offline">PLANIFICACIÓ · SENSE EXECUCIÓ</span></div>
     <div class="dispatcher-warning"><strong>Interbloqueig:</strong> aquest gestor només desa i supervisa horaris. No inicia circulacions, no reserva automàticament blocs i no envia ordres a JMRI, WiThrottle, CS2 ni a cap sortida física. Els horaris vençuts o arribats a la franja queden pendents de revisió.</div>
     <form id="scheduleForm" class="dispatcher-subpanel">
       <h3>Crear o editar horari</h3>
@@ -215,7 +215,7 @@
       <div class="dispatcher-route-actions"><button id="scheduleSave" class="primary" type="button">Crear horari</button><button id="scheduleReset" type="button">Netejar formulari</button></div>
     </form>
     <section class="dispatcher-subpanel"><h3>Horaris registrats</h3><div id="scheduleList" class="dispatcher-route-list"><p class="dispatcher-empty">Encara no hi ha horaris definits.</p></div></section>
-    <section class="dispatcher-subpanel"><h3>Schedule Successors · successors d’horaris</h3><p class="dispatcher-help">Defineix la relació entre horaris. Es comprova que no hi hagi bucles. La relació no activa el següent tren automàticament.</p>
+    <section class="dispatcher-subpanel"><h3>Horaris successors</h3><p class="dispatcher-help">Defineix la relació entre horaris. Es comprova que no hi hagi bucles. La relació no activa el següent tren automàticament.</p>
       <div class="traffic-form"><label>Horari origen<select id="scheduleSuccessorSource"><option value="">Horari origen</option></select></label><label>Horari successor<select id="scheduleSuccessorTarget"><option value="">Horari successor</option></select></label><button id="scheduleSuccessorAdd" type="button">Afegir successor</button><button id="scheduleSuccessorRemove" type="button">Treure successor</button></div>
     </section>
     <p id="scheduleMessage" class="dispatcher-message" role="status" aria-live="polite">Preparat. Crea un horari després de registrar itineraris i locomotores.</p>
@@ -324,7 +324,7 @@
     <p class="spielewelt-note">Els comandaments, instruments i consums d’aquest mòdul són simulació local. No envien ordres a la CS2, al descodificador ni a les sortides físiques. La compatibilitat nativa mfx+ només es declara quan consta explícitament a la fitxa de la locomotora.</p>
   </section>
   <section class="dispatcher-panel traffic-panel" aria-labelledby="trafficTitle">
-    <div class="dispatcher-header"><div><h2 id="trafficTitle">Gestió de circulacions · Märklin DCC</h2><p>Conducció manual i circulacions automàtiques supervisades pel Dispatcher.</p></div><span id="trafficBridgeStatus" class="badge offline">WiThrottle desconnectat</span></div>
+    <div class="dispatcher-header"><div><h2 id="trafficTitle">Gestió de circulacions · Märklin DCC</h2><p>Conducció manual i circulacions automàtiques supervisades pel despatxador.</p></div><span id="trafficBridgeStatus" class="badge offline">WiThrottle desconnectat</span></div>
     <div class="dispatcher-warning"><strong>Seguretat:</strong> el control DCC real està desactivat per defecte. L'automàtic només admet rutes sense desviaments fins que existeixi una comprovació d'alineació i bloqueig de desviaments. En qualsevol estat desconegut es demana aturada d'emergència. La reserva no és un enclavament ferroviari certificat.</div>
     <div class="traffic-connection">
       <label>Host WiThrottle <input id="trafficHost" value="127.0.0.1"></label>
@@ -392,7 +392,7 @@
   <section class="signal-diagnostics-panel" aria-labelledby="signalDiagnosticsTitle"><h3 id="signalDiagnosticsTitle">Diagnòstic per nivell i selecció de dependències</h3><p id="selectedSignalRelations" class="small muted">Selecciona una senyal al registre per ressaltar les seves dependències al tauler.</p><div id="signalLevelDiagnostics" class="signal-level-diagnostics" aria-live="polite"></div></section>
   <section class="signal-diagnostics-panel metge-quiral-panel" aria-labelledby="metgeQuiralTitle"><h3 id="metgeQuiralTitle">Metge Quiral · salut del sistema</h3><p class="validation-safety-note">Diagnòstic local basat en regles explicables. No modifica el projecte ni activa JMRI, DCC o sortides físiques. No substitueix les proves de regressió, fail-safe ni les comprovacions físiques.</p><div class="quiral-toolbar"><strong id="metgeQuiralStatus" data-status="UNKNOWN">Pendent de diagnòstic</strong><button id="metgeQuiralRun" type="button" class="primary">Executar autodiagnòstic</button></div><p id="metgeQuiralSummary" class="small muted">Encara no s’ha executat cap diagnòstic.</p><div id="metgeQuiralResults" class="quiral-results" aria-live="polite"></div></section>
   <section class="signal-diagnostics-panel" aria-labelledby="physicalValidationTitle"><h3 id="physicalValidationTitle">Matriu individual de validació</h3><p class="validation-safety-note"><strong>Només registre i diagnòstic:</strong> marcar aquestes caselles no és una prova instrumental, no habilita sortides físiques i no arma DCC. La parada d’emergència independent i les proteccions elèctriques s’han de verificar separadament.</p><div id="physicalValidationMatrix" class="validation-matrix" aria-live="polite"></div></section>
-  <section class="signal-diagnostics-panel" aria-labelledby="validationMasterRegistryTitle"><h3 id="validationMasterRegistryTitle">Validation Master Registry · registre mestre</h3><p class="validation-safety-note">Identificadors individuals, persistència, historial auditable i generació d’actes. El registre no autoritza cap sortida ni automatització.</p><div id="validationMasterRegistry" class="validation-matrix" aria-live="polite"></div></section>
+  <section class="signal-diagnostics-panel" aria-labelledby="validationMasterRegistryTitle"><h3 id="validationMasterRegistryTitle">Registre mestre de validació</h3><p class="validation-safety-note">Identificadors individuals, persistència, historial auditable i generació d’actes. El registre no autoritza cap sortida ni automatització.</p><div id="validationMasterRegistry" class="validation-matrix" aria-live="polite"></div></section>
   <section class="resource-grid">
     <article class="panel-card resource-card"><h3>Blocs lògics · nivell actual</h3><p class="small muted">Els blocs són agrupacions de disseny; no reserven trens ni activen automatismes.</p><div class="resource-create"><input id="newBlockName" placeholder="Nom del bloc (p. ex. B01)" aria-label="Nom del bloc"><button id="addBlockBtn">Crear bloc</button></div><div id="blockRegistry" class="resource-list">Sense blocs definits.</div></article>
     <article class="panel-card resource-card"><h3>Sensors JMRI · nivell actual</h3><p class="small muted">System name JMRI únic. Cada sensor nou queda no verificat fins a contrastar-lo amb el maquinari.</p><div class="resource-create"><input id="newSensorSystemName" placeholder="System name (p. ex. LS101)" aria-label="System name del sensor"><input id="newSensorUserName" placeholder="Nom visible (opcional)" aria-label="Nom visible del sensor"><button id="addSensorBtn">Registrar sensor</button></div><div id="sensorRegistry" class="resource-list">Sense sensors registrats.</div></article>
