@@ -2,7 +2,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
-const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require('playwright');
 
@@ -97,21 +96,24 @@ function samePersistedFields(actual, expected, label) {
       'browser project export button must be present, enabled, and wired: ' + JSON.stringify(exportDiagnostics));
     assert.equal(exportDiagnostics.nativeSaveBridge, false,
       'browser test must exercise the browser-download fallback, not Electron native save');
-    const projectExportDownload = page.waitForEvent('download', { timeout:15000 });
-    await page.locator('#exportBtn').click();
-    let projectDownload;
-    try {
-      projectDownload = await projectExportDownload;
-    } catch (error) {
+    // Attach both promise handlers immediately: otherwise a download timeout can become
+    // an unhandled rejection while Playwright is still waiting for the button click.
+    const projectExportDownload = page.waitForEvent('download', { timeout:30000 })
+      .then(download => ({ download }), error => ({ error }));
+    await page.locator('#exportBtn').click({ timeout:10000 });
+    const downloadResult = await projectExportDownload;
+    if (downloadResult.error) {
       const diagnostics = await page.evaluate(() => ({
-        exportLog: [...document.querySelectorAll('#eventLog li')].slice(0,5).map(x => x.textContent),
+        exportLog: [...document.querySelectorAll('#eventLog li')].slice(0,8).map(x => x.textContent),
         blobUrlSupported: typeof URL.createObjectURL === 'function',
         blobSupported: typeof Blob === 'function',
         anchorCount: document.querySelectorAll('a[download]').length,
+        anchors: [...document.querySelectorAll('a[download]')].map(a => ({ href:a.href, download:a.download, connected:a.isConnected })),
         exportButtonHandler: typeof document.querySelector('#exportBtn')?.onclick
       }));
-      throw new Error('Project JSON download did not start: ' + JSON.stringify(diagnostics) + '; ' + error.message);
+      throw new Error('Project JSON download did not start: ' + JSON.stringify(diagnostics) + '; ' + downloadResult.error.message);
     }
+    const projectDownload = downloadResult.download;
     const projectPath = await projectDownload.path();
     assert.ok(projectPath, 'project export must create a browser download');
     const exportedProject = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
@@ -155,7 +157,7 @@ function samePersistedFields(actual, expected, label) {
     const actTwo = await captureActs();
     assert.notEqual(actOne, actTwo, 'two consecutive browser-generated acts must have unique IDs');
 
-    // Close the browser context, reopen Chromium with the same profile, then import the exported project.
+    // Reopen an isolated browser context, then import the exported project.
     await page.close();
     await context.close();
     context = await browser.newContext();
