@@ -103,6 +103,20 @@ function installApplicationMenu(mode = 'modern') {
       item('Connectar amb JMRI (lectura)', 'connect'),
       item('Desconnectar de JMRI', 'disconnect')
     ] },
+    { label: 'Ferrocarril', submenu: [
+      item('Configurar sistema digital…', 'openCommandStation'),
+      item('Estat de la connexió i de la central…', 'showDigitalStatus'),
+      { type: 'separator' },
+      { label: 'Aturar tots els trens (bloquejat fins a validació fail-safe)', enabled: false },
+      { label: 'Finalitzar tots els horaris (gestor d’horaris pendent)', enabled: false },
+      { label: 'Cancel·lar totes les rutes (interbloqueig pendent)', enabled: false },
+      { type: 'separator' },
+      { label: 'Activar alimentació de via (sortides físiques bloquejades)', enabled: false },
+      { label: 'Desactivar alimentació de via (ordre física no habilitada)', enabled: false },
+      { label: 'Aturar maqueta / Stop Layout (pendent de validació física)', enabled: false },
+      { type: 'separator' },
+      { label: 'Diagnòstic del sistema digital (només lectura)', click: () => send('showDigitalStatus') }
+    ] },
     { label: 'Ajuda', submenu: [
       { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
         type: 'info', title: 'JMRI TC Gold Custom',
