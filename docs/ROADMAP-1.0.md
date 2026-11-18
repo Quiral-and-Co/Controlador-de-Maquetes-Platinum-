@@ -1,4 +1,4 @@
-# JMRI TC Gold Custom — pla de desenvolupament 1.0
+# Maquetes by Quiral & Co. Platinum — pla de desenvolupament 1.0
 
 Estat: **en desenvolupament**. Aquest document defineix l'abast de la versió 1.0; no declara completades funcions que encara no existeixen.
 
@@ -80,6 +80,6 @@ La parada d'emergència de programari, per si sola, no es considera una protecci
 - Un estat de sensor desconegut mai no es tracta com a via lliure.
 - Cap funció de control real s'activa per defecte.
 
-## Relació amb TrainController
+## Identitat i independència del producte
 
-La referència a TrainController 10 Gold és funcional i d'experiència d'usuari: editor de maqueta, dispatcher, control DCC i automatitzacions. JMRI TC Gold Custom és un projecte independent i no incorpora codi, recursos ni interfície propietària de TrainController.
+El producte es desenvolupa amb una identitat pròpia. No es presenta com una edició, extensió ni producte afiliat a cap fabricant de programari de tercers. Les integracions tècniques es documenten de manera descriptiva i només quan són necessàries per indicar compatibilitat.
