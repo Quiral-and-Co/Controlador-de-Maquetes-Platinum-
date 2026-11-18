@@ -450,6 +450,15 @@
   function trainDelete(){if(!trainEditMode){log('Eliminació bloquejada: activa primer «mode d’edició de trens».');return;}const kind=(trainPrompt('Què vols eliminar? Escriu TRAIN, SET o CAR:','TRAIN')||'').toLowerCase();const id=trainPrompt('ID exacte de l’element que vols eliminar:');if(id===null)return;const active=window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()?.activeRun;checkpoint();const result=window.JMRI_TC_TRAIN_ROSTER.remove(trainRoster(),kind,id,{editMode:trainEditMode,activeEngineIds:active?[active.locomotiveId]:[]});if(!result.ok){state.history.pop();state.isDirty=false;updateHistoryButtons();log(result.error);return;}render();log('Element eliminat del registre del projecte.');}
   function trainOperations(){$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('trafficLocoName')?.closest('.dispatcher-subpanel')?.scrollIntoView?.({behavior:'smooth',block:'center'});log('Operacions de tren: es mostren els registres i planificacions del Dispatcher. L’inici de circulacions, adquisició i automatització física continuen bloquejats.');}
   function trainLocked(command){const labels={trainAcquire:'Adquirir control',trainRelease:'Alliberar control',trainStop:'Aturar',trainReverse:'Invertir sentit',trainEmergency:'Aturada d’emergència',trainFunctions:'Funcions auxiliars'};log((labels[command]||'Ordre de tren')+' BLOQUEJAT: DCC i sortides físiques deshabilitats; cal validació fail-safe i autorització independent.');}
+  function showHelp(topic='quick'){
+    const dialog=$('helpDialog');if(!dialog){log('El centre d’ajuda no està disponible.');return;}
+    const key=({contents:'quick',shortcuts:'shortcuts',diagnostics:'diagnostics',about:'about'})[topic]||topic;
+    dialog.querySelectorAll('[data-help-topic]').forEach(button=>{const active=button.dataset.helpTopic===key;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+    dialog.querySelectorAll('[data-help-section]').forEach(section=>{section.hidden=section.dataset.helpSection!==key;});
+    if(!dialog.open)dialog.showModal();
+  }
+  $('helpDialog')?.querySelectorAll('[data-help-topic]').forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
+  $('helpDialogClose')?.addEventListener('click',()=> $('helpDialog')?.close());
   function handleAppCommand(command){
     if(command==='new')newProject();
     else if(command==='open')openNativeProject(false);
@@ -466,6 +475,22 @@
     else if(command==='preferences'){showPreferences().then(configureAutosave);}
     else if(command==='setClassicMode')setMode('classic');
     else if(command==='setModernMode')setMode('modern');
+    else if(command==='windowShowAll')window.JMRI_TC_DESKTOP?.showAll?.();
+    else if(command==='windowMinimizeAll')window.JMRI_TC_DESKTOP?.minimizeAll?.();
+    else if(command==='windowCascade')window.JMRI_TC_DESKTOP?.cascade?.();
+    else if(command==='windowTile')window.JMRI_TC_DESKTOP?.tile?.();
+    else if(command==='windowRestoreLayout')window.JMRI_TC_DESKTOP?.restoreLayout?.();
+    else if(command==='windowShowEditor'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Tauler de disseny'))$('currentLevelTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowDispatcher'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Despatxador'))$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowTraffic'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Gestió de circulacions'))$('trafficTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowSchedules'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Horaris'))$('scheduleTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowOperation'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Operació'))$('operationTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowMetgeQuiral'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral'))$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='helpQuick')showHelp('quick');
+    else if(command==='helpContents')showHelp('contents');
+    else if(command==='helpShortcuts')showHelp('shortcuts');
+    else if(command==='helpDiagnostics'){showHelp('diagnostics');$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='helpAbout')showHelp('about');
     else if(command==='undo')undo();
     else if(command==='redo')redo();
     else if(command==='cut')cutSelectedPieces();
