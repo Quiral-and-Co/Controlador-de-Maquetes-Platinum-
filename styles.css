@@ -97,3 +97,28 @@ body.mode-modern .canvas-wrap{border:1px solid #b8c1cb;border-radius:3px}
 body.mode-modern .modern-block{background:#f7f9fc;color:#20242a;border:1px solid #cbd1d9;border-radius:4px}
 body.mode-modern footer{color:#66717e}
 body.mode-modern .badge{border-radius:4px}
+
+
+/* Real modern desktop workspace: independent movable, resizable application windows. */
+body.mode-modern main{max-width:none;width:100%;padding:10px 14px 0}
+body.mode-modern .desktop-notice{margin-bottom:8px}
+body.mode-modern .desktop-commandbar{position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;max-height:112px;overflow:auto}
+.desktop-workspace{position:relative;min-height:1120px;height:calc(100vh - 250px);min-width:0;overflow:auto;background:linear-gradient(135deg,#dfe5ed 0%,#edf1f6 55%,#dfe6ef 100%);border:1px solid #aeb9c7;border-radius:7px;box-shadow:inset 0 1px 4px #26384b18}
+.desktop-window{position:absolute;display:flex;flex-direction:column;min-width:260px;min-height:180px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);resize:both;overflow:hidden;background:#fff;border:1px solid #8796a8;border-radius:6px;box-shadow:0 8px 24px #1d2c3e30}
+.desktop-window[hidden]{display:none}
+.desktop-window-titlebar{height:36px;min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 0 12px;background:linear-gradient(#fbfcfe,#e8edf4);border-bottom:1px solid #c2ccd8;color:#1b2838;cursor:move;user-select:none}
+.desktop-window-titlebar strong{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desktop-window-controls{display:flex;gap:4px}
+.desktop-window-controls button{width:27px;height:24px;min-width:27px;padding:0;line-height:1;border:1px solid #c0c9d4;border-radius:3px;background:#f8fafc;color:#283747}
+.desktop-window-controls button:last-child:hover{background:#fce7e7;border-color:#d68a8a}
+.desktop-window-content{min-height:0;flex:1;overflow:auto;padding:8px;background:#fdfefe}
+.desktop-window-content>.editor-sidebar,.desktop-window-content>.track-area,.desktop-window-content>.properties-panel{width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
+.desktop-window-content>.track-area{display:flex;flex-direction:column}
+.desktop-window-content>.track-area .canvas-wrap{flex:1;min-height:260px}
+.desktop-window-content>.track-area #trackSvg{width:100%;height:100%;min-height:260px}
+.desktop-taskbar{position:sticky;bottom:0;z-index:120;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
+.desktop-task{flex:0 0 auto;max-width:220px;padding:7px 11px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desktop-task.is-open{background:#d6e8fb!important;border-color:#438acb!important}
+body.mode-modern .desktop-window-content .editor-sidebar,body.mode-modern .desktop-window-content .properties-panel{box-shadow:none}
+body.mode-modern .desktop-window-content .panel-card,body.mode-modern .desktop-window-content .dispatcher-panel,body.mode-modern .desktop-window-content .signal-diagnostics-panel{box-shadow:none}
+@media(max-width:900px){.desktop-workspace{height:auto;min-height:1600px}.desktop-window{max-width:calc(100% - 20px)}}
