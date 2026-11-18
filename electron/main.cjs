@@ -14,7 +14,7 @@ const approvedProjectPaths = createProjectPathPolicy();
 const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
 const projectFilters = [
-  { name: 'Projectes JMRI TC', extensions: ['json'] },
+  { name: 'Projectes de maqueta', extensions: ['json'] },
   { name: 'Disseny XTrackCAD', extensions: ['xtc', 'xti', 'xtm'] },
   { name: 'Tots els fitxers', extensions: ['*'] }
 ];
@@ -34,7 +34,7 @@ function installProjectHandlers() {
     if (options.saveAs === true || typeof options.filePath !== 'string' || !options.filePath) {
       const result = await dialog.showSaveDialog(mainWindow, {
         title: 'Desar el projecte', buttonLabel: 'Desar',
-        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'JMRI_TC_Gold_Custom_layout.json'),
+        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'Maquetes_Quiral_layout.json'),
         filters: projectFilters.slice(0, 2)
       });
       if (result.canceled || !result.filePath) return { canceled: true };
@@ -224,7 +224,7 @@ function installApplicationMenu(mode = 'modern') {
       { type: 'separator' },
       item('Seguretat i diagnòstics del Metge Quiral', 'helpDiagnostics'),
       { type: 'separator' },
-      item('Sobre JMRI TC Gold Custom', 'helpAbout')
+      item('Sobre Maquetes by Quiral & Co. Platinum', 'helpAbout')
     ] }
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
@@ -305,7 +305,7 @@ app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('m
   console.error(error);
   await dialog.showMessageBox({
     type: 'error', buttons: ['D’acord'],
-    title: 'JMRI TC Gold Custom',
+    title: 'Maquetes by Quiral & Co. Platinum',
     message: 'No s’ha pogut iniciar el pont local.',
     detail: error.message
   });
