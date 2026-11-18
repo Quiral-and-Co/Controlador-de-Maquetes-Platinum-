@@ -181,8 +181,8 @@
     showAll() { records.forEach(({ win, task }) => { win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open'); }); },
     minimizeAll() { records.forEach(({ win, task }) => { win.hidden = true; task.classList.remove('is-open'); }); },
     focusWindow(query) {
-      const needle = String(query || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
-      const record = records.find(({ win }) => win.getAttribute('aria-label').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().includes(needle));
+      const needle = String(query || '').toLowerCase();
+      const record = records.find(({ win }) => win.getAttribute('aria-label').toLowerCase().includes(needle));
       if (!record) return false;
       record.win.hidden = false; record.win.style.zIndex = String(++zIndex); record.task.classList.add('is-open'); return true;
     },
