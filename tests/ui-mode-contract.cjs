@@ -10,7 +10,7 @@ const modeStart = app.indexOf('function setMode(');
 const modeEnd = app.indexOf('window.JMRI_TC_DISPATCHER =', modeStart);
 assert.ok(modeStart >= 0 && modeEnd > modeStart, 'mode switch implementation must exist');
 const modeSource = app.slice(modeStart, modeEnd);
-assert.match(modeSource, /document\.body\.classList\.toggle\('mode-modern'/);
+assert.match(modeSource, /document\.body\?\.classList\?\.toggle\('mode-modern'/);
 assert.match(modeSource, /setUiMode\?\.\(next\)/);
 assert.doesNotMatch(modeSource, /state\.config\s*=|state\.selectedIds\s*=|state\.selectedLevel\s*=/,
   'switching interface mode must not replace project, selection or active level');
