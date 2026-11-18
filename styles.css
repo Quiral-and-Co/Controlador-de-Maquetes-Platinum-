@@ -174,3 +174,8 @@ body.mode-modern .modern-ribbon:not([hidden]){display:block!important}
 body.mode-modern .modern-ribbon{position:relative;z-index:100}
 body.mode-modern .desktop-workspace{position:relative;z-index:1}
 body.mode-modern .desktop-taskbar{position:relative;z-index:2}
+
+/* Isolate desktop stacking: floating windows must never cover ribbon commands. */
+body.mode-modern .modern-ribbon{position:sticky;top:58px;z-index:1000;isolation:isolate;background:#f7f8fa}
+body.mode-modern .desktop-workspace{position:relative;z-index:0;isolation:isolate}
+body.mode-modern .desktop-taskbar{position:relative;z-index:0;isolation:isolate}
