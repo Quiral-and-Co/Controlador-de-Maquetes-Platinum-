@@ -26,6 +26,7 @@ console.log('PASS Windows UI mode contract and fail-safe defaults');
 assert.match(app, /JMRI_TC_DESKTOP\?\.setMode/);
 const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
 const styles = fs.readFileSync('styles.css', 'utf8');
+assert.match(manager, /let activeMode = null;/, 'initial modern mode must be applied instead of being skipped as already active');
 assert.match(manager, /desktop-window-titlebar/);
 assert.match(manager, /desktop-taskbar/);
 assert.match(styles, /resize:both/);
