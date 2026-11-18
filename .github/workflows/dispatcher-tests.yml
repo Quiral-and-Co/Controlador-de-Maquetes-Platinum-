@@ -27,6 +27,8 @@ jobs:
           node --check catalogue.js
           node --check dispatcher-core.js
           node --check dispatcher.js
+          node --check schedule-management-core.js
+          node --check schedule-management-ui.js
           node --check traffic-core.js
           node --check safety-core.js
           node --check automation-core.js
@@ -52,6 +54,10 @@ jobs:
           node --check train-roster-core.js
           node tests/train-roster.cjs
           node tests/train-menu-contract.cjs
+      - name: Schedule management and successor tests
+        run: |
+          node tests/schedule-management.cjs
+          node tests/schedule-menu-contract.cjs
       - name: Install local bridge dependencies
         run: npm install --no-audit --no-fund
       - name: Install Chromium for Playwright
