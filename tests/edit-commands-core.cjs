@@ -50,7 +50,7 @@ const fixture=()=>({levels:[
 {
  const config=fixture(),result=edit.removeSelection(config,1,['A']);
  assert.equal(result.changed,true);
- assert.deepEqual(result.config.connections.map(c=>c.id),[]);
+ assert.deepEqual(result.config.connections.map(c=>c.id),['BC'],'unrelated connection must survive deleting A');
  assert.deepEqual(result.config.levels[0].tracks.map(p=>p.id),['B','C']);
 }
 console.log('PASS Edit core: multi-selection copy/cut, internal connection preservation, cross-level paste, unique remapping, safe verification reset, delete and select-all');
