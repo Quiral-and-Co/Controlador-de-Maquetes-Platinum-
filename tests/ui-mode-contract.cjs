@@ -25,9 +25,10 @@ console.log('PASS Windows UI mode contract and fail-safe defaults');
 
 assert.match(app, /JMRI_TC_DESKTOP\\?\\.setMode/);
 const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
+const styles = fs.readFileSync('styles.css', 'utf8');
 assert.match(manager, /desktop-window-titlebar/);
 assert.match(manager, /desktop-taskbar/);
-assert.match(manager, /resize:both/);
+assert.match(styles, /resize:both/);
 assert.match(manager, /pointermove/);
 assert.match(manager, /leaveModern/);
 assert.match(manager, /Tauler de disseny de la maqueta/);
