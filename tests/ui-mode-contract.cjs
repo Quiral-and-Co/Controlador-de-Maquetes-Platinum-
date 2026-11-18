@@ -43,3 +43,11 @@ assert.match(manager, /pointermove/);
 assert.match(manager, /leaveModern/);
 assert.match(manager, /Tauler de disseny de la maqueta/);
 console.log('PASS floating modern desktop windows, taskbar and classic restore contract');
+
+assert.match(html=fs.readFileSync('index.html','utf8'), /id="modernRibbon"/, 'modern mode must provide a real ribbon');
+assert.match(html, /data-ribbon-tab="home"/);
+assert.match(html, /data-ribbon-page="railroad"/);
+assert.match(app, /data-ribbon-command/);
+assert.match(app, /function handleAppCommand\(command\)/, 'ribbon actions must share the real command dispatcher');
+assert.match(app, /addEventListener\('click',\(\)=>handleAppCommand\(button\.dataset\.ribbonCommand\)\)/);
+console.log('PASS modern ribbon tabs and functional command routing');
