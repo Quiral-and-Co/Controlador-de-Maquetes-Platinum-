@@ -52,7 +52,7 @@
     return {config:cfg,report:{imported,unsupported:[...new Set(unsupported)]}};
   }
   function exportXtc(config){
-    const out=['#XTrackCAD Version: 5.3.1, Date: JMRI TC Gold Custom','VERSION 12 5.3.1','TITLE1 '+String(config.name||'JMRI TC Gold Custom').replace(/[\r\n]/g,' '),'TITLE2 JMRI TC Gold Custom','MAPSCALE 1','ROOMSIZE '+(n(config.room?.widthMm,3000)/MM_PER_INCH).toFixed(6)+' x '+(n(config.room?.heightMm,1800)/MM_PER_INCH).toFixed(6),'SCALE H0'];
+    const out=['#XTrackCAD Version: 5.3.1, Date: Maquetes by Quiral & Co. Platinum','VERSION 12 5.3.1','TITLE1 '+String(config.name||'Maquetes by Quiral & Co. Platinum').replace(/[\r\n]/g,' '),'TITLE2 Maquetes by Quiral & Co. Platinum','MAPSCALE 1','ROOMSIZE '+(n(config.room?.widthMm,3000)/MM_PER_INCH).toFixed(6)+' x '+(n(config.room?.heightMm,1800)/MM_PER_INCH).toFixed(6),'SCALE H0'];
     for(let i=0;i<5;i++)out.push('LAYERS '+i+' 1 0 1 255 0 0 0 0 "'+esc(config.levels?.[i]?.name||('Nivell '+(i+1)))+'"');
     let id=1,unsupported=[];
     for(const level of (config.levels||[])){
