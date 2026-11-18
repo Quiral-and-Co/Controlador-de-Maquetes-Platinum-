@@ -198,7 +198,7 @@
   <section id="schedulePanel" class="dispatcher-panel" aria-labelledby="scheduleTitle">
     <div class="dispatcher-header"><div><h2 id="scheduleTitle">Horaris · Schedules</h2><p>Planificació de circulacions, dies, franges horàries i successors.</p></div><span class="badge offline">PLANIFICACIÓ · SENSE EXECUCIÓ</span></div>
     <div class="dispatcher-warning"><strong>Interbloqueig:</strong> aquest gestor només desa i supervisa horaris. No inicia circulacions, no reserva automàticament blocs i no envia ordres a JMRI, WiThrottle, CS2 ni a cap sortida física. Els horaris vençuts o arribats a la franja queden pendents de revisió.</div>
-    <form id="scheduleForm" class="dispatcher-subpanel" onsubmit="return false">
+    <form id="scheduleForm" class="dispatcher-subpanel">
       <h3>Crear o editar horari</h3>
       <div class="traffic-form">
         <label>Nom de l’horari<input id="scheduleName" maxlength="80" required placeholder="p. ex. Tren del matí"></label>
