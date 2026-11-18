@@ -31,6 +31,8 @@
   if(!selectionMove)throw new Error('No s’ha carregat selection-move-core.js abans de app.js.');
   const trackJunction = window.JMRI_TC_TRACK_JUNCTION;
   if(!trackJunction)throw new Error('No s’ha carregat track-junction-core.js abans de app.js.');
+  const trackTopology3D = window.JMRI_TC_TRACK_TOPOLOGY_3D;
+  if(!trackTopology3D)throw new Error('No s’ha carregat track-topology-3d-core.js abans de app.js.');
   function applyViewBox(){const v=state.viewBox;$('trackSvg').setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${v.height}`);$('zoomReadout').textContent=`${Math.round(viewport.zoomPercent(v,BOARD))}%`;}
   function viewportCenter(){return {x:state.viewBox.x+state.viewBox.width/2,y:state.viewBox.y+state.viewBox.height/2};}
   function zoomViewport(factor,anchor){state.viewBox=viewport.zoomAt(state.viewBox,factor,anchor,BOARD);applyViewBox();}
@@ -329,7 +331,7 @@
   // Auditoria topològica local: no crea ni modifica connexions i no parla amb el maquinari.
   function auditTopology(){
     const errors=[],warnings=[],occupied=new Map(),known=new Map(),allPieces=new Map();
-    for(const l of state.config.levels)for(const p of (l.tracks||[])){allPieces.set(p.id,{piece:p,level:l});for(const q of worldPorts(p))known.set(`${p.id}:${q.port}`,{...q,piece:p,levelId:l.id});}
+    for(const l of state.config.levels)for(const p of (l.tracks||[])){allPieces.set(p.id,{piece:p,level:l});for(const q of worldPorts(p))known.set(`${p.id}:${q.port}`,{...q,zMm:trackTopology3D.portZ(p,l,q.port),piece:p,levelId:l.id});}
     const seen=new Set();
     for(const c of (state.config.connections||[])){
       const a=known.get(`${c.from?.pieceId}:${c.from?.port}`),b=known.get(`${c.to?.pieceId}:${c.to?.port}`);
@@ -339,9 +341,10 @@
       const canonical=[key1,key2].sort().join('|');
       if(seen.has(canonical))errors.push(`Connexió duplicada entre ${key1} i ${key2}.`);seen.add(canonical);
       for(const k of [key1,key2]){if(occupied.has(k))errors.push(`Port ${k} utilitzat per més d’una connexió.`);else occupied.set(k,c.id);}
-      const gap=Math.hypot(a.x-b.x,a.y-b.y);
+      const gap=trackTopology3D.gap3D(a,b);
       if((a.piece.geometryStatus&&a.piece.geometryStatus!=='confirmed')||(b.piece.geometryStatus&&b.piece.geometryStatus!=='confirmed'))warnings.push(`Connexió ${c.id}: inclou una peça amb geometria parcial/no verificada; no certifica l’encaix físic.`);
-      if(gap>1)errors.push(`Connexió ${c.id}: discontinuïtat geomètrica de ${gap.toFixed(1)} mm (tolerància 1 mm).`);
+      if(!gap.valid)errors.push(`Connexió ${c.id}: cota Z absent o no vàlida en un extrem; auditoria XYZ bloquejada.`);
+      else if(gap.distanceMm>1)errors.push(`Connexió ${c.id}: discontinuïtat geomètrica XYZ de ${gap.distanceMm.toFixed(1)} mm (ΔZ ${gap.verticalMm.toFixed(1)} mm, tolerància 1 mm).`);
       if(a.pieceId===b.pieceId)errors.push(`Connexió ${c.id}: auto connexió no permesa.`);
     }
     let open=0;
