@@ -15,7 +15,9 @@ assert.match(modeSource, /setUiMode\?\.\(next\)/);
 assert.doesNotMatch(modeSource, /state\.config\s*=|state\.selectedIds\s*=|state\.selectedLevel\s*=/,
   'switching interface mode must not replace project, selection or active level');
 assert.match(preload, /setUiMode:\s*mode\s*=>/);
-assert.match(main, /autoHideMenuBar:\s*false/);
+assert.match(main, /autoHideMenuBar:\s*true/);
+assert.match(main, /setMenuBarVisibility\(activeMode === 'classic'\)/, 'native menu must be visible only in classic mode');
+assert.match(app, /ribbon\.hidden=next!=='modern'/, 'ribbon visibility must be explicitly synchronized with mode');
 assert.match(main, /Menús clàssics/);
 assert.match(main, /Menús moderns/);
 assert.match(main, /ipcMain\.on\('ui:mode'/);
