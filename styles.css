@@ -157,3 +157,15 @@ body.mode-modern .ribbon-group button{min-height:34px;padding:7px 10px;font-size
 /* Keep the modern ribbon explicitly mode-gated; JS also controls its hidden state. */
 .modern-ribbon[hidden]{display:none!important}
 body.mode-modern .modern-ribbon:not([hidden]){display:block!important}
+
+/* Finestres i centre d'ajuda */
+.help-dialog{width:min(860px,calc(100vw - 32px));max-height:min(82vh,900px);overflow:auto;border:1px solid #52677f;border-radius:14px;background:#172536;color:#e8edf4;padding:0;box-shadow:0 24px 80px #000a}
+.help-dialog::backdrop{background:#07111dcc;backdrop-filter:blur(3px)}
+.help-dialog-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid #34465c}
+.help-dialog-header h2{margin:0;font-size:18px}.help-dialog-header p{margin:5px 0 0;color:#aebdce;font-size:12px}
+.help-topics{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid #34465c}
+.help-topics button{font-size:12px}.help-topics button.active{background:#1769aa;border-color:#2c8bd3}
+.help-dialog section{padding:8px 22px 22px;line-height:1.6;font-size:13px}.help-dialog section h3{font-size:16px}
+.help-dialog li{margin:7px 0}.help-dialog table{width:100%;border-collapse:collapse}.help-dialog th,.help-dialog td{text-align:left;padding:8px;border-bottom:1px solid #34465c}
+.help-warning{padding:11px 13px;border-left:3px solid #d6a64c;background:#352d1d;color:#f1dfb5;border-radius:5px}
+@media(max-width:600px){.help-dialog{width:calc(100vw - 16px)}.help-dialog-header{align-items:flex-start;flex-direction:column}.help-topics button{flex:1 1 40%}}
