@@ -457,7 +457,7 @@
     dialog.querySelectorAll('[data-help-section]').forEach(section=>{section.hidden=section.dataset.helpSection!==key;});
     if(!dialog.open)dialog.showModal();
   }
-  $('helpDialog')?.querySelectorAll('[data-help-topic]').forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
+  $('helpDialog')?.querySelectorAll?.('[data-help-topic]')?.forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
   $('helpDialogClose')?.addEventListener('click',()=> $('helpDialog')?.close());
   function handleAppCommand(command){
     if(command==='new')newProject();
