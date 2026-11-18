@@ -16,7 +16,7 @@
     const type=String(input.type||'PASSENGER').toUpperCase();if(!TYPES.includes(type)||type==='LOCOMOTIVE')return{ok:false,error:'Tipus de vagó no vàlid.'};
     const lengthMm=Number(input.lengthMm??200);if(!Number.isFinite(lengthMm)||lengthMm<20||lengthMm>2000)return{ok:false,error:'La longitud ha d’estar entre 20 i 2000 mm.'};
     if(r.cars.some(x=>x.name.toLocaleLowerCase()===name.toLocaleLowerCase()))return{ok:false,error:'Ja existeix un vagó amb aquest nom.'};
-    const car={id:makeId('CAR',r.cars),name,type,lengthMm,trainId:null};r.cars.push(car);return{ok:true,car};
+    const car={id:makeId('CAR',r.cars),name,type,lengthMm,trainId:null,trainSetId:null};r.cars.push(car);return{ok:true,car};
   }
   function addTrainSet(roster,input={}){
     const r=ensure(roster);let name;try{name=cleanName(input.name);}catch(error){return{ok:false,error:error.message};}
@@ -40,6 +40,19 @@
     if(!train||!car||!train.carIds.includes(car.id)||car.trainId!==train.id)return{ok:false,error:'El vagó no està acoblat a aquest tren.'};
     train.carIds=train.carIds.filter(id=>id!==car.id);car.trainId=null;return{ok:true,train,car};
   }
+  function coupleToSet(roster,setId,carId){
+    const r=ensure(roster),set=r.trainSets.find(x=>x.id===setId),car=r.cars.find(x=>x.id===carId);
+    if(!set||!car)return{ok:false,error:'No s’ha trobat la composició fixa o el vagó.'};
+    if(car.trainSetId&&car.trainSetId!==set.id)return{ok:false,error:'El vagó ja pertany a una altra composició fixa.'};
+    if(set.carIds.includes(car.id))return{ok:false,error:'El vagó ja forma part d’aquesta composició fixa.'};
+    set.carIds.push(car.id);car.trainSetId=set.id;return{ok:true,trainSet:set,car};
+  }
+  function uncoupleFromSet(roster,setId,carId){
+    const r=ensure(roster),set=r.trainSets.find(x=>x.id===setId),car=r.cars.find(x=>x.id===carId);
+    if(!set||!car||!set.carIds.includes(car.id)||car.trainSetId!==set.id)return{ok:false,error:'El vagó no pertany a aquesta composició fixa.'};
+    if(car.trainId)return{ok:false,error:'El vagó forma part d’un tren assignat; retira primer el tren.'};
+    set.carIds=set.carIds.filter(id=>id!==car.id);car.trainSetId=null;return{ok:true,trainSet:set,car};
+  }
   function setSpeedProfile(roster,engineId,profile){
     const r=ensure(roster),id=String(engineId||'').trim(),maxKmh=Number(profile?.maxKmh),points=Array.isArray(profile?.points)?profile.points:[];
     if(!id)return{ok:false,error:'Cal seleccionar una locomotora registrada.'};
@@ -56,12 +69,17 @@
       if(options.activeEngineIds?.includes(train.engineId)&&train.engineId)return{ok:false,error:'No es pot eliminar un tren amb una locomotora en circulació activa.'};
       train.carIds.forEach(carId=>{const car=r.cars.find(x=>x.id===carId);if(car)car.trainId=null;});r.trains=r.trains.filter(x=>x.id!==id);return{ok:true};
     }
+    if(kind==='set'){
+      const set=r.trainSets.find(x=>x.id===id);if(!set)return{ok:false,error:'Composició fixa no trobada.'};
+      if(set.carIds.length)return{ok:false,error:'Retira tots els vagons de la composició abans d’eliminar-la.'};
+      r.trainSets=r.trainSets.filter(x=>x.id!==id);return{ok:true};
+    }
     if(kind==='car'){
-      const car=r.cars.find(x=>x.id===id);if(!car)return{ok:false,error:'Vagó no trobat.'};if(car.trainId)return{ok:false,error:'Desacobla el vagó abans d’eliminar-lo.'};r.cars=r.cars.filter(x=>x.id!==id);return{ok:true};
+      const car=r.cars.find(x=>x.id===id);if(!car)return{ok:false,error:'Vagó no trobat.'};if(car.trainId||car.trainSetId)return{ok:false,error:'Desacobla el vagó de la composició abans d’eliminar-lo.'};r.cars=r.cars.filter(x=>x.id!==id);return{ok:true};
     }
     return{ok:false,error:'Només es poden eliminar trens o vagons des del registre.'};
   }
-  const api={ensure,addCar,addTrainSet,addTrain,couple,uncouple,setSpeedProfile,remove,TYPES};
+  const api={ensure,addCar,addTrainSet,addTrain,couple,uncouple,coupleToSet,uncoupleFromSet,setSpeedProfile,remove,TYPES};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(root)root.JMRI_TC_TRAIN_ROSTER=api;
 })(typeof window!=='undefined'?window:globalThis);
