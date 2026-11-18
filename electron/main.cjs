@@ -201,12 +201,14 @@ function installApplicationMenu(mode = 'modern') {
       { label: 'Esdeveniments programats', submenu: [item('Programar esdeveniment…', 'operationEventCreate'), item('Comprovar esdeveniments pendents', 'operationRefreshEvents')] }
     ] },
     { label: 'Finestres', submenu: [
-      item('Mostrar totes les finestres', 'windowShowAll'),
-      item('Minimitzar totes les finestres', 'windowMinimizeAll'),
-      { type: 'separator' },
-      item('Disposar en cascada', 'windowCascade'),
-      item('Disposar en mosaic', 'windowTile'),
-      item('Restaurar disposició inicial', 'windowRestoreLayout'),
+      ...(activeMode === 'modern' ? [
+        item('Mostrar totes les finestres', 'windowShowAll'),
+        item('Minimitzar totes les finestres', 'windowMinimizeAll'),
+        { type: 'separator' },
+        item('Disposar en cascada', 'windowCascade'),
+        item('Disposar en mosaic', 'windowTile'),
+        item('Restaurar disposició inicial', 'windowRestoreLayout')
+      ] : [item('Tornar a l’inici', 'windowRestoreLayout')]),
       { type: 'separator' },
       item('Editor de maqueta', 'windowShowEditor'),
       item('Despatxador', 'windowShowDispatcher'),
