@@ -23,7 +23,7 @@ assert.match(main, /JMRI_TC_ENABLE_DCC:\s*'0'/);
 assert.match(main, /JMRI_TC_SAFETY_VALIDATED:\s*'0'/);
 console.log('PASS Windows UI mode contract and fail-safe defaults');
 
-assert.match(app, /JMRI_TC_DESKTOP\\?\\.setMode/);
+assert.match(app, /JMRI_TC_DESKTOP\?\.setMode/);
 const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
 const styles = fs.readFileSync('styles.css', 'utf8');
 assert.match(manager, /desktop-window-titlebar/);
