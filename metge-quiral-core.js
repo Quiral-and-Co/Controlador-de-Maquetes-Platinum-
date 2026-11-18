@@ -23,7 +23,7 @@
     add('track-ids','Identificadors de vies únics',uniqueTracks);
     add('coordinates','Coordenades dins la superfície',validCoordinates);
     add('block-ids','Identificadors de blocs únics',uniqueBlocks);
-    add('sensor-ids','System names de sensors únics',uniqueSensors);
+    add('sensor-ids','Identificadors JMRI dels sensors únics',uniqueSensors);
     add('references','Referències i nivells coherents',validReferences);
     let validConnections=true,unverified=0;
     for(const c of list(config.connections)){
