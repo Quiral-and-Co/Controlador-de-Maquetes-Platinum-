@@ -153,3 +153,7 @@ body.mode-modern .toolbar{display:none}
 body.mode-modern .ribbon-group button{min-height:34px;padding:7px 10px;font-size:12px;white-space:nowrap}
 .ribbon-safety{align-self:center;margin:0 8px;color:#76551b;font-size:11px}
 @media(max-width:760px){.ribbon-tabs{overflow-x:auto}.ribbon-page{gap:4px}.ribbon-group{width:100%;border-right:0;border-bottom:1px solid #d5dbe3;padding:7px}.ribbon-group>div{flex-wrap:wrap}}
+
+/* Keep the modern ribbon explicitly mode-gated; JS also controls its hidden state. */
+.modern-ribbon[hidden]{display:none!important}
+body.mode-modern .modern-ribbon:not([hidden]){display:block!important}
