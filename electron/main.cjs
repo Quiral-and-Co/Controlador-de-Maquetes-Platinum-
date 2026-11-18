@@ -83,7 +83,12 @@ function installApplicationMenu(mode = 'modern') {
       item('Desfer', 'undo', 'CmdOrCtrl+Z'),
       item('Refer', 'redo', 'CmdOrCtrl+Y'),
       { type: 'separator' },
-      { role: 'selectAll', label: 'Seleccionar-ho tot' }
+      item('Retallar', 'cut', 'CmdOrCtrl+X'),
+      item('Copiar', 'copy', 'CmdOrCtrl+C'),
+      item('Enganxar', 'paste', 'CmdOrCtrl+V'),
+      item('Eliminar', 'delete', 'Delete'),
+      { type: 'separator' },
+      item('Seleccionar-ho tot', 'selectAll', 'CmdOrCtrl+A')
     ] },
     { label: 'Visualització', submenu: [
       item('Apropar', 'zoomIn', 'Ctrl+='),
