@@ -25,5 +25,5 @@ assert.ok(html.includes('Metge Quiral · salut del sistema'),'Metge Quiral diagn
 assert.ok(main.includes("label: 'Despatxador'"));
 assert.ok(main.includes("item('Guia ràpida', 'helpQuick')"),'native help menu must open the Catalan quick guide');
 assert.ok(main.includes("buttonLabel: 'Obrir'")&&main.includes("buttonLabel: 'Desar'"));
-assert.ok(main.includes('METGE QUIRAL'));
+assert.ok(main.includes("item('Metge Quiral', 'windowShowMetgeQuiral')"),'native Windows menu must expose Metge Quiral');
 console.log('PASS: Catalan localization, dynamic phrase dictionary, technical identifier safety, native dialogs and Metge Quiral help contract');
