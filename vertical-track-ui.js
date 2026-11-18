@@ -2,6 +2,8 @@
 'use strict';
 const $=id=>document.getElementById(id),core=window.JMRI_TC_VERTICAL_TRACK;
 if(!core)throw new Error('No s’ha carregat vertical-track-core.js.');
+// This optional panel is not present in every application shell.
+if(!$('verticalMode'))return;
 let plan=null,serial=0;
 const number=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
 const catalogue=()=>{const c=window.MARKLIN_C_CATALOGUE||window.JMRI_TC_CATALOGUE||{};return Array.isArray(c)?c:(c.items||[]);};
