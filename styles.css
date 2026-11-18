@@ -102,7 +102,7 @@ body.mode-modern .badge{border-radius:4px}
 /* Real modern desktop workspace: independent movable, resizable application windows. */
 body.mode-modern main{max-width:none;width:100%;padding:10px 14px 0}
 body.mode-modern .desktop-notice{margin-bottom:8px}
-body.mode-modern .desktop-commandbar{position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;max-height:112px;overflow:auto}
+body.mode-modern .desktop-commandbar{position:relative;z-index:auto;display:flex;flex-wrap:wrap;max-height:112px;overflow:auto}
 .desktop-workspace{position:relative;min-height:1120px;height:calc(100vh - 250px);min-width:0;overflow:auto;background:linear-gradient(135deg,#dfe5ed 0%,#edf1f6 55%,#dfe6ef 100%);border:1px solid #aeb9c7;border-radius:7px;box-shadow:inset 0 1px 4px #26384b18}
 .desktop-window{position:absolute;display:flex;flex-direction:column;min-width:260px;min-height:180px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);resize:both;overflow:hidden;background:#fff;border:1px solid #8796a8;border-radius:6px;box-shadow:0 8px 24px #1d2c3e30}
 .desktop-window[hidden]{display:none}
@@ -116,7 +116,7 @@ body.mode-modern .desktop-commandbar{position:sticky;top:0;z-index:100;display:f
 .desktop-window-content>.track-area{display:flex;flex-direction:column}
 .desktop-window-content>.track-area .canvas-wrap{flex:1;min-height:260px}
 .desktop-window-content>.track-area #trackSvg{width:100%;height:100%;min-height:260px}
-.desktop-taskbar{position:sticky;bottom:0;z-index:120;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
+.desktop-taskbar{position:relative;z-index:auto;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
 .desktop-task{flex:0 0 auto;max-width:220px;padding:7px 11px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .desktop-task.is-open{background:#d6e8fb!important;border-color:#438acb!important}
 body.mode-modern .desktop-window-content .editor-sidebar,body.mode-modern .desktop-window-content .properties-panel{box-shadow:none}
