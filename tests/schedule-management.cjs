@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const s=require('../schedule-management-core.js');
 const routes=[{id:'R1',blockIds:['B1','B2']},{id:'R2',blockIds:['B2','B3']}],locos=[{id:'L1'},{id:'L2'}];
 const state=s.ensure({});
-const base={id:'S1',name:'Tren matí',routeId:'R1',locomotiveId:'L1',startTime:'08:30',days:[1,2,3,4,5],maxSpeed:12,windowMinutes:2};
+const base={id:'S1',name:'Tren matí',routeId:'R1',locomotiveId:'L1',startTime:'08:30',days:[1,2,3,4,5],maxSpeed:12,windowMinutes:2,enabled:true};
 assert.equal(s.add(state,base,routes,locos).ok,true);
 assert.equal(s.add(state,{...base,id:'S2',name:'Tren tarda',routeId:'R2',locomotiveId:'L2'},routes,locos).ok,true);
 assert.equal(s.add(state,{...base,id:'S3',name:'Tren nit'},routes,locos).ok,true);
