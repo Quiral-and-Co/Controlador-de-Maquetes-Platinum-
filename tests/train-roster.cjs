@@ -9,6 +9,9 @@ const carB=core.addCar(roster,{name:'Vagó mercaderies',type:'FREIGHT',lengthMm:
 assert.equal(carB.ok,true);
 const set=core.addTrainSet(roster,{name:'Composició fixa'});
 assert.equal(set.ok,true);
+assert.equal(core.coupleToSet(roster,set.trainSet.id,carA.car.id).ok,true);
+assert.equal(core.coupleToSet(roster,set.trainSet.id,carA.car.id).ok,false);
+assert.equal(core.uncoupleFromSet(roster,set.trainSet.id,carA.car.id).ok,true);
 const train=core.addTrain(roster,{name:'Tren de prova',engineId:'LOCO-1'});
 assert.equal(train.ok,true);
 assert.equal(core.couple(roster,train.train.id,carA.car.id).ok,true);
@@ -20,6 +23,9 @@ assert.equal(core.remove(roster,'car',carB.car.id,{editMode:true}).ok,false,'att
 assert.equal(core.setSpeedProfile(roster,'LOCO-1',{maxKmh:120,points:[{step:0,kmh:0},{step:126,kmh:120}]}).ok,true);
 assert.equal(roster.speedProfiles['LOCO-1'].verified,false,'manual estimate is never considered verified calibration');
 assert.equal(core.remove(roster,'train',train.train.id).ok,false,'delete requires edit mode');
+assert.equal(core.coupleToSet(roster,set.trainSet.id,carB.car.id).ok,true);
+assert.equal(core.remove(roster,'set',set.trainSet.id,{editMode:true}).ok,false,'non-empty fixed sets cannot be deleted');
+assert.equal(core.uncoupleFromSet(roster,set.trainSet.id,carB.car.id).ok,true);
 assert.equal(core.remove(roster,'train',train.train.id,{editMode:true,activeEngineIds:['LOCO-1']}).ok,false,'active trains cannot be deleted');
 assert.equal(core.remove(roster,'train',train.train.id,{editMode:true}).ok,true);
 assert.equal(roster.cars.find(x=>x.id===carB.car.id).trainId,null);
