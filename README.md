@@ -19,7 +19,7 @@ Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a
 
 ## Execució i proves
 
-Obre `index.html` en un navegador modern. No cal servidor per editar offline. Per monitoritzar JMRI, activa el Web Server de JMRI i configura l'adreça i el port a la interfície (habitualment 12080).
+Obre `index.html` en un navegador modern. No cal servidor per editar offline. Per monitoritzar sensors, activa el servei Web compatible amb JSON/WebSocket i configura l'adreça i el port a la interfície (habitualment 12080).
 
 Executa:
 
@@ -113,7 +113,7 @@ La branca `feature/marklin-mm-mfx-accessory-catalogue` incorpora un registre loc
 
 ## Validació i bloqueig de seguretat (1.2.1 · en revisió)
 
-El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una llista explícita de validacions, confirmació física de l'operador, JMRI connectat, alimentació ON, pont WiThrottle connectat i sensors vàlids abans de permetre armar el control DCC. La interfície de circulacions, les ordres manuals i l'inici de circulacions passen per aquesta porta. El pont local exigeix també `JMRI_TC_SAFETY_VALIDATED=1` a més de `JMRI_TC_ENABLE_DCC=1`.
+El mòdul `safety-core.js` manté l'estat BLOQUEJAT per defecte i exigeix una llista explícita de validacions, confirmació física de l'operador, servidor de control connectat, alimentació ON, pont WiThrottle connectat i sensors vàlids abans de permetre armar el control DCC. La interfície de circulacions, les ordres manuals i l'inici de circulacions passen per aquesta porta. El pont local exigeix també `JMRI_TC_SAFETY_VALIDATED=1` a més de `JMRI_TC_ENABLE_DCC=1`.
 
 La confirmació és una declaració de l'operador, no una certificació ni una lectura del circuit d'emergència. Cal mantenir una parada física independent que talli la tracció; el programari no substitueix proteccions elèctriques ni un enclavament ferroviari certificat. Consulta `docs/safety-validation.md`.
 
@@ -180,6 +180,6 @@ Proves: `node --check train-protection-core.js`, `node --check train-protection-
 
 El panell train-ground incorpora una interfície de cabina inspirada en terminals Alcatel/AEG de la sèrie 252: mode analògic per canals i mode GSM-R amb registre de xarxa simulat, funcions ferroviàries, trucades entrants/sortints, teclat numèric, PTT, missatges, alliberament i registre d'esdeveniments. Tots els botons tenen resposta local i les operacions es poden provar sense maquinari.
 
-**Límit essencial:** no és una rèplica exacta del terminal Alcatel/AEG ni implementa ràdio, SIM, autenticació, GSM-R real, EuroRadio o comunicacions amb infraestructura ferroviària. El botó d'emergència només crea un esdeveniment simulat. No controla la CS2, JMRI, DCC, tracció, frens ni sortides físiques. No s'ha d'utilitzar per comunicacions reals. Consulta [docs/train-ground-terminal.md](docs/train-ground-terminal.md).
+**Límit essencial:** no és una rèplica exacta del terminal Alcatel/AEG ni implementa ràdio, SIM, autenticació, GSM-R real, EuroRadio o comunicacions amb infraestructura ferroviària. El botó d'emergència només crea un esdeveniment simulat. No controla la central digital, DCC, tracció, frens ni sortides físiques. No s'ha d'utilitzar per comunicacions reals. Consulta [docs/train-ground-terminal.md](docs/train-ground-terminal.md).
 
 Proves: `node --check train-ground-core.js`, `node --check train-ground-ui.js` i `node tests/train-ground.cjs`; incorporades a `npm test`.
