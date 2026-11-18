@@ -10,7 +10,7 @@ assert.equal(i18n.language,'ca');
 assert.equal(i18n.translate('Dispatcher'),'Despatxador');
 assert.equal(i18n.translate('Schedule Successors'),'Horaris successors');
 assert.equal(i18n.translate('Validation Master Registry'),'Registre mestre de validació');
-assert.equal(i18n.translate('System name'),'Identificador JMRI');
+assert.equal(i18n.translate('System name'),'Identificador del sensor','visible UI must use neutral sensor terminology, not a trademark');
 assert.equal(i18n.translate('Stop Layout'),'Aturar la maqueta');
 assert.equal(i18n.translate('autosave'),'autosave','Do not translate technical substrings inside other words');
 const nestedText={nodeType:3,nodeValue:'Dispatcher'};

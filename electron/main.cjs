@@ -14,7 +14,7 @@ const approvedProjectPaths = createProjectPathPolicy();
 const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
 const projectFilters = [
-  { name: 'Projectes JMRI TC', extensions: ['json'] },
+  { name: 'Projectes de maqueta', extensions: ['json'] },
   { name: 'Disseny XTrackCAD', extensions: ['xtc', 'xti', 'xtm'] },
   { name: 'Tots els fitxers', extensions: ['*'] }
 ];
@@ -34,7 +34,7 @@ function installProjectHandlers() {
     if (options.saveAs === true || typeof options.filePath !== 'string' || !options.filePath) {
       const result = await dialog.showSaveDialog(mainWindow, {
         title: 'Desar el projecte', buttonLabel: 'Desar',
-        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'JMRI_TC_Gold_Custom_layout.json'),
+        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'Controlador_de_Maquetes_Quiral_layout.json'),
         filters: projectFilters.slice(0, 2)
       });
       if (result.canceled || !result.filePath) return { canceled: true };
@@ -62,8 +62,8 @@ function installProjectHandlers() {
   });
   ipcMain.handle('document:print', async () => new Promise(resolve => mainWindow.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => resolve({ success, failureReason: failureReason || '' }))));
   ipcMain.handle('document:preview', async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'jmri-tc-preview-'));
-    const pdfPath = path.join(dir, 'JMRI-TC-vista-previa.pdf');
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'controlador-maquetes-preview-'));
+    const pdfPath = path.join(dir, 'Controlador-Maquetes-vista-previa.pdf');
     const pdf = await mainWindow.webContents.printToPDF({ pageSize: 'A4', landscape: false, printBackground: true, margins: { top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 } });
     await fs.writeFile(pdfPath, pdf);
     const error = await shell.openPath(pdfPath);
@@ -136,8 +136,8 @@ function installApplicationMenu(mode = 'modern') {
       item('Suggerir vies per als buits', 'suggestGaps')
     ] },
     { label: 'Digital i analògic', submenu: [
-      item('Connectar amb JMRI (lectura)', 'connect'),
-      item('Desconnectar de JMRI', 'disconnect')
+      item('Connectar sistema extern (lectura)', 'connect'),
+      item('Desconnectar sistema extern', 'disconnect')
     ] },
     { label: 'Ferrocarril', submenu: [
       item('Configurar sistema digital…', 'openCommandStation'),
@@ -224,7 +224,7 @@ function installApplicationMenu(mode = 'modern') {
       { type: 'separator' },
       item('Seguretat i diagnòstics del Metge Quiral', 'helpDiagnostics'),
       { type: 'separator' },
-      item('Sobre JMRI TC Gold Custom', 'helpAbout')
+      item('Sobre Controlador de Maquetes by Quiral & Co. Platinum', 'helpAbout')
     ] }
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
@@ -269,8 +269,8 @@ function startBridge() {
     bridge.once('exit', (code, signal) => {
       if (!quitting) finish(new Error(`El pont local s'ha tancat (codi ${code ?? signal}).`));
     });
-    bridge.stdout.on('data', chunk => console.log('[JMRI bridge]', chunk.toString().trim()));
-    bridge.stderr.on('data', chunk => console.error('[JMRI bridge]', chunk.toString().trim()));
+    bridge.stdout.on('data', chunk => console.log('[Pont del sistema de control]', chunk.toString().trim()));
+    bridge.stderr.on('data', chunk => console.error('[Pont del sistema de control]', chunk.toString().trim()));
   });
 }
 
@@ -305,7 +305,7 @@ app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('m
   console.error(error);
   await dialog.showMessageBox({
     type: 'error', buttons: ['D’acord'],
-    title: 'JMRI TC Gold Custom',
+    title: 'Controlador de Maquetes by Quiral & Co. Platinum',
     message: 'No s’ha pogut iniciar el pont local.',
     detail: error.message
   });
