@@ -25,7 +25,11 @@ assert.equal(await page.locator('[data-help-section="contents"]').isVisible(),tr
 assert.equal(await page.locator('[data-help-section="quick"]').isVisible(),false);
 await page.locator('[data-help-topic="shortcuts"]').click();
 assert.equal(await page.locator('[data-help-section="shortcuts"] table tbody tr').count(),8);
-await page.locator('#helpDialogClose').click();
+await page.locator('[data-help-topic="diagnostics"]').click();
+await page.locator('#helpRunMetgeQuiral').click();
+assert.equal(await page.locator('#helpDialog').evaluate(el=>el.open),false);
+assert.ok(await page.locator('#metgeQuiralStatus').isVisible());
+await page.locator('#helpDialogClose').click().catch(()=>{});
 assert.equal(await page.locator('#helpDialog').evaluate(el=>el.open),false);
 console.log('PASS: browser window actions (cascade/minimize/show/restore) and Catalan help dialog navigation');
 }finally{await context?.close().catch(()=>{});await browser?.close().catch(()=>{});await new Promise(resolve=>server.close(resolve));}})().catch(e=>{console.error(e);process.exitCode=1;});
