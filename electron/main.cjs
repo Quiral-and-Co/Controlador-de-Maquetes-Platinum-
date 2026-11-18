@@ -136,8 +136,8 @@ function installApplicationMenu(mode = 'modern') {
       item('Suggerir vies per als buits', 'suggestGaps')
     ] },
     { label: 'Digital i analògic', submenu: [
-      item('Connectar amb JMRI (lectura)', 'connect'),
-      item('Desconnectar de JMRI', 'disconnect')
+      item('Connectar servidor extern (lectura)', 'connect'),
+      item('Desconnectar servidor extern', 'disconnect')
     ] },
     { label: 'Ferrocarril', submenu: [
       item('Configurar sistema digital…', 'openCommandStation'),
