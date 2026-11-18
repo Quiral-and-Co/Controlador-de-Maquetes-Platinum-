@@ -22,3 +22,13 @@ assert.match(main, /ipcMain\.on\('ui:mode'/);
 assert.match(main, /JMRI_TC_ENABLE_DCC:\s*'0'/);
 assert.match(main, /JMRI_TC_SAFETY_VALIDATED:\s*'0'/);
 console.log('PASS Windows UI mode contract and fail-safe defaults');
+
+assert.match(app, /JMRI_TC_DESKTOP\\?\\.setMode/);
+const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
+assert.match(manager, /desktop-window-titlebar/);
+assert.match(manager, /desktop-taskbar/);
+assert.match(manager, /resize:both/);
+assert.match(manager, /pointermove/);
+assert.match(manager, /leaveModern/);
+assert.match(manager, /Tauler de disseny de la maqueta/);
+console.log('PASS floating modern desktop windows, taskbar and classic restore contract');
