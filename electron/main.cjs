@@ -19,8 +19,9 @@ const projectFilters = [
 ];
 
 function installProjectHandlers() {
-  ipcMain.handle('project:open', async () => {
-    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters: projectFilters });
+  ipcMain.handle('project:open', async (_event, options = {}) => {
+    const filters = options.importXtc === true ? [{ name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] }, projectFilters[2]] : projectFilters;
+    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
     const content = await fs.readFile(filePath, 'utf8');
