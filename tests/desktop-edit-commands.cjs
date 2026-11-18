@@ -13,3 +13,10 @@ assert.ok(main.includes('options.importXtc === true'));
 assert.ok(preload.includes("openProject: options => ipcRenderer.invoke('project:open', options)"));
 assert.ok(app.includes('openProject({importXtc:importMode===true})'));
 console.log('PASS classic Edit menu clipboard, selection and delete command contract');
+
+for(const command of ['backup','importElements','exportElements','pageSetup','printPreview','print','preferences']) assert.ok(main.includes("'"+command+"'"));
+for(const bridge of ['createBackup','printDocument','printPreview','pageSetup']) assert.ok(preload.includes(bridge));
+for(const fn of ['createProjectBackup','exportSelectedElements','importSelectedElements','showPreferences','configureAutosave']) assert.ok(app.includes('function '+fn+'(')||app.includes('async function '+fn+'('));
+assert.ok(main.includes("ipcMain.handle('project:backup'"));
+assert.ok(main.includes("ipcMain.handle('document:preview'"));
+console.log('PASS File menu backup, element interchange, print and preferences contract');
