@@ -11,7 +11,7 @@ assert.match(main,/Adquirir control \(bloquejat per seguretat\).*enabled: false/
 assert.match(main,/Aturada d’emergència .*enabled: false/);
 assert.match(main,/Funcions auxiliars F0–F32 .*enabled: false/);
 assert.match(app,/DCC i sortides físiques deshabilitats/);
-assert.match(app,/Activa primer «mode d’edició de trens»/);
+assert.match(app,/activa primer «mode d’edició de trens»/i);
 assert.match(html,/data-ribbon-tab="train"/);
 assert.match(html,/data-ribbon-page="train"/);
 assert.match(html,/data-ribbon-command="trainNewCar">Nou vagó\/cotxe/);
