@@ -433,6 +433,8 @@
     else if(command==='portMode')$('portModeBtn').click();
     else if(command==='createParallel')$('createParallelBtn').click();
     else if(command==='suggestGaps')$('suggestGapTracksBtn').click();
+    else if(command==='openCommandStation'){const panel=$('commandStationPanel');panel?.scrollIntoView?.({behavior:'smooth',block:'start'});$('csName')?.focus?.({preventScroll:true});log('Configuració del sistema digital oberta. Desar un perfil no connecta ni habilita sortides físiques.');}
+    else if(command==='showDigitalStatus'){const connected=state.ws?.readyState===WebSocket.OPEN&&Date.now()-state.lastWsPong<=15000;const station=window.JMRI_TC_COMMAND_STATIONS?.getDatabase?.()?.stations?.find(x=>x.id===window.JMRI_TC_COMMAND_STATIONS?.getDatabase?.()?.selectedStationId);log('Diagnòstic només lectura · JMRI: '+(connected?'connectat':'desconnectat')+' · alimentació informada: '+state.jmriPower+' · central seleccionada: '+(station?.name||'cap')+' · sortides físiques i DCC: BLOQUEJATS.');}
     else if(command==='connect')connect();
     else if(command==='disconnect')state.ws?.close();
   });
