@@ -32,6 +32,17 @@
     }
     add('connections','Connexions amb referències vàlides',validConnections);
     checks.push({id:'connection-verification',label:'Connexions verificades',ok:unverified===0,detail:unverified+' connexions no verificades',severity:'warning'});
+
+    const operation=config.operation&&typeof config.operation==='object'?config.operation:{};
+    const opFlags=list(operation.flags),opCounters=list(operation.counters),opMacros=list(operation.macros),opEvents=list(operation.events);
+    const allowedSteps=['SET_FLAG','TOGGLE_FLAG','INCREMENT_COUNTER','DECREMENT_COUNTER','RESET_COUNTER','LOG'];
+    const opIds=new Set(),opNames=new Set();let opIntegrity=true,opLogicalOnly=true;
+    for(const item of [...opFlags,...opCounters,...opMacros,...opEvents]){if(!item.id||opIds.has(String(item.id)))opIntegrity=false;opIds.add(String(item.id));}
+    const flagIds=new Set(opFlags.map(x=>String(x.id))),counterIds=new Set(opCounters.map(x=>String(x.id))),macroIds=new Set(opMacros.map(x=>String(x.id)));
+    for(const macro of opMacros){if(!macro.name||opNames.has(String(macro.name).toLocaleLowerCase()))opIntegrity=false;opNames.add(String(macro.name||'').toLocaleLowerCase());for(const step of list(macro.steps)){if(!allowedSteps.includes(step.type))opLogicalOnly=false;if(['SET_FLAG','TOGGLE_FLAG'].includes(step.type)&&!flagIds.has(String(step.targetId)))opIntegrity=false;if(['INCREMENT_COUNTER','DECREMENT_COUNTER','RESET_COUNTER'].includes(step.type)&&!counterIds.has(String(step.targetId)))opIntegrity=false;}}
+    for(const event of opEvents)if(!macroIds.has(String(event.macroId))||!Number.isFinite(Date.parse(event.dueAt)))opIntegrity=false;
+    add('operation-integrity','Integritat de macros i esdeveniments',opIntegrity,'Macros: '+opMacros.length+' · banderes: '+opFlags.length+' · comptadors: '+opCounters.length+' · esdeveniments: '+opEvents.length);
+    checks.push({id:'operation-physical-lock',label:'Operació limitada a accions lògiques',ok:opLogicalOnly&&options.physicalOutputsEnabled!==true,detail:opLogicalOnly?'Llista blanca de passos lògics; cap ordre física detectada':'S’ha detectat una ordre no permesa dins d’una macro',severity:opLogicalOnly?'info':'critical'});
     const physicalOutputsLocked=options.physicalOutputsEnabled!==true;
     checks.push({id:'physical-lock','label':'Sortides físiques bloquejades per defecte',ok:physicalOutputsLocked,detail:physicalOutputsLocked?'Bloqueig actiu':'Sortides declarades habilitades',severity:physicalOutputsLocked?'info':'critical'});
     const errors=issues.length,warnings=checks.filter(c=>c.severity==='warning'&&!c.ok).length,critical=checks.filter(c=>c.severity==='critical'&&!c.ok).length;

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const quiral=require('../metge-quiral-core.js');
 const config={schemaVersion:3,levels:Array.from({length:5},(_,i)=>({id:i+1,tracks:[],blocks:[],sensors:[]})),connections:[]};
 let r=quiral.inspect(config);
-assert.equal(r.status,'HEALTHY');assert.equal(r.physicalOutputsLocked,true);assert.equal(r.counts.errors,0);assert.ok(r.checks.some(x=>x.label==='Identificadors JMRI dels sensors únics'));
+assert.equal(r.status,'HEALTHY');assert.equal(r.physicalOutputsLocked,true);assert.equal(r.counts.errors,0);assert.ok(r.checks.some(x=>x.id==='operation-integrity'&&x.ok));assert.ok(r.checks.some(x=>x.id==='operation-physical-lock'&&x.ok));assert.ok(r.checks.some(x=>x.label==='Identificadors JMRI dels sensors únics'));
 r=quiral.inspect(config,{physicalOutputsEnabled:true});assert.equal(r.status,'NEEDS_ATTENTION');assert.equal(r.counts.critical,1);assert.equal(r.physicalOutputsLocked,false);
 config.levels[0].tracks.push({id:'T1',type:'straight',x:100,y:100,levelId:1,blockId:'',sensorName:''});
 config.levels[0].tracks.push({id:'T1',type:'straight',x:3010,y:100,levelId:1});

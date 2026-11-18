@@ -54,6 +54,12 @@ jobs:
           node --check train-roster-core.js
           node tests/train-roster.cjs
           node tests/train-menu-contract.cjs
+      - name: Operation macros, flags, counters and scheduled events
+        run: |
+          node --check operation-core.js
+          node --check operation-ui.js
+          node tests/operation-core.cjs
+          node tests/operation-menu-contract.cjs
       - name: Schedule management and successor tests
         run: |
           node tests/schedule-management.cjs
