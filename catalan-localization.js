@@ -25,7 +25,8 @@ function translate(value){
  const trimmed=source.trim();
  if(EXACT.has(trimmed))return source.replace(trimmed,EXACT.get(trimmed));
  let out=source;
- for(const [from,to] of REPLACEMENTS){const escaped=from.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\for(const [from,to] of REPLACEMENTS)out=out.replace(new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),to);');out=out.replace(new RegExp('\\\\b'+escaped+'\\\\b','gi'),to);}
+ ['System health','Estat de salut del sistema'],['System health diagnostics','Diagnòstic de salut del sistema'],
+ for(const [from,to] of REPLACEMENTS)out=out.replace(new RegExp('\\b'+from+'\\b','gi'),to);
  return out;
 }
 function translateNode(node){
