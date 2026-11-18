@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const app=fs.readFileSync('app.js','utf8');
+const main=fs.readFileSync('electron/main.cjs','utf8');
+for(const command of ['cut','copy','paste','delete','selectAll']) assert.ok(app.includes("command==='"+command+"'"));
+for(const fn of ['copySelectedPieces','cutSelectedPieces','pastePieces','deleteSelectedPieces','selectAllPieces']) assert.ok(app.includes('function '+fn+'('));
+assert.ok(app.includes('state.editClipboard=chosen.map(clone)'));
+assert.ok(main.includes("item('Retallar', 'cut', 'CmdOrCtrl+X')"));
+assert.ok(main.includes("item('Seleccionar-ho tot', 'selectAll', 'CmdOrCtrl+A')"));
+console.log('PASS classic Edit menu clipboard, selection and delete command contract');
