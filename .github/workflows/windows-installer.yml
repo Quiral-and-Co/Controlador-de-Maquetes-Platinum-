@@ -69,7 +69,7 @@ jobs:
       - name: Build NSIS installer
         run: npm run dist:win
 
-      - name: Verify installer and calculate SHA-256
+      - name: Add Catalonia local timestamp and calculate SHA-256
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -80,9 +80,19 @@ jobs:
           if ($installer.Length -le 0) {
             throw 'The NSIS installer is empty.'
           }
+          $cataloniaTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'Romance Standard Time')
+          $timestamp = $cataloniaTime.ToString('yyyyMMdd-HHmmss', [Globalization.CultureInfo]::InvariantCulture)
+          $timestampedName = [System.IO.Path]::GetFileNameWithoutExtension($installer.Name) + "-$timestamp" + $installer.Extension
+          $timestampedPath = Join-Path $installer.DirectoryName $timestampedName
+          if (Test-Path -LiteralPath $timestampedPath) {
+            throw "Timestamped installer already exists: $timestampedName"
+          }
+          Rename-Item -LiteralPath $installer.FullName -NewName $timestampedName
+          $installer = Get-Item -LiteralPath $timestampedPath
           $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           $manifest = "$hash  $($installer.Name)"
           Set-Content -LiteralPath "$($installer.FullName).sha256" -Value $manifest -Encoding ascii
+          Write-Host "Catalonia local generation time: $($cataloniaTime.ToString('yyyy-MM-dd HH:mm:ss zzz'))"
           Write-Host "Installer: $($installer.Name)"
           Write-Host "Size: $($installer.Length) bytes"
           Write-Host "SHA-256: $hash"
