@@ -2,7 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('jmriDesktop', Object.freeze({
-  openProject: () => ipcRenderer.invoke('project:open'),
+  openProject: options => ipcRenderer.invoke('project:open', options),
   saveProject: options => ipcRenderer.invoke('project:save', options),
   confirmDiscard: () => ipcRenderer.invoke('project:confirm-discard'),
   setUiMode: mode => { if (mode === 'classic' || mode === 'modern') ipcRenderer.send('ui:mode', mode); },
