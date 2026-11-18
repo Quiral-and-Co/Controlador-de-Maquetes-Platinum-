@@ -96,7 +96,19 @@ function samePersistedFields(actual, expected, label) {
       'browser test must exercise the browser-download fallback, not Electron native save');
     const projectExportDownload = page.waitForEvent('download', { timeout:15000 });
     await page.locator('#exportBtn').click();
-    const projectDownload = await projectExportDownload;
+    let projectDownload;
+    try {
+      projectDownload = await projectExportDownload;
+    } catch (error) {
+      const diagnostics = await page.evaluate(() => ({
+        exportLog: [...document.querySelectorAll('#eventLog li')].slice(0,5).map(x => x.textContent),
+        blobUrlSupported: typeof URL.createObjectURL === 'function',
+        blobSupported: typeof Blob === 'function',
+        anchorCount: document.querySelectorAll('a[download]').length,
+        exportButtonHandler: typeof document.querySelector('#exportBtn')?.onclick
+      }));
+      throw new Error('Project JSON download did not start: ' + JSON.stringify(diagnostics) + '; ' + error.message);
+    }
     const projectPath = await projectDownload.path();
     assert.ok(projectPath, 'project export must create a browser download');
     const exportedProject = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
