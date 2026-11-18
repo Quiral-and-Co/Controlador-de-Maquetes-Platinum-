@@ -122,3 +122,18 @@ body.mode-modern .desktop-commandbar{position:relative;z-index:auto;display:flex
 body.mode-modern .desktop-window-content .editor-sidebar,body.mode-modern .desktop-window-content .properties-panel{box-shadow:none}
 body.mode-modern .desktop-window-content .panel-card,body.mode-modern .desktop-window-content .dispatcher-panel,body.mode-modern .desktop-window-content .signal-diagnostics-panel{box-shadow:none}
 @media(max-width:900px){.desktop-workspace{height:auto;min-height:1600px}.desktop-window{max-width:calc(100% - 20px)}}
+
+
+/* Impressió: per defecte imprimeix el quadre de vies, no els controls d'edició. */
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body { background: #fff !important; color: #111 !important; }
+  .topbar, .notice, .toolbar, .summary-grid, #commandStationPanel,
+  .editor-sidebar, .properties-panel, .viewport-toolbar, .canvas-status,
+  .event-log, .mode-btn, button, input, select, textarea { display: none !important; }
+  main, .editor-shell, .track-area { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; }
+  .track-area { break-inside: avoid; }
+  .canvas-wrap { width: 100% !important; height: auto !important; overflow: visible !important; border: 0 !important; background: #fff !important; }
+  .canvas-wrap svg { width: 100% !important; height: auto !important; max-height: 250mm !important; }
+  .section-heading h1, .section-heading p { color: #111 !important; }
+}
