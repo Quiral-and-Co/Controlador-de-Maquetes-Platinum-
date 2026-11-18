@@ -371,7 +371,7 @@
   async function openNativeProject(importMode){
     if(!await confirmDiscard())return;
     if(!window.jmriDesktop?.openProject){log('Els diàlegs natius només estan disponibles a la versió d’escriptori.');return;}
-    const file=await window.jmriDesktop.openProject();if(file.canceled)return;
+    const file=await window.jmriDesktop.openProject({importXtc:importMode===true});if(file.canceled)return;
     const ext=(file.fileName.split('.').pop()||'').toLowerCase();
     try{
       if(ext==='json'){
