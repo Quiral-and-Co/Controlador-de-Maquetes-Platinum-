@@ -21,6 +21,15 @@ assert.match(main, /Menús moderns/);
 assert.match(main, /ipcMain\.on\('ui:mode'/);
 assert.match(main, /JMRI_TC_ENABLE_DCC:\s*'0'/);
 assert.match(main, /JMRI_TC_SAFETY_VALIDATED:\s*'0'/);
+assert.match(main, /label: 'Ferrocarril'/, 'Railroad menu must be present in the native menu');
+assert.match(main, /Configurar sistema digital/, 'digital-system configuration must be reachable');
+assert.match(main, /Estat de la connexió i de la central/, 'connection diagnostics must be available');
+assert.match(main, /Aturar tots els trens .*enabled: false/, 'global train stop must remain disabled until fail-safe validation');
+assert.match(main, /Activar alimentació de via .*enabled: false/, 'track power must remain physically locked');
+assert.match(app, /command==='openCommandStation'/, 'Railroad setup command must open the digital-system panel');
+assert.match(app, /command==='showDigitalStatus'/, 'Railroad diagnostics must report read-only status');
+assert.match(app, /sortides físiques i DCC: BLOQUEJATS/, 'diagnostics must state the physical-output lock');
+console.log('PASS Railroad menu, digital setup navigation, read-only diagnostics and physical-output locks');
 console.log('PASS Windows UI mode contract and fail-safe defaults');
 
 assert.match(app, /JMRI_TC_DESKTOP\?\.setMode/);
