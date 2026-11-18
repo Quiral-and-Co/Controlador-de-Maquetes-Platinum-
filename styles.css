@@ -169,3 +169,8 @@ body.mode-modern .modern-ribbon:not([hidden]){display:block!important}
 .help-dialog li{margin:7px 0}.help-dialog table{width:100%;border-collapse:collapse}.help-dialog th,.help-dialog td{text-align:left;padding:8px;border-bottom:1px solid #34465c}
 .help-warning{padding:11px 13px;border-left:3px solid #d6a64c;background:#352d1d;color:#f1dfb5;border-radius:5px}
 @media(max-width:600px){.help-dialog{width:calc(100vw - 16px)}.help-dialog-header{align-items:flex-start;flex-direction:column}.help-topics button{flex:1 1 40%}}
+
+/* Keep ribbon controls above floating desktop windows, including after cascade/tile. */
+body.mode-modern .modern-ribbon{position:relative;z-index:100}
+body.mode-modern .desktop-workspace{position:relative;z-index:1}
+body.mode-modern .desktop-taskbar{position:relative;z-index:2}
