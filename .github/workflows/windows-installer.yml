@@ -3,7 +3,7 @@ name: Windows 11 NSIS installer
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'feature/**']
+    branches: [main, 'feature/**', 'branding/**']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -18,7 +18,7 @@ on:
       - '**.cjs'
       - 'tests/**'
   pull_request:
-    branches: [main]
+    branches: [main, 'feature/**']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -81,7 +81,7 @@ jobs:
             throw 'The NSIS installer is empty.'
           }
           $cataloniaTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'Romance Standard Time')
-          $timestamp = $cataloniaTime.ToString('HHmmss-ddMMyy', [Globalization.CultureInfo]::InvariantCulture)
+          $timestamp = $cataloniaTime.ToString('HHmmss-ddMMyyyy', [Globalization.CultureInfo]::InvariantCulture)
           $timestampedName = [System.IO.Path]::GetFileNameWithoutExtension($installer.Name) + "-$timestamp" + $installer.Extension
           $timestampedPath = Join-Path $installer.DirectoryName $timestampedName
           if (Test-Path -LiteralPath $timestampedPath) {
