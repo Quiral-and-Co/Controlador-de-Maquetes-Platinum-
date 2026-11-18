@@ -152,6 +152,30 @@ function installApplicationMenu(mode = 'modern') {
       { type: 'separator' },
       { label: 'Diagnòstic del sistema digital (només lectura)', click: () => send('showDigitalStatus') }
     ] },
+    { label: 'Tren', submenu: [
+      item('Nova locomotora…', 'trainNewEngine'),
+      item('Nou vagó/cotxe…', 'trainNewCar'),
+      item('Nova composició fixa…', 'trainNewTrainSet'),
+      item('Nou tren…', 'trainNewTrain'),
+      { type: 'separator' },
+      item('Llista de trens', 'trainList'),
+      item('Propietats…', 'trainProperties'),
+      item('Perfil de velocitat…', 'trainSpeedProfile'),
+      { type: 'separator' },
+      { label: 'Adquirir control (bloquejat per seguretat)', enabled: false },
+      { label: 'Alliberar control (bloquejat per seguretat)', enabled: false },
+      { label: 'Aturar (ordre física bloquejada)', enabled: false },
+      { label: 'Invertir sentit (ordre física bloquejada)', enabled: false },
+      { label: 'Aturada d’emergència (requereix circuit físic independent)', enabled: false },
+      { label: 'Funcions auxiliars F0–F32 (DCC bloquejat)', enabled: false },
+      { type: 'separator' },
+      item('Acoblar vagó…', 'trainCouple'),
+      item('Desacoblar vagó…', 'trainUncouple'),
+      item('Operacions de tren…', 'trainOperations'),
+      { type: 'separator' },
+      item('Activar/desactivar mode d’edició de trens', 'trainToggleEditMode'),
+      item('Eliminar tren o vagó…', 'trainDelete')
+    ] },
     { label: 'Ajuda', submenu: [
       { label: 'Sobre JMRI TC Gold Custom', click: () => dialog.showMessageBox(mainWindow, {
         type: 'info', title: 'JMRI TC Gold Custom',
