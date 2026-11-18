@@ -452,7 +452,7 @@
   function trainLocked(command){const labels={trainAcquire:'Adquirir control',trainRelease:'Alliberar control',trainStop:'Aturar',trainReverse:'Invertir sentit',trainEmergency:'Aturada d’emergència',trainFunctions:'Funcions auxiliars'};log((labels[command]||'Ordre de tren')+' BLOQUEJAT: DCC i sortides físiques deshabilitats; cal validació fail-safe i autorització independent.');}
   function showHelp(topic='quick'){
     const dialog=$('helpDialog');if(!dialog){log('El centre d’ajuda no està disponible.');return;}
-    const key=({contents:'quick',shortcuts:'shortcuts',diagnostics:'diagnostics',about:'about'})[topic]||topic;
+    const key=({contents:'contents',shortcuts:'shortcuts',diagnostics:'diagnostics',about:'about'})[topic]||topic;
     dialog.querySelectorAll('[data-help-topic]').forEach(button=>{const active=button.dataset.helpTopic===key;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
     dialog.querySelectorAll('[data-help-section]').forEach(section=>{section.hidden=section.dataset.helpSection!==key;});
     if(!dialog.open)dialog.showModal();
