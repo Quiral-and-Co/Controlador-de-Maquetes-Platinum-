@@ -77,3 +77,23 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 
 /* Metge Quiral diagnostic panel */
 .metge-quiral-panel{border-color:#477a9b}.quiral-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.quiral-toolbar strong{font-size:12px;color:#aebdce}.quiral-toolbar strong[data-status="HEALTHY"]{color:#83dfb7}.quiral-toolbar strong[data-status="WARNINGS"]{color:#f2c879}.quiral-toolbar strong[data-status="NEEDS_ATTENTION"]{color:#ff9292}.quiral-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.quiral-check{padding:9px;border:1px solid #34465c;border-radius:7px;background:#172230;font-size:11px}.quiral-check.ok{border-color:#286d58}.quiral-check.warning{border-color:#8a6a32}.quiral-check.error{border-color:#88434e}.quiral-check p{margin:5px 0 0;color:#aebdce;overflow-wrap:anywhere}
+
+
+/* Windows desktop presentation: the workspace remains shared by both modes. */
+body.mode-modern{font-family:"Segoe UI Variable","Segoe UI",Tahoma,sans-serif;background:#eef1f5;color:#1b1b1b}
+body.mode-modern .topbar{background:#f7f8fa;color:#1b1b1b;border-bottom:1px solid #c8cdd5;box-shadow:0 1px 2px #00000012}
+body.mode-modern .brand small{color:#5c6470}
+body.mode-modern main{max-width:1920px}
+body.mode-modern .notice{background:#fff8e6;border-color:#e3c77c;color:#5a471c;border-radius:4px}
+body.mode-modern .toolbar{background:#f7f8fa;border:1px solid #cbd1d9;border-radius:5px;box-shadow:0 1px 2px #0000000a}
+body.mode-modern .editor-sidebar,body.mode-modern .properties-panel,body.mode-modern .track-area,body.mode-modern .panel-card,body.mode-modern .command-station-panel,body.mode-modern .dispatcher-panel,body.mode-modern .topology-card{background:#fff;color:#20242a;border:1px solid #cbd1d9;border-radius:5px;box-shadow:0 1px 2px #0000000a}
+body.mode-modern button,body.mode-modern .mode-btn,body.mode-modern .file-label{background:#f7f8fa;color:#20242a;border:1px solid #b9c1cb;border-radius:4px}
+body.mode-modern button:hover,body.mode-modern .mode-btn:hover,body.mode-modern .file-label:hover{background:#e9f2fc;border-color:#6aa7df}
+body.mode-modern .mode-btn.active,body.mode-modern .primary{background:#dcecff;color:#123b62;border-color:#5797d1}
+body.mode-modern input,body.mode-modern select,body.mode-modern textarea{background:#fff;color:#20242a;border:1px solid #aeb7c2;border-radius:3px}
+body.mode-modern .editor-sidebar h2,body.mode-modern .properties-panel h2,body.mode-modern h1,body.mode-modern h2,body.mode-modern h3{color:#20242a}
+body.mode-modern .muted,body.mode-modern .small{color:#596574}
+body.mode-modern .canvas-wrap{border:1px solid #b8c1cb;border-radius:3px}
+body.mode-modern .modern-block{background:#f7f9fc;color:#20242a;border:1px solid #cbd1d9;border-radius:4px}
+body.mode-modern footer{color:#66717e}
+body.mode-modern .badge{border-radius:4px}
