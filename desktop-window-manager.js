@@ -5,7 +5,9 @@
   let taskbar = null;
   let shellRecord = null;
   let zIndex = 20;
-  let activeMode = 'classic';
+  // No mode is applied until app.js sends its initial state. This ensures
+  // the default modern mode actually builds the floating-window workspace.
+  let activeMode = null;
 
   const titleFor = node => {
     const heading = node.querySelector('h1,h2,h3,[aria-labelledby]');
