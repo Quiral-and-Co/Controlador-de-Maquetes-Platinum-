@@ -2,7 +2,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
-const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require('playwright');
 
@@ -32,13 +31,21 @@ function samePersistedFields(actual, expected, label) {
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const port = server.address().port;
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vmr-playwright-'));
+  let browser;
   let context;
   try {
-    context = await chromium.launchPersistentContext(profile, { headless:true, args:['--no-sandbox'] });
+    // A regular isolated context surfaces Blob downloads reliably in headless CI.
+    browser = await chromium.launch({ headless:true, args:['--no-sandbox'] });
+    context = await browser.newContext({ acceptDownloads:true });
     let page = await context.newPage();
+    page.on('pageerror', error => console.error('Browser page error:', error.stack || error.message));
+    page.on('console', message => { if (message.type() === 'error') console.error('Browser console error:', message.text()); });
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
+    // This integration test specifically exercises the browser fallback behind the
+    // legacy toolbar command. The app's active desktop mode may hide that toolbar;
+    // expose it in the test viewport without changing production UI behavior.
+    await page.addStyleTag({ content: '.toolbar { display:flex !important; visibility:visible !important; } #exportBtn { display:inline-flex !important; visibility:visible !important; }' });
 
     const makeProjectFixture = async (projectId, suffix, name) => page.evaluate(({projectId,suffix,name}) => {
       const c = JSON.parse(JSON.stringify(window.JMRI_TC_DISPATCHER.getConfig()));
@@ -83,9 +90,34 @@ function samePersistedFields(actual, expected, label) {
         s.audit.some(e => e.action === 'NOTE_ADDED');
     });
 
-    const projectExportDownload = page.waitForEvent('download');
-    await page.locator('#exportBtn').click();
-    const projectDownload = await projectExportDownload;
+    const exportDiagnostics = await page.evaluate(() => ({
+      buttonPresent: !!document.querySelector('#exportBtn'),
+      buttonDisabled: !!document.querySelector('#exportBtn')?.disabled,
+      handlerInstalled: typeof document.querySelector('#exportBtn')?.onclick === 'function',
+      nativeSaveBridge: typeof window.jmriDesktop?.saveProject === 'function'
+    }));
+    assert.ok(exportDiagnostics.buttonPresent && !exportDiagnostics.buttonDisabled && exportDiagnostics.handlerInstalled,
+      'browser project export button must be present, enabled, and wired: ' + JSON.stringify(exportDiagnostics));
+    assert.equal(exportDiagnostics.nativeSaveBridge, false,
+      'browser test must exercise the browser-download fallback, not Electron native save');
+    // Attach both promise handlers immediately: otherwise a download timeout can become
+    // an unhandled rejection while Playwright is still waiting for the button click.
+    const projectExportDownload = page.waitForEvent('download', { timeout:30000 })
+      .then(download => ({ download }), error => ({ error }));
+    await page.locator('#exportBtn').click({ timeout:10000 });
+    const downloadResult = await projectExportDownload;
+    if (downloadResult.error) {
+      const diagnostics = await page.evaluate(() => ({
+        exportLog: [...document.querySelectorAll('#eventLog li')].slice(0,8).map(x => x.textContent),
+        blobUrlSupported: typeof URL.createObjectURL === 'function',
+        blobSupported: typeof Blob === 'function',
+        anchorCount: document.querySelectorAll('a[download]').length,
+        anchors: [...document.querySelectorAll('a[download]')].map(a => ({ href:a.href, download:a.download, connected:a.isConnected })),
+        exportButtonHandler: typeof document.querySelector('#exportBtn')?.onclick
+      }));
+      throw new Error('Project JSON download did not start: ' + JSON.stringify(diagnostics) + '; ' + downloadResult.error.message);
+    }
+    const projectDownload = downloadResult.download;
     const projectPath = await projectDownload.path();
     assert.ok(projectPath, 'project export must create a browser download');
     const exportedProject = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
@@ -129,10 +161,10 @@ function samePersistedFields(actual, expected, label) {
     const actTwo = await captureActs();
     assert.notEqual(actOne, actTwo, 'two consecutive browser-generated acts must have unique IDs');
 
-    // Close the browser context, reopen Chromium with the same profile, then import the exported project.
+    // Reopen an isolated browser context, then import the exported project.
     await page.close();
     await context.close();
-    context = await chromium.launchPersistentContext(profile, { headless:true, args:['--no-sandbox'] });
+    context = await browser.newContext();
     page = await context.newPage();
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
@@ -142,7 +174,7 @@ function samePersistedFields(actual, expected, label) {
     console.log('PASS: Chromium UI project isolation, project JSON download/import, browser close/reopen, VMR IDs/status/notes/audit persistence, and unique consecutive validation acts');
   } finally {
     if (context) await context.close().catch(() => {});
+    await browser?.close().catch(() => {});
     await new Promise(resolve => server.close(resolve));
-    fs.rmSync(profile, { recursive:true, force:true });
   }
 })().catch(err => { console.error(err); process.exitCode = 1; });

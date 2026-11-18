@@ -2,12 +2,16 @@
 'use strict';
 const $=id=>document.getElementById(id),core=window.JMRI_TC_VERTICAL_TRACK;
 if(!core)throw new Error('No s’ha carregat vertical-track-core.js.');
+// This optional panel may be absent or only partially mounted in some application shells.
+// Do not initialise it unless every element used by its handlers is available.
+const requiredPanelElements=['verticalMode','straightRampFields','helixRampFields','verticalRampResult','insertVerticalRampBtn','calculateVerticalRampBtn','rampLengthMm','rampRiseMm','rampGradePercent','rampTransitionMm','rampGreenMax','rampYellowMax','rampRedMax','helixRadiusMm','helixTurns','helixRiseMm','helixGradePercent','helixTrackCount','helixSpacingMm','helixDirection','helixTransitionMm'];
+if(!requiredPanelElements.every(id=>$(id)))return;
 let plan=null,serial=0;
 const number=id=>{const v=$(id).value.trim();return v===''?null:Number(v);};
 const catalogue=()=>{const c=window.MARKLIN_C_CATALOGUE||window.JMRI_TC_CATALOGUE||{};return Array.isArray(c)?c:(c.items||[]);};
 function limits(){return {greenMax:number('rampGreenMax')??2,yellowMax:number('rampYellowMax')??3,redMax:number('rampRedMax')??5};}
 function mode(){return $('verticalMode').value;}
-function showMode(){const helixMode=mode()==='helix';$('straightRampFields').classList.toggle('hidden',helixMode);$('helixRampFields').classList.toggle('hidden',!helixMode);$('rampLengthLabel').textContent=helixMode?'Longitud calculada per volta':'Longitud total de la rampa';}
+function showMode(){const helixMode=mode()==='helix';$('straightRampFields').classList.toggle('hidden',helixMode);$('helixRampFields').classList.toggle('hidden',!helixMode);const label=$('rampLengthLabel');if(label)label.textContent=helixMode?'Longitud calculada per volta':'Longitud total de la rampa';}
 function showResult(p){
  const c=p.classification;$('verticalRampResult').className='vertical-result status-'+c.code;
  if(p.kind==='straight')$('verticalRampResult').innerHTML='<strong>'+c.label+'</strong> · Pendent màxim '+p.gradePercent.toFixed(2)+'% · longitud '+p.lengthMm.toFixed(1)+' mm · '+p.placements.length+' rectes · desnivell '+p.riseMm.toFixed(1)+' mm · ajust '+Math.abs(p.errorMm).toFixed(1)+' mm.';

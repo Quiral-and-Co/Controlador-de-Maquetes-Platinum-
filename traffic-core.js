@@ -13,4 +13,6 @@ const next=route.blockIds[run.currentIndex+1],nextState=blockStates[next]||'UNKN
 function stopRun(run,reason){run.status='FAULT';run.fault=String(reason||'Aturada de seguretat');return{ok:true,status:run.status};}
 function completeRun(run,route,blockStates){const last=route.blockIds[route.blockIds.length-1];if(run.status!=='ARRIVED')return{ok:false,error:'La circulació encara no ha arribat al bloc final.'};if((blockStates[last]||'UNKNOWN')!=='FREE')return{ok:false,error:'El bloc final no està confirmat com a lliure; no es pot alliberar la reserva.'};run.status='COMPLETE';return{ok:true};}
 function setMaxSpeed(run,value){const n=Number(value);if(!Number.isInteger(n)||n<1||n>MAX_SPEED)return{ok:false,error:'Velocitat màxima fora del rang 1–126.'};run.maxSpeed=n;return{ok:true};}
-module.exports={MAX_SPEED,MAX_AUTO_SPEED,createState,validateAddress,addLocomotive,removeLocomotive,createRun,preflight,startRun,evaluateAutomatic,stopRun,completeRun,setMaxSpeed};
+const api={MAX_SPEED,MAX_AUTO_SPEED,createState,validateAddress,addLocomotive,removeLocomotive,createRun,preflight,startRun,evaluateAutomatic,stopRun,completeRun,setMaxSpeed};
+if(typeof window!=='undefined')window.JMRI_TC_TrafficCore=api;
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
