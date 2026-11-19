@@ -111,13 +111,14 @@ body.mode-modern .desktop-commandbar{position:relative;z-index:auto;display:flex
 .desktop-window-controls{display:flex;gap:4px}
 .desktop-window-controls button{width:27px;height:24px;min-width:27px;padding:0;line-height:1;border:1px solid #c0c9d4;border-radius:3px;background:#f8fafc;color:#283747}
 .desktop-window-controls button:last-child:hover{background:#fce7e7;border-color:#d68a8a}
-.desktop-window-content{min-height:0;flex:1;overflow:auto;padding:8px;background:#fdfefe}
+.desktop-window-content{box-sizing:border-box;min-width:0;min-height:0;flex:1;overflow:hidden;padding:8px;background:#fdfefe}
 .desktop-window-resize{position:absolute;right:2px;bottom:2px;z-index:3;width:20px;height:20px;min-width:20px;padding:0!important;border:0!important;border-radius:0 0 5px 0!important;background:linear-gradient(135deg,transparent 48%,#8a9aab 49%,#8a9aab 55%,transparent 56%,transparent 67%,#8a9aab 68%,#8a9aab 74%,transparent 75%)!important;color:transparent!important;cursor:nwse-resize!important;touch-action:none}
 .desktop-window.is-maximized .desktop-window-resize,.desktop-window.is-docked .desktop-window-resize{display:none}
-.desktop-window-content>.editor-sidebar,.desktop-window-content>.track-area,.desktop-window-content>.properties-panel{width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
-.desktop-window-content>.track-area{display:flex;flex-direction:column}
-.desktop-window-content>.track-area .canvas-wrap{flex:1;min-height:260px}
-.desktop-window-content>.track-area #trackSvg{width:100%;height:100%;min-height:260px}
+.desktop-window-content>.editor-sidebar,.desktop-window-content>.properties-panel{box-sizing:border-box;width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
+.desktop-window-content>.track-area{box-sizing:border-box;display:flex;flex:1 1 auto;flex-direction:column;width:100%;height:100%;min-width:0;min-height:0;max-height:none;overflow:hidden;margin:0}
+.desktop-window-content>.track-area .section-heading,.desktop-window-content>.track-area .viewport-toolbar,.desktop-window-content>.track-area .canvas-status{flex:0 0 auto}
+.desktop-window-content>.track-area .canvas-wrap{box-sizing:border-box;flex:1 1 auto;width:100%;height:auto;min-width:0;min-height:0;overflow:auto}
+.desktop-window-content>.track-area #trackSvg{display:block;width:100%;height:100%;min-width:620px;min-height:260px}
 .desktop-taskbar{position:relative;z-index:auto;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
 .desktop-task{flex:0 0 auto;max-width:220px;padding:7px 11px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .desktop-task.is-open{background:#d6e8fb!important;border-color:#438acb!important}
