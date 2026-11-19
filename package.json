@@ -1,6 +1,6 @@
 {
   "name": "controlador-maquetes-quiral-platinum",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Controlador de Maquetes by Quiral & Co. Platinum — planificació, seguretat i integració de maquetes",
   "main": "electron/main.cjs",
@@ -53,7 +53,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
+      "createStartMenuMenuShortcut": true,
       "shortcutName": "Controlador de Maquetes by Quiral & Co. Platinum",
       "deleteAppDataOnUninstall": false
     }
