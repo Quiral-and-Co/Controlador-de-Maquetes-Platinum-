@@ -37,7 +37,9 @@ function refresh(){
   const state=document.createElement('div');state.className='td-state';state.dataset.state=row.state;state.textContent=({OCCUPIED:'OCUPAT',FREE:'LLIURE',UNKNOWN:'DESCONEGUT'})[row.state];
   const detail=document.createElement('p');detail.className='td-muted';detail.textContent=row.reason;
   const count=document.createElement('small');count.className='td-muted';count.textContent=row.sensorCount+' detector(s) assignat(s)';
-  card.append(h,state,detail,count);host.append(card);
+  const readings=document.createElement('ul');readings.className='td-muted';
+  for(const reading of row.sensorReadings){const item=document.createElement('li');const label=({OCCUPIED:'Ocupat',FREE:'Lliure',UNKNOWN:'Sense lectura actual'} )[reading.state];item.textContent=(reading.userName||reading.sensorName)+' · '+label+(reading.verified?' · verificat':' · pendent de verificació');readings.append(item);}
+  card.append(h,state,detail,count,readings);host.append(card);
  }
 }
 function openConfig(){
