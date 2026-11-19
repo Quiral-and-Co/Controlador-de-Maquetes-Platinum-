@@ -70,6 +70,10 @@ assert.match(vmrUi,/jmri-tc-vmr:/,'VMR locks must be scoped to the project stora
 assert.match(vmrUi,/core\.load\(root\.localStorage,snapshot\.storageKey\)/,'VMR transactions must reload the latest persisted state inside the lock');
 assert.doesNotMatch(vmrUi,/const persistence=core\.save\(s,root\.localStorage,storageKey\)/,'VMR render must not persist on every refresh');
 assert.match(vmrUi,/core\.save\(s,root\.localStorage,snapshot\.storageKey\)/,'VMR mutations must persist inside the exclusive lock');
+assert.match(vmrUi,/persistSnapshot\(\{c,s,storageKey\}\)/,'reconciliation changes must be durably persisted through the same transaction');
+const vmrCore=fs.readFileSync('validation-master-registry-core.js','utf8');
+assert.match(vmrCore,/if\(changed\)state\.updatedAt=nowIso\(now\)/,'VMR reconciliation timestamps must remain stable when no data changes');
+assert.match(app,/state\.history=\[\];state\.future=\[\]/,'remote workspace revisions must invalidate stale undo/redo history');
 console.log('PASS revisioned workspace synchronization, serialized layout writes and VMR transactional persistence');
 assert.match(manager, /leaveModern/);
 assert.match(manager, /Tauler de disseny de la maqueta/);
