@@ -129,7 +129,10 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     const bounds = clampBounds(candidate, target);
     const win = new BrowserWindow({
       ...bounds,
+      minWidth: 640,
+      minHeight: 480,
       show: false,
+      autoHideMenuBar: true,
       frame: true,
       resizable: true,
       minimizable: true,
