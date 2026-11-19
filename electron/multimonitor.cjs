@@ -9,6 +9,7 @@ const WINDOW_TYPES = Object.freeze({
   switchboard: 'Panell d’accessoris (Switchboard)',
   keyboard: 'Teclat d’accessoris (Keyboard)',
   trainWindow: 'Finestra del tren (Train Window)',
+  trainDetector: 'Detecció d’ocupació (Train Detector)',
   levels: 'Gestió de nivells',
   catalogue: 'Catàleg de vies',
   properties: 'Propietats i geometria XYZ',
