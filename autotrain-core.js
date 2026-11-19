@@ -50,7 +50,7 @@
    else if(status!=='FREE')return{ok:false,error:'Bloc '+id+' no confirmat lliure ('+status+').'};
    if(reservations[id])return{ok:false,error:'Bloc '+id+' ja està reservat.'};
   }
-  if(input?.locomotiveId===undefined||input?.locomotiveId===null||String(input.locomotiveId)==='')return{ok:false,error:'Selecciona una locomotora registrada.'};
+  if(input?.locomotiveId===undefined||input?.locomotiveId===null||String(input.locomotiveId)==='')return{ok:false,error:'Selecciona una locomotora registrada.'};\n  if(input?.speedProfileVerified!==true)return{ok:false,error:'La locomotora no té un perfil de velocitat calibrat i verificat.'};\n  if(input?.sourceConfirmed!==true)return{ok:false,error:'Confirma que la locomotora seleccionada és físicament al bloc d’origen.'};
   return{ok:true,blockIds:path};
  }
  const api={MAX_BLOCKS,buildGraph,shortestPath,validatePlan};
