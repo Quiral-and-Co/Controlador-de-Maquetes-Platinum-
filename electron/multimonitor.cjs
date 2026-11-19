@@ -160,6 +160,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
     return setAlwaysOnTop(sender, enabled);
   });
+  ipcMain.handle('native-window:is-always-on-top', event => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return sender.isAlwaysOnTop();
+  });
   ipcMain.handle('native-window:list', () => [...windows.entries()].filter(([, win]) => !win.isDestroyed()).map(([id, win]) => ({
     id, type: win.__windowType, title: WINDOW_TYPES[win.__windowType], bounds: win.getBounds(),
     displayId: win.__displayId, visible: win.isVisible()
