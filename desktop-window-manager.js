@@ -8,6 +8,8 @@
   // No mode is applied until app.js sends its initial state. This ensures
   // the default modern mode actually builds the floating-window workspace.
   let activeMode = null;
+  const requestedNativePanel = new URLSearchParams(location.search).get('nativePanel');
+  if (requestedNativePanel) document.documentElement.setAttribute('data-native-panel-loading', 'true');
 
   function groupInto(source,target) {
     if(!source||!target||source===target||source.groupHost===target)return;
@@ -230,6 +232,7 @@
         const error = document.createElement('p');
         error.textContent = 'No s’ha trobat el panell sol·licitat. Torna a obrir-lo des de l’escriptori principal.';
         main.append(error);
+        document.documentElement.removeAttribute('data-native-panel-loading');
         return;
       }
       const host = selected.closest('.editor-shell') || selected;
@@ -241,6 +244,7 @@
       document.body.classList.add('native-panel-window');
       selected.classList.add('native-panel-root');
       selected.setAttribute('data-native-panel', nativePanelKey);
+      document.documentElement.removeAttribute('data-native-panel-loading');
       return;
     }
     const notice = main.querySelector(':scope > .notice');
