@@ -203,6 +203,11 @@ function installApplicationMenu(mode = 'modern') {
       { label: 'Esdeveniments programats', submenu: [item('Programar esdeveniment…', 'operationEventCreate'), item('Comprovar esdeveniments pendents', 'operationRefreshEvents')] }
     ] },
     { label: 'Finestres', submenu: [
+      { label: 'Sempre al davant (finestra activa)', accelerator: 'Ctrl+Alt+T', click: () => {
+        const active = BrowserWindow.getFocusedWindow() || mainWindow;
+        if (active && !active.isDestroyed()) active.setAlwaysOnTop(!active.isAlwaysOnTop());
+      } },
+      { type: 'separator' },
       ...(activeMode === 'modern' ? [
         item('Mostrar totes les finestres', 'windowShowAll'),
         item('Minimitzar totes les finestres', 'windowMinimizeAll'),
@@ -283,6 +288,11 @@ async function createWindow() {
     height: 950,
     minWidth: 1024,
     minHeight: 700,
+    resizable: true,
+    minimizable: true,
+    maximizable: true,
+    fullscreenable: true,
+    frame: true,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#101b28',
@@ -295,6 +305,7 @@ async function createWindow() {
   });
   mainWindow = window;
   multiMonitor = installMultiMonitor({ app, BrowserWindow, screen: require('electron').screen, ipcMain, getMainWindow: () => mainWindow, getPort: () => port });
+  await multiMonitor.restoreMainWindow();
   window.setMenuBarVisibility(false);
   window.once('ready-to-show', () => window.show());
   await window.loadURL(`http://127.0.0.1:${port}`);
