@@ -269,3 +269,9 @@ body[data-ui-theme="windows-dark"] .canvas-wrap,body[data-ui-theme="graphite"] .
 .desktop-window-dock-menu{max-width:105px;height:24px;min-width:85px;padding:2px;font-size:10px;background:#f8fafc;color:#283747;border:1px solid #c0c9d4;border-radius:3px}
 body[data-ui-theme="windows-dark"] .desktop-window-tabs,body[data-ui-theme="graphite"] .desktop-window-tabs{background:#1b2937;border-color:#4c6075}
 body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-ui-theme="graphite"] .desktop-window-tabs button.active{background:#31516e!important;color:#fff!important}
+
+.locomotive-dmi{background:var(--dmi-panel-bg,#101b29)}
+.dmi-gauge-arc{stroke:color-mix(in srgb,var(--dmi-accent,#e0b64d) 30%,#496078)}
+.dmi-gauge-hub,.dmi-needle{stroke:var(--dmi-accent,#e0b64d)}
+.dmi-dial-arc{stroke:var(--dmi-accent,#e0b64d)}
+.dmi-dial{background:radial-gradient(circle at center,var(--dmi-panel-bg,#19283a) 56%,transparent 57%),conic-gradient(from 225deg,#3c8fba 0deg,var(--dmi-accent,#e0b64d) 230deg,#34465c 270deg)}
