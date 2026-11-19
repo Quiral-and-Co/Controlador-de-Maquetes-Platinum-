@@ -20,9 +20,11 @@ function state(){
 async function persistTransaction(snapshot,mutate){
  if(!root.navigator?.locks?.request)return{ok:false,error:'No hi ha suport per a bloqueig transaccional entre finestres.'};
  return root.navigator.locks.request('jmri-tc-vmr:'+snapshot.storageKey,{mode:'exclusive'},async()=>{
+  const hasStored=!!root.localStorage.getItem(snapshot.storageKey);
   const latest=core.load(root.localStorage,snapshot.storageKey);
-  const s=core.createState(latest.projectId===snapshot.s.projectId?latest:snapshot.s);s.projectId=snapshot.s.projectId;
-  const before=core.serialize(s);
+  const storedMatches=hasStored&&latest.projectId===snapshot.s.projectId;
+  const s=core.createState(storedMatches?latest:snapshot.s);s.projectId=snapshot.s.projectId;
+  const before=storedMatches?core.serialize(s):core.serialize(core.createState({projectId:snapshot.s.projectId}));
   core.reconcile(s,snapshot.c);core.updateValidation(s,snapshot.c,physical);
   const result=mutate(s);
   if(result?.ok===false)return result;
