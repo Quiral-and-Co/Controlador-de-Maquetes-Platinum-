@@ -25,7 +25,8 @@ const WINDOW_TYPES = Object.freeze({
   spielewelt: 'Món de Jocs',
   signalling: 'Senyalització',
   validation: 'Validació i seguretat',
-  diagnostics: 'Metge Quiral'
+  diagnostics: 'Metge Quiral',
+  desktopPanel: 'Panell desacoblat'
 });
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
 const DEFAULT_BOUNDS = Object.freeze({ width: 1100, height: 760 });
@@ -110,8 +111,10 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     await layoutReady;
     const type = typeof options.type === 'string' ? options.type : '';
     if (!Object.hasOwn(WINDOW_TYPES, type)) throw new TypeError('Tipus de finestra no permès.');
+    const panelKey = type === 'desktopPanel' ? String(options.panelKey || '') : '';
+    if (type === 'desktopPanel' && !/^[a-z0-9_-]{1,80}$/.test(panelKey)) throw new TypeError('Identificador de panell no vàlid.');
     const duplicate = options.duplicate === true;
-    const id = duplicate ? `${type}-${randomUUID()}` : type;
+    const id = type === 'desktopPanel' ? `desktop-panel-${panelKey}` : duplicate ? `${type}-${randomUUID()}` : type;
     const existing = windows.get(id);
     if (existing && !existing.isDestroyed()) {
       if (existing.isMinimized()) existing.restore();
@@ -132,7 +135,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
       minimizable: true,
       maximizable: true,
       fullscreenable: true,
-      title: WINDOW_TYPES[type],
+      title: type === 'desktopPanel' && typeof options.title === 'string' ? options.title.replace(/[\\u0000-\\u001f]/g, '').slice(0, 80) || WINDOW_TYPES[type] : WINDOW_TYPES[type],
       backgroundColor: '#101b28',
       webPreferences: {
         contextIsolation: true,
@@ -147,10 +150,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     win.once('ready-to-show', () => { if (!win.isDestroyed()) win.show(); });
     win.on('move', safePersist);
     win.on('resize', safePersist);
-    win.on('closed', () => { windows.delete(id); safePersist(); });
+    win.on('closed', () => { windows.delete(id); broadcast('workspace:window-closed', { id, type, panelKey }); safePersist(); });
     const url = new URL(`http://127.0.0.1:${getPort()}/`);
     url.searchParams.set('nativeWindow', type);
     url.searchParams.set('nativeWindowId', id);
+    if (type === 'desktopPanel') url.searchParams.set('nativePanel', panelKey);
     await win.loadURL(url.toString());
     broadcast('workspace:window-opened', { id, type, title: WINDOW_TYPES[type], displayId: String(target.id) });
     return { id, reused: false, displayId: String(target.id) };
@@ -197,6 +201,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   ipcMain.handle('native-window:show-all', () => {
     windows.forEach(win => { if (!win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); } });
     return windows.size;
+  });
+  ipcMain.handle('native-window:get-state', event => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return state;
   });
   ipcMain.handle('native-window:publish-state', (event, payload) => {
     const sender = BrowserWindow.fromWebContents(event.sender);
