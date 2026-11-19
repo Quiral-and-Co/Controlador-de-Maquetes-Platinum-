@@ -12,6 +12,7 @@ assert.match(index, /versió 1\.4\.0/i, 'La capçalera ha de mostrar la versió 
 assert.doesNotMatch(index, /1\.2\s*alpha/i, 'No ha de quedar cap etiqueta 1.2 Alpha');
 assert.match(manager, /registerPanel\(node, title/, 'El gestor ha de permetre registrar panells dinàmics');
 assert.match(manager, /digital-catalogue/, 'La base de dades digital ha de tenir posició inicial pròpia');
+assert.match(manager, /function bringToFront\(win\)/, 'en activar una finestra ha de passar per davant de les altres');
 assert.match(digitalUi, /JMRI_TC_DESKTOP\?\.registerPanel/, 'La UI digital ha de registrar-se al gestor de finestres');
 
 assert.match(manager, /18 \+ offset \* 24/, 'Els panells no poden quedar aparcats sota la zona visible');
