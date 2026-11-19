@@ -6,10 +6,12 @@ const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const { createProjectPathPolicy } = require('./project-path-policy.cjs');
+const { installMultiMonitor } = require('./multimonitor.cjs');
 
 let bridge = null;
 let quitting = false;
 let mainWindow = null;
+let multiMonitor = null;
 const approvedProjectPaths = createProjectPathPolicy();
 const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
@@ -292,6 +294,7 @@ async function createWindow() {
     }
   });
   mainWindow = window;
+  multiMonitor = installMultiMonitor({ app, BrowserWindow, screen: require('electron').screen, ipcMain, getMainWindow: () => mainWindow, getPort: () => port });
   window.setMenuBarVisibility(false);
   window.once('ready-to-show', () => window.show());
   await window.loadURL(`http://127.0.0.1:${port}`);
