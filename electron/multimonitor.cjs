@@ -29,6 +29,14 @@ const WINDOW_TYPES = Object.freeze({
 });
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
 const DEFAULT_BOUNDS = Object.freeze({ width: 1100, height: 760 });
+const MAIN_WINDOW_KEY = '__main__';
+
+function setAlwaysOnTop(sender, enabled) {
+  if (!sender || sender.isDestroyed?.()) throw new Error('La finestra activa no està disponible.');
+  const next = typeof enabled === 'boolean' ? enabled : !sender.isAlwaysOnTop();
+  sender.setAlwaysOnTop(next);
+  return sender.isAlwaysOnTop();
+}
 
 function clampBounds(bounds, display) {
   const area = display.workArea || display.bounds;
@@ -57,6 +65,12 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   });
   const persist = async () => {
     const layout = {};
+    const main = getMainWindow();
+    if (main && !main.isDestroyed()) {
+      const bounds = main.getBounds();
+      const display = screen.getDisplayMatching ? screen.getDisplayMatching(bounds) : screen.getPrimaryDisplay();
+      layout[MAIN_WINDOW_KEY] = { bounds, displayId: String(display.id), type: 'main' };
+    }
     for (const [id, win] of windows) {
       if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
     }
@@ -67,6 +81,16 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     await fs.rename(temp, statePath);
   };
   const safePersist = () => { persist().catch(error => console.error('[Finestres natives] No s’ha pogut desar la disposició:', error)); };
+
+  async function restoreMainWindow() {
+    await layoutReady;
+    const main = getMainWindow();
+    const mainState = saved[MAIN_WINDOW_KEY];
+    if (!main || main.isDestroyed() || !mainState?.bounds) return false;
+    const target = displayFor(mainState.displayId);
+    main.setBounds(clampBounds(mainState.bounds, target));
+    return true;
+  }
 
   async function openWindow(options = {}) {
     await layoutReady;
@@ -89,6 +113,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     const win = new BrowserWindow({
       ...bounds,
       show: false,
+      frame: true,
+      resizable: true,
+      minimizable: true,
+      maximizable: true,
+      fullscreenable: true,
       title: WINDOW_TYPES[type],
       backgroundColor: '#101b28',
       webPreferences: {
@@ -113,6 +142,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     return { id, reused: false, displayId: String(target.id) };
   }
 
+  ipcMain.handle('native-window:toggle-always-on-top', (event, enabled) => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return setAlwaysOnTop(sender, enabled);
+  });
   ipcMain.handle('native-window:list', () => [...windows.entries()].filter(([, win]) => !win.isDestroyed()).map(([id, win]) => ({
     id, type: win.__windowType, title: WINDOW_TYPES[win.__windowType], bounds: win.getBounds(),
     displayId: win.__displayId, visible: win.isVisible()
@@ -160,6 +194,12 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   screen.on('display-removed', () => {
     const available = displays();
     if (!available.length) return;
+    const main = getMainWindow();
+    if (main && !main.isDestroyed()) {
+      const mainBounds = main.getBounds();
+      const mainDisplay = screen.getDisplayMatching ? screen.getDisplayMatching(mainBounds) : screen.getPrimaryDisplay();
+      if (!available.some(display => String(display.id) === String(mainDisplay.id))) main.setBounds(clampBounds(mainBounds, screen.getPrimaryDisplay()));
+    }
     for (const win of windows.values()) {
       if (win.isDestroyed()) continue;
       if (!available.some(display => String(display.id) === win.__displayId)) {
@@ -177,9 +217,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
 
   return Object.freeze({
     openWindow,
+    restoreMainWindow,
+    persist,
     getState: () => state,
     getWindowTypes: () => ({ ...WINDOW_TYPES })
   });
 }
 
-module.exports = { installMultiMonitor, clampBounds, WINDOW_TYPES };
+module.exports = { installMultiMonitor, clampBounds, setAlwaysOnTop, WINDOW_TYPES };
