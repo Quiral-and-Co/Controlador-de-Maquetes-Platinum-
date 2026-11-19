@@ -275,3 +275,8 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .dmi-gauge-hub,.dmi-needle{stroke:var(--dmi-accent,#e0b64d)}
 .dmi-dial-arc{stroke:var(--dmi-accent,#e0b64d)}
 .dmi-dial{background:radial-gradient(circle at center,var(--dmi-panel-bg,#19283a) 56%,transparent 57%),conic-gradient(from 225deg,#3c8fba 0deg,var(--dmi-accent,#e0b64d) 230deg,#34465c 270deg)}
+
+.dmi-functions button{min-width:var(--dmi-function-button-size,42px);min-height:var(--dmi-function-button-size,42px)}
+.dmi-vertical-range input[type=range]{height:var(--dmi-slider-height,158px);min-height:var(--dmi-slider-height,158px)}
+.dispatcher-block.hide-dispatcher-meta .dispatcher-state{display:none}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within){transform:translateX(92%)}
