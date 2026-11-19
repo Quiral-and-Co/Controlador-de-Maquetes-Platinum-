@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const KEY='quiral.workspace.preferences.v1';
-const defaults={theme:'windows-light',toolbar:true,taskbar:true,statusbar:true,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherSort:'name',autoHide:[]};
+const defaults={theme:'windows-light',interfaceMode:'modern',toolbar:true,taskbar:true,statusbar:true,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherSort:'name',autoHide:[]};
 let prefs={...defaults};
 try{prefs={...prefs,...JSON.parse(localStorage.getItem(KEY)||'{}')};}catch{}
 const $=id=>document.getElementById(id);
@@ -13,6 +13,7 @@ function apply(){
  if(toolbar)toolbar.hidden=!prefs.toolbar;
  const taskbar=document.querySelector('.desktop-taskbar');if(taskbar)taskbar.hidden=!prefs.taskbar;
  document.querySelectorAll('.canvas-status,.status-bar,[data-status-bar]').forEach(n=>n.hidden=!prefs.statusbar);
+ document.body.classList.toggle('dmi-touch-gauge',!!prefs.dmiGaugeTouch);
  document.documentElement.style.setProperty('--ribbon-icon-size',prefs.iconSize+'px');
  document.documentElement.style.setProperty('--dmi-panel-bg',prefs.dmiBackground);
  document.documentElement.style.setProperty('--dmi-accent',prefs.dmiAccent);
@@ -36,6 +37,7 @@ function open(){
  const add=(id,label,node)=>$(id).append(field(label,node));
  const view=$('workspacePrefView'),wins=$('workspacePrefWindows'),train=$('workspacePrefTrain'),board=$('workspacePrefBoard'),disp=$('workspacePrefDispatcher');
  [view,wins,train,board,disp].forEach(n=>n.replaceChildren());
+ add('workspacePrefView','Interfície',select(prefs.interfaceMode,[['modern','Cinta moderna (Ribbon)'],['classic','Menús clàssics i barres']],v=>{prefs.interfaceMode=v;save();document.getElementById(v==='modern'?'modeModern':'modeClassic')?.click();}));
  add('workspacePrefView','Estil visual',select(prefs.theme,[['windows-light','Windows clar'],['windows-dark','Windows fosc'],['classic-light','Clàssic clar'],['graphite','Grafit fosc']],v=>{prefs.theme=v;save();}));
  add('workspacePrefView','Barra d’eines principal',checkbox(prefs.toolbar,v=>{prefs.toolbar=v;save();}));
  add('workspacePrefView','Barra de finestres',checkbox(prefs.taskbar,v=>{prefs.taskbar=v;save();}));
