@@ -215,3 +215,43 @@ body.mode-modern .desktop-window-controls{gap:3px;flex:0 0 auto}
 body.mode-modern .desktop-window-controls button{width:25px;min-width:25px;height:23px;padding:0;font-size:13px}
 body.mode-modern .desktop-taskbar{min-height:36px}
 @media(max-width:760px){body.mode-modern .modern-ribbon{height:104px;min-height:104px;max-height:104px}body.mode-modern .ribbon-page{height:72px;min-height:72px;max-height:72px}body.mode-modern .ribbon-group button.ribbon-icon-button{width:38px;min-width:38px;height:38px;min-height:38px}}
+
+/* Personalització global de l'espai de treball */
+body.mode-modern.ribbon-collapsed .modern-ribbon{height:34px!important;min-height:34px!important;max-height:34px!important}
+body.mode-modern.ribbon-collapsed .ribbon-page{display:none!important}
+body.mode-modern.ribbon-collapsed .ribbon-tabs{border-bottom:0}
+body.mode-modern .ribbon-group button.ribbon-icon-button{width:var(--ribbon-icon-size,42px);min-width:var(--ribbon-icon-size,42px);height:var(--ribbon-icon-size,42px);min-height:var(--ribbon-icon-size,42px)}
+body[data-ui-theme="windows-dark"],body[data-ui-theme="graphite"]{background:#101820;color:#e5edf5}
+body[data-ui-theme="windows-dark"] .modern-ribbon,body[data-ui-theme="graphite"] .modern-ribbon{background:#202b38;color:#e5edf5;border-color:#435365}
+body[data-ui-theme="windows-dark"] .ribbon-tabs,body[data-ui-theme="graphite"] .ribbon-tabs{background:#17222e;border-color:#435365}
+body[data-ui-theme="windows-dark"] .ribbon-tab.active,body[data-ui-theme="graphite"] .ribbon-tab.active{background:#273747!important;color:#fff!important;border-color:#52677c!important}
+body[data-ui-theme="windows-dark"] .desktop-workspace,body[data-ui-theme="graphite"] .desktop-workspace{background:linear-gradient(135deg,#172331,#202d3b);border-color:#435365}
+body[data-ui-theme="windows-dark"] .desktop-window,body[data-ui-theme="graphite"] .desktop-window{background:#202d3b;border-color:#53677b;color:#e5edf5}
+body[data-ui-theme="windows-dark"] .desktop-window-titlebar,body[data-ui-theme="graphite"] .desktop-window-titlebar{background:linear-gradient(#314254,#243343);border-color:#52677c;color:#fff}
+body[data-ui-theme="windows-dark"] .desktop-window-content,body[data-ui-theme="graphite"] .desktop-window-content{background:#1a2734}
+body[data-ui-theme="classic-light"] .modern-ribbon{border-radius:0;box-shadow:none}
+.workspace-preferences-dialog{width:min(900px,calc(100vw - 28px));max-height:88vh;overflow:auto;padding:0;border:1px solid #718096;border-radius:12px;background:#f7f9fc;color:#172536;box-shadow:0 24px 80px #0008}
+.workspace-preferences-dialog::backdrop{background:#091321b8;backdrop-filter:blur(3px)}
+.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;background:#e9eef5;border-bottom:1px solid #c7d0dc}
+.workspace-preferences-dialog h2{margin:0;font-size:18px}.workspace-preferences-dialog header p{margin:4px 0 0;font-size:12px;color:#536477}
+.workspace-pref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
+.workspace-pref-grid section{padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;min-width:0}
+.workspace-pref-grid h3{margin:0 0 10px;font-size:14px}
+.workspace-pref-field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e5eaf0;font-size:12px}
+.workspace-pref-field select{max-width:160px;padding:5px;border:1px solid #aab7c6;border-radius:5px;background:#fff;color:#172536}
+.workspace-pref-field input[type=color]{width:44px;height:28px;border:0;background:transparent}
+.workspace-pref-field input[type=range]{max-width:130px}
+.workspace-pref-note{font-size:11px;color:#526477;line-height:1.5}
+.workspace-preferences-dialog footer{border-top:1px solid #c7d0dc;border-bottom:0}
+body[data-ui-theme="windows-dark"] .workspace-preferences-dialog,body[data-ui-theme="graphite"] .workspace-preferences-dialog{background:#1c2a38;color:#edf4fb}
+body[data-ui-theme="windows-dark"] .workspace-pref-grid section,body[data-ui-theme="graphite"] .workspace-pref-grid section{background:#253648;border-color:#50647a}
+body[data-ui-theme="windows-dark"] .workspace-pref-field,body[data-ui-theme="graphite"] .workspace-pref-field{border-color:#43576b}
+@media(max-width:680px){.workspace-pref-grid{grid-template-columns:1fr}.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{align-items:flex-start;flex-wrap:wrap}}
+.desktop-window.auto-hide-window{transition:transform .18s ease,opacity .18s ease}
+.desktop-window.auto-hide-window:not(:hover):not(:focus-within){opacity:.18;transform:translateX(-92%);pointer-events:auto}
+body.mode-modern .desktop-window.is-floating{box-shadow:0 14px 36px #15283c55;border:1px solid #6d91b6}
+.dmi-gauge{background:var(--dmi-panel-bg,#101b29);border-radius:10px;cursor:default}
+body.dmi-touch-gauge .dmi-gauge{cursor:crosshair}
+.dmi-functions button{background:color-mix(in srgb,var(--dmi-accent,#e0b64d) 18%,#26394e)}
+.dmi-functions button.active{background:var(--dmi-accent,#e0b64d);color:#101820}
+.canvas-wrap{background-color:var(--board-background,#f5f7fa)}
