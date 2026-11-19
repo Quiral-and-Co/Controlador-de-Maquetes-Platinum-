@@ -39,8 +39,8 @@
     if (node.classList.contains('editor-sidebar')) return 'editor-sidebar';
     if (node.classList.contains('track-area')) return 'track-area';
     if (node.classList.contains('properties-panel')) return 'properties-panel';
-    if (node.id) return 'section-' + node.id;
-    const classes = [...node.classList].filter(name => name !== 'hidden').sort();
+    if (node.id) return 'section-' + node.id.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    const classes = [...node.classList].filter(name => name !== 'hidden').map(name => name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')).sort();
     return 'section-' + (classes.join('-') || 'panel');
   }
 
