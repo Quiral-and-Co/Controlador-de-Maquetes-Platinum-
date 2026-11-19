@@ -5,13 +5,14 @@
   <title>Controlador de Maquetes by Quiral & Co. Platinum · Circulacions 1.2 alpha</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="ui-style-presets.css"><link rel="stylesheet" href="dispatcher.css"><link rel="stylesheet" href="signalling.css"><link rel="stylesheet" href="signalling-topology.css"><link rel="stylesheet" href="physical-validation.css"><link rel="stylesheet" href="jmri-turnout-supervision.css"><link rel="stylesheet" href="command-station.css"><link rel="stylesheet" href="locomotive-dmi.css"><link rel="stylesheet" href="spielewelt.css"><link rel="stylesheet" href="train-protection.css"><link rel="stylesheet" href="train-ground.css">
 </head>
 <body>
-<header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>Controlador de Maquetes by Quiral & Co. Platinum</strong><small>Gestió de maqueta · versió 1.2 alpha</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn" type="button" aria-pressed="false">Interfície clàssica</button><button id="modeModern" class="mode-btn active" type="button" aria-pressed="true">Interfície moderna</button></div></header>
+<header class="topbar"><div class="brand"><div class="brand-mark">🚆</div><div><strong>Controlador de Maquetes by Quiral & Co. Platinum</strong><small>Gestió de maqueta · versió 1.2 alpha</small></div></div><div class="top-actions"><span id="connectionBadge" class="badge offline">Desconnectat</span><button id="modeClassic" class="mode-btn mode-icon-btn" type="button" aria-pressed="false" aria-label="Interfície clàssica" title="Interfície clàssica" data-tooltip="Interfície clàssica"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM3 9h18M8 9v11M8 14h13M8 17h13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mode-btn-label">Interfície clàssica</span></button><button id="modeModern" class="mode-btn mode-icon-btn active" type="button" aria-pressed="true" aria-label="Interfície moderna" title="Interfície moderna" data-tooltip="Interfície moderna"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v5H3zM3 12h5v8H3zM10 12h5v8h-5zM17 12h4v8h-4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M6 6.5h.01M9 6.5h.01M12 6.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="mode-btn-label">Interfície moderna</span></button></div></header>
 <main>
   <section class="notice"><strong>Biblioteca de catàleg Märklin C · versió 0.9.</strong> Les referències amb geometria parcial o no verificada es dibuixen esquemàticament i no s’utilitzen per certificar connexions físiques. El control DCC utilitza el pont WiThrottle local i queda desarmat per defecte.</section>
   
   <section id="modernRibbon" class="modern-ribbon" aria-label="Cinta d'eines moderna">
     <div class="ribbon-tabs" role="tablist" aria-label="Pestanyes de la cinta">
       <button type="button" class="ribbon-tab active" role="tab" aria-selected="true" data-ribbon-tab="home">Inici</button>
+      <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="edit">Edició</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="track">Vies i disseny</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="view">Visualització</button>
       <button type="button" class="ribbon-tab" role="tab" aria-selected="false" data-ribbon-tab="railroad">Ferrocarril</button>
@@ -22,8 +23,13 @@
     </div>
     <div class="ribbon-page" role="tabpanel" data-ribbon-page="home">
       <div class="ribbon-group"><strong>Projecte</strong><div><button data-ribbon-command="new">Nou</button><button data-ribbon-command="open">Obrir</button><button data-ribbon-command="save">Guardar</button><button data-ribbon-command="saveAs">Guardar com</button></div></div>
-      <div class="ribbon-group"><strong>Edició</strong><div><button data-ribbon-command="undo">Desfer</button><button data-ribbon-command="redo">Refer</button><button data-ribbon-command="cut">Retallar</button><button data-ribbon-command="copy">Copiar</button><button data-ribbon-command="paste">Enganxar</button><button data-ribbon-command="delete">Eliminar</button></div></div>
+      
       <div class="ribbon-group"><strong>Connexió</strong><div><button data-ribbon-command="connect">Connectar sistema de control</button><button data-ribbon-command="disconnect">Desconnectar</button></div></div>
+    </div>
+    <div class="ribbon-page" role="tabpanel" data-ribbon-page="edit" hidden>
+      <div class="ribbon-group"><strong>Historial</strong><div><button data-ribbon-command="undo">Desfer</button><button data-ribbon-command="redo">Refer</button></div></div>
+      <div class="ribbon-group"><strong>Porta-retalls</strong><div><button data-ribbon-command="cut">Retallar</button><button data-ribbon-command="copy">Copiar</button><button data-ribbon-command="paste">Enganxar</button></div></div>
+      <div class="ribbon-group"><strong>Selecció</strong><div><button data-ribbon-command="selectAll">Seleccionar-ho tot</button><button data-ribbon-command="delete">Eliminar</button><button data-ribbon-command="duplicate">Duplicar</button></div></div>
     </div>
     <div class="ribbon-page" role="tabpanel" data-ribbon-page="track" hidden>
       <div class="ribbon-group"><strong>Disseny de vies</strong><div><button data-ribbon-command="portMode">Connexió manual</button><button data-ribbon-command="createParallel">Vies paral·leles</button><button data-ribbon-command="suggestGaps">Completar buits</button><button data-ribbon-command="validateTopology">Validar topologia</button><button data-ribbon-command="measure">Mesurar</button></div></div>
