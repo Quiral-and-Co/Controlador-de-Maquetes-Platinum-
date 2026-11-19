@@ -77,5 +77,5 @@ assert.match(app,/function setOperationMode\(enabled\)/,'operation mode must hav
 assert.match(app,/if\(!editingMode\)\{selectPiece\(id,e\);return;\}/,'track dragging must be disabled outside edit mode while selection remains available');
 assert.match(app,/if\(!editingMode\|\|!state\.portMode\)return/,'track connections must be blocked outside edit mode');
 assert.match(app,/quiral\.workflow\.modes\.v1/,'workflow modes must persist independently');
-assert.match(css,/\.workflow-mode-btn\.active[^}]*background:#23864b/s,'active workflow icons must have a green background');
+assert.match(styles,/\.workflow-mode-btn\.active[^}]*background:\s*#23864b/s,'active workflow icons must have a green background');
 console.log('PASS independent edit/operation modes, green active indicators and edit guards');
