@@ -194,3 +194,6 @@ body.mode-modern .ribbon-group button.ribbon-icon-button:hover{background:#edf5f
 .ribbon-icon-button[data-tooltip]:hover::after,.ribbon-icon-button[data-tooltip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0)}
 body.mode-modern .ribbon-group button.ribbon-icon-button:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
 @media(max-width:760px){body.mode-modern .ribbon-group button.ribbon-icon-button{width:52px;min-width:52px;height:52px;min-height:52px}.ribbon-icon{width:30px;height:30px;flex-basis:30px}}
+
+/* Els tooltips han de poder sortir de la superfície de la cinta sense quedar retallats. */
+body.mode-modern .modern-ribbon{overflow:visible}
