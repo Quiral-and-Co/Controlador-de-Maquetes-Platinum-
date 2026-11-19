@@ -37,6 +37,21 @@ function create(){
  $('virtualContactName').value='';announce('Contacte virtual creat. No té adreça digital i no altera l’ocupació ni els enclavaments del bloc.');window.JMRI_TC_DISPATCHER?.refresh?.();render();
 }
 function updateFields(){const type=$('virtualContactType')?.value;if($('virtualContactDistanceField'))$('virtualContactDistanceField').hidden=type!=='DISTANCE';if($('virtualContactTimeField'))$('virtualContactTimeField').hidden=type!=='TIME';if($('virtualContactLogicField'))$('virtualContactLogicField').hidden=type!=='LOGIC';}
+function decorateSwitchboard(){
+ const svg=document.getElementById('trackSvg');if(!svg)return;
+ const c=config(),contacts=(c?.levels||[]).flatMap(l=>l.virtualContacts||[]);
+ const byBlock=new Map();for(const item of contacts){if(!byBlock.has(String(item.blockId)))byBlock.set(String(item.blockId),[]);byBlock.get(String(item.blockId)).push(item);}
+ svg.querySelectorAll('.track-piece[data-block-id]').forEach(piece=>{
+  const items=byBlock.get(String(piece.dataset.blockId))||[];
+  const existing=piece.querySelector('[data-virtual-contact-marker]');
+  if(!items.length){existing?.remove();return;}if(existing)return;
+  const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g');g.setAttribute('data-virtual-contact-marker','true');g.setAttribute('class','virtual-contact-marker');g.setAttribute('transform','translate(12 -25)');g.setAttribute('pointer-events','none');g.setAttribute('aria-label','Contacte virtual sense adreça digital');
+  const circle=document.createElementNS(ns,'circle');circle.setAttribute('cx','0');circle.setAttribute('cy','0');circle.setAttribute('r','9');circle.setAttribute('fill','#6d45b5');circle.setAttribute('stroke','#fff');circle.setAttribute('stroke-width','1.5');circle.setAttribute('stroke-dasharray','2 2');
+  const label=document.createElementNS(ns,'text');label.setAttribute('x','0');label.setAttribute('y','3.5');label.setAttribute('text-anchor','middle');label.setAttribute('font-size','9');label.setAttribute('font-weight','700');label.setAttribute('fill','#fff');label.textContent='V';
+  const title=document.createElementNS(ns,'title');title.textContent=items.map(x=>x.name).join(', ')+' · Contacte virtual · sense adreça digital';
+  g.append(circle,label,title);piece.append(g);
+ });
+}
 function refreshBlocks(){
  const select=$('virtualContactBlock');if(!select)return;const selected=select.value;select.replaceChildren();
  for(const block of blocks()){const option=document.createElement('option');option.value=block.id;option.textContent=(block.name||block.id)+(block.verified?'':' · no verificat');select.append(option);}
@@ -46,18 +61,18 @@ function initialize(){
  const host=$('virtualContactList');if(!host)return;
  $('virtualContactType').addEventListener('change',updateFields);$('virtualContactCreate').addEventListener('click',create);
  $('virtualContactBlock').addEventListener('change',()=>{const b=blocks().find(x=>x.id===$('virtualContactBlock').value);if(b)$('virtualContactDistance').max=String(Math.max(1,Number(b.lengthMm)-1));});
- refreshBlocks();updateFields();render();
+ refreshBlocks();updateFields();render();decorateSwitchboard();
  window.JMRI_TC_VIRTUAL_CONTACTS={
   updatePositionEstimate(input){
    const x=input||{};if(!x.runId||!x.blockId||x.verified!==true||x.profileVerified!==true)return{ok:false,error:'Estimació rebutjada: cal runId, bloc, posició i perfil calibrat verificats.'};
-   const positionMm=Number(x.positionMm),elapsedSeconds=Number(x.elapsedSeconds);
-   if(!Number.isFinite(positionMm)||positionMm<0||(!Number.isFinite(elapsedSeconds)||elapsedSeconds<0))return{ok:false,error:'Posició o temps no vàlids.'};
+   const positionMm=x.positionMm===undefined?undefined:Number(x.positionMm),elapsedSeconds=x.elapsedSeconds===undefined?undefined:Number(x.elapsedSeconds);
+   if((positionMm===undefined&&elapsedSeconds===undefined)||(positionMm!==undefined&&(!Number.isFinite(positionMm)||positionMm<0))||(elapsedSeconds!==undefined&&(!Number.isFinite(elapsedSeconds)||elapsedSeconds<0)))return{ok:false,error:'Posició o temps no vàlids.'};
    positionEstimates.set(String(x.blockId),{runId:String(x.runId),blockId:String(x.blockId),positionMm,elapsedSeconds,verified:true,profileVerified:true});
    render();return{ok:true};
   },
   inspect(){return core.inspect(config(),{sensorStates:sensorStates(),positionEstimates:Object.fromEntries(positionEstimates)});}
  };
- window.setInterval(()=>{refreshBlocks();render();},1500);
+ window.setInterval(()=>{refreshBlocks();render();decorateSwitchboard();},1500);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
 })();
