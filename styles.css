@@ -77,3 +77,218 @@ main{padding:18px;max-width:1800px;margin:auto}.notice{padding:12px 15px;border:
 
 /* Metge Quiral diagnostic panel */
 .metge-quiral-panel{border-color:#477a9b}.quiral-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.quiral-toolbar strong{font-size:12px;color:#aebdce}.quiral-toolbar strong[data-status="HEALTHY"]{color:#83dfb7}.quiral-toolbar strong[data-status="WARNINGS"]{color:#f2c879}.quiral-toolbar strong[data-status="NEEDS_ATTENTION"]{color:#ff9292}.quiral-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.quiral-check{padding:9px;border:1px solid #34465c;border-radius:7px;background:#172230;font-size:11px}.quiral-check.ok{border-color:#286d58}.quiral-check.warning{border-color:#8a6a32}.quiral-check.error{border-color:#88434e}.quiral-check p{margin:5px 0 0;color:#aebdce;overflow-wrap:anywhere}
+
+
+/* Windows desktop presentation: the workspace remains shared by both modes. */
+body.mode-modern{font-family:"Segoe UI Variable","Segoe UI",Tahoma,sans-serif;background:#eef1f5;color:#1b1b1b}
+body.mode-modern .topbar{background:#f7f8fa;color:#1b1b1b;border-bottom:1px solid #c8cdd5;box-shadow:0 1px 2px #00000012}
+body.mode-modern .brand small{color:#5c6470}
+body.mode-modern main{max-width:1920px}
+body.mode-modern .notice{background:#fff8e6;border-color:#e3c77c;color:#5a471c;border-radius:4px}
+body.mode-modern .toolbar{background:#f7f8fa;border:1px solid #cbd1d9;border-radius:5px;box-shadow:0 1px 2px #0000000a}
+body.mode-modern .editor-sidebar,body.mode-modern .properties-panel,body.mode-modern .track-area,body.mode-modern .panel-card,body.mode-modern .command-station-panel,body.mode-modern .dispatcher-panel,body.mode-modern .topology-card{background:#fff;color:#20242a;border:1px solid #cbd1d9;border-radius:5px;box-shadow:0 1px 2px #0000000a}
+body.mode-modern button,body.mode-modern .mode-btn,body.mode-modern .file-label{background:#f7f8fa;color:#20242a;border:1px solid #b9c1cb;border-radius:4px}
+body.mode-modern button:hover,body.mode-modern .mode-btn:hover,body.mode-modern .file-label:hover{background:#e9f2fc;border-color:#6aa7df}
+body.mode-modern .mode-btn.active,body.mode-modern .primary{background:#dcecff;color:#123b62;border-color:#5797d1}
+body.mode-modern input,body.mode-modern select,body.mode-modern textarea{background:#fff;color:#20242a;border:1px solid #aeb7c2;border-radius:3px}
+body.mode-modern .editor-sidebar h2,body.mode-modern .properties-panel h2,body.mode-modern h1,body.mode-modern h2,body.mode-modern h3{color:#20242a}
+body.mode-modern .muted,body.mode-modern .small{color:#596574}
+body.mode-modern .canvas-wrap{border:1px solid #b8c1cb;border-radius:3px}
+body.mode-modern .modern-block{background:#f7f9fc;color:#20242a;border:1px solid #cbd1d9;border-radius:4px}
+body.mode-modern footer{color:#66717e}
+body.mode-modern .badge{border-radius:4px}
+
+
+/* Real modern desktop workspace: independent movable, resizable application windows. */
+body.mode-modern main{max-width:none;width:100%;padding:10px 14px 0}
+body.mode-modern .desktop-notice{margin-bottom:8px}
+body.mode-modern .desktop-commandbar{position:relative;z-index:auto;display:flex;flex-wrap:wrap;max-height:112px;overflow:auto}
+.desktop-workspace{position:relative;min-height:1120px;height:calc(100vh - 250px);min-width:0;overflow:auto;background:linear-gradient(135deg,#dfe5ed 0%,#edf1f6 55%,#dfe6ef 100%);border:1px solid #aeb9c7;border-radius:7px;box-shadow:inset 0 1px 4px #26384b18}
+.desktop-window{position:absolute;display:flex;flex-direction:column;min-width:260px;min-height:180px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);resize:both;overflow:hidden;background:#fff;border:1px solid #8796a8;border-radius:6px;box-shadow:0 8px 24px #1d2c3e30}
+.desktop-window[hidden]{display:none}
+.desktop-window-titlebar{height:36px;min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 0 12px;background:linear-gradient(#fbfcfe,#e8edf4);border-bottom:1px solid #c2ccd8;color:#1b2838;cursor:move;user-select:none}
+.desktop-window-titlebar strong{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desktop-window-controls{display:flex;gap:4px}
+.desktop-window-controls button{width:27px;height:24px;min-width:27px;padding:0;line-height:1;border:1px solid #c0c9d4;border-radius:3px;background:#f8fafc;color:#283747}
+.desktop-window-controls button:last-child:hover{background:#fce7e7;border-color:#d68a8a}
+.desktop-window-content{min-height:0;flex:1;overflow:auto;padding:8px;background:#fdfefe}
+.desktop-window-content>.editor-sidebar,.desktop-window-content>.track-area,.desktop-window-content>.properties-panel{width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
+.desktop-window-content>.track-area{display:flex;flex-direction:column}
+.desktop-window-content>.track-area .canvas-wrap{flex:1;min-height:260px}
+.desktop-window-content>.track-area #trackSvg{width:100%;height:100%;min-height:260px}
+.desktop-taskbar{position:relative;z-index:auto;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
+.desktop-task{flex:0 0 auto;max-width:220px;padding:7px 11px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desktop-task.is-open{background:#d6e8fb!important;border-color:#438acb!important}
+body.mode-modern .desktop-window-content .editor-sidebar,body.mode-modern .desktop-window-content .properties-panel{box-shadow:none}
+body.mode-modern .desktop-window-content .panel-card,body.mode-modern .desktop-window-content .dispatcher-panel,body.mode-modern .desktop-window-content .signal-diagnostics-panel{box-shadow:none}
+@media(max-width:900px){.desktop-workspace{height:auto;min-height:1600px}.desktop-window{max-width:calc(100% - 20px)}}
+
+
+/* Impressió: per defecte imprimeix el quadre de vies, no els controls d'edició. */
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body { background: #fff !important; color: #111 !important; }
+  .topbar, .notice, .toolbar, .summary-grid, #commandStationPanel,
+  .editor-sidebar, .properties-panel, .viewport-toolbar, .canvas-status,
+  .event-log, .mode-btn, button, input, select, textarea { display: none !important; }
+  main, .editor-shell, .track-area { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; }
+  .track-area { break-inside: avoid; }
+  .canvas-wrap { width: 100% !important; height: auto !important; overflow: visible !important; border: 0 !important; background: #fff !important; }
+  .canvas-wrap svg { width: 100% !important; height: auto !important; max-height: 250mm !important; }
+  .section-heading h1, .section-heading p { color: #111 !important; }
+}
+
+/* Native tabbed ribbon: visible only in the independent modern interface. */
+.modern-ribbon{display:none;margin:0 0 12px;background:#f7f8fa;border:1px solid #cbd1d9;border-radius:6px;box-shadow:0 1px 2px #0000000a;color:#20242a;overflow:hidden}
+body.mode-modern .modern-ribbon{display:block}
+body.mode-modern .toolbar{display:none}
+.ribbon-tabs{display:flex;gap:3px;padding:5px 8px 0;background:#e9edf2;border-bottom:1px solid #cbd1d9}
+.ribbon-tab{border:1px solid transparent!important;border-bottom:0!important;border-radius:5px 5px 0 0!important;padding:8px 15px!important;background:transparent!important;color:#303944!important}
+.ribbon-tab.active{background:#fff!important;border-color:#cbd1d9!important;font-weight:700}
+.ribbon-page{display:flex;align-items:stretch;gap:8px;min-height:92px;padding:9px 10px;flex-wrap:wrap}
+.ribbon-page[hidden]{display:none!important}
+.ribbon-group{display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:3px 12px 5px;border-right:1px solid #d5dbe3;min-width:0}
+.ribbon-group strong{font-size:10px;color:#596574;font-weight:600}
+.ribbon-group>div{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+body.mode-modern .ribbon-group button{min-height:34px;padding:7px 10px;font-size:12px;white-space:nowrap}
+.ribbon-safety{align-self:center;margin:0 8px;color:#76551b;font-size:11px}
+@media(max-width:760px){.ribbon-tabs{overflow-x:auto}.ribbon-page{gap:4px}.ribbon-group{width:100%;border-right:0;border-bottom:1px solid #d5dbe3;padding:7px}.ribbon-group>div{flex-wrap:wrap}}
+
+/* Keep the modern ribbon explicitly mode-gated; JS also controls its hidden state. */
+.modern-ribbon[hidden]{display:none!important}
+body.mode-modern .modern-ribbon:not([hidden]){display:block!important}
+
+/* Finestres i centre d'ajuda */
+.help-dialog{width:min(860px,calc(100vw - 32px));max-height:min(82vh,900px);overflow:auto;border:1px solid #52677f;border-radius:14px;background:#172536;color:#e8edf4;padding:0;box-shadow:0 24px 80px #000a}
+.help-dialog::backdrop{background:#07111dcc;backdrop-filter:blur(3px)}
+.help-dialog-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid #34465c}
+.help-dialog-header h2{margin:0;font-size:18px}.help-dialog-header p{margin:5px 0 0;color:#aebdce;font-size:12px}
+.help-topics{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid #34465c}
+.help-topics button{font-size:12px}.help-topics button.active{background:#1769aa;border-color:#2c8bd3}
+.help-dialog section{padding:8px 22px 22px;line-height:1.6;font-size:13px}.help-dialog section h3{font-size:16px}
+.help-dialog li{margin:7px 0}.help-dialog table{width:100%;border-collapse:collapse}.help-dialog th,.help-dialog td{text-align:left;padding:8px;border-bottom:1px solid #34465c}
+.help-warning{padding:11px 13px;border-left:3px solid #d6a64c;background:#352d1d;color:#f1dfb5;border-radius:5px}
+@media(max-width:600px){.help-dialog{width:calc(100vw - 16px)}.help-dialog-header{align-items:flex-start;flex-direction:column}.help-topics button{flex:1 1 40%}}
+
+/* Keep ribbon controls above floating desktop windows, including after cascade/tile. */
+body.mode-modern .modern-ribbon{position:relative;z-index:100}
+body.mode-modern .desktop-workspace{position:relative;z-index:1}
+body.mode-modern .desktop-taskbar{position:relative;z-index:2}
+
+/* Isolate desktop stacking: floating windows must never cover ribbon commands. */
+body.mode-modern .modern-ribbon{position:sticky;top:58px;z-index:1000;isolation:isolate;background:#f7f8fa}
+body.mode-modern .desktop-workspace{position:relative;z-index:0;isolation:isolate}
+body.mode-modern .desktop-taskbar{position:relative;z-index:0;isolation:isolate}
+
+/* La cinta ha de romandre sempre per damunt de les finestres flotants, també després de cascada. */
+body.mode-modern .modern-ribbon{position:sticky!important;top:72px!important;z-index:2147483000!important;isolation:isolate!important;}
+body.mode-modern .desktop-workspace{position:relative!important;z-index:0!important;isolation:isolate!important;}
+body.mode-modern .desktop-window{z-index:auto!important;}
+\n
+/* Cinta moderna: icones SVG multicolor i noms accessibles en passar-hi el punter. */
+body.mode-modern .ribbon-group button.ribbon-icon-button{width:58px;min-width:58px;height:58px;min-height:58px;padding:5px 4px!important;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid #d5dce5;border-radius:7px;box-shadow:0 1px 2px #172b4010;position:relative}
+body.mode-modern .ribbon-group button.ribbon-icon-button:hover{background:#edf5ff;border-color:#7daee0;box-shadow:0 2px 6px #244b7220}
+.ribbon-icon{display:block;width:34px;height:34px;flex:0 0 34px}
+.ribbon-icon-button[data-tooltip]{position:relative}
+.ribbon-icon-button[data-tooltip]::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 8px);transform:translate(-50%,-3px);z-index:2147483647;max-width:260px;width:max-content;padding:7px 10px;border:1px solid #3b4d62;border-radius:5px;background:#172536;color:#fff;font:600 11px/1.35 "Segoe UI",sans-serif;white-space:normal;text-align:center;box-shadow:0 5px 16px #0003;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease,transform .12s ease}
+.ribbon-icon-button[data-tooltip]:hover::after,.ribbon-icon-button[data-tooltip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0)}
+body.mode-modern .ribbon-group button.ribbon-icon-button:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
+@media(max-width:760px){body.mode-modern .ribbon-group button.ribbon-icon-button{width:52px;min-width:52px;height:52px;min-height:52px}.ribbon-icon{width:30px;height:30px;flex-basis:30px}}
+
+/* Els tooltips han de poder sortir de la superfície de la cinta sense quedar retallats. */
+body.mode-modern .modern-ribbon{overflow:visible}
+
+/* Cinta compacta i uniforme: reserva menys alçada a les finestres */
+body.mode-modern .modern-ribbon{width:100%;height:112px;min-height:112px;max-height:112px;overflow:visible;display:flex;flex-direction:column}
+body.mode-modern .ribbon-tabs{height:32px;min-height:32px;max-height:32px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:2px 6px}
+body.mode-modern .ribbon-tab{height:27px;min-height:27px;padding:4px 10px;font-size:11px;flex:0 0 auto}
+body.mode-modern .ribbon-page{height:79px;min-height:79px;max-height:79px;flex:1 1 auto;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;align-items:center;padding:5px 8px;gap:6px}
+body.mode-modern .ribbon-group{height:67px;min-height:67px;max-height:67px;justify-content:space-between;gap:3px;padding:2px 8px 3px}
+body.mode-modern .ribbon-group>div{flex-wrap:nowrap;gap:4px}
+body.mode-modern .ribbon-group button.ribbon-icon-button{width:42px;min-width:42px;height:42px;min-height:42px;padding:3px!important;border-radius:6px}
+body.mode-modern .ribbon-icon{width:26px;height:26px;flex:0 0 26px}
+body.mode-modern .desktop-workspace{height:calc(100vh - 205px);min-height:480px;overflow:auto}
+body.mode-modern .desktop-window{resize:both;min-width:260px;min-height:190px;max-width:none;max-height:none;overflow:hidden}
+body.mode-modern .desktop-window.is-maximized,body.mode-modern .desktop-window.is-docked{resize:none}
+body.mode-modern .desktop-window-titlebar{touch-action:none}
+body.mode-modern .desktop-window-controls{gap:3px;flex:0 0 auto}
+body.mode-modern .desktop-window-controls button{width:25px;min-width:25px;height:23px;padding:0;font-size:13px}
+body.mode-modern .desktop-taskbar{min-height:36px}
+@media(max-width:760px){body.mode-modern .modern-ribbon{height:104px;min-height:104px;max-height:104px}body.mode-modern .ribbon-page{height:72px;min-height:72px;max-height:72px}body.mode-modern .ribbon-group button.ribbon-icon-button{width:38px;min-width:38px;height:38px;min-height:38px}}
+
+/* Personalització global de l'espai de treball */
+body.mode-modern.ribbon-collapsed .modern-ribbon{height:34px!important;min-height:34px!important;max-height:34px!important}
+body.mode-modern.ribbon-collapsed .ribbon-page{display:none!important}
+body.mode-modern.ribbon-collapsed .ribbon-tabs{border-bottom:0}
+body.mode-modern .ribbon-group button.ribbon-icon-button{width:var(--ribbon-icon-size,42px);min-width:var(--ribbon-icon-size,42px);height:var(--ribbon-icon-size,42px);min-height:var(--ribbon-icon-size,42px)}
+body[data-ui-theme="windows-dark"],body[data-ui-theme="graphite"]{background:#101820;color:#e5edf5}
+body[data-ui-theme="windows-dark"] .modern-ribbon,body[data-ui-theme="graphite"] .modern-ribbon{background:#202b38;color:#e5edf5;border-color:#435365}
+body[data-ui-theme="windows-dark"] .ribbon-tabs,body[data-ui-theme="graphite"] .ribbon-tabs{background:#17222e;border-color:#435365}
+body[data-ui-theme="windows-dark"] .ribbon-tab.active,body[data-ui-theme="graphite"] .ribbon-tab.active{background:#273747!important;color:#fff!important;border-color:#52677c!important}
+body[data-ui-theme="windows-dark"] .desktop-workspace,body[data-ui-theme="graphite"] .desktop-workspace{background:linear-gradient(135deg,#172331,#202d3b);border-color:#435365}
+body[data-ui-theme="windows-dark"] .desktop-window,body[data-ui-theme="graphite"] .desktop-window{background:#202d3b;border-color:#53677b;color:#e5edf5}
+body[data-ui-theme="windows-dark"] .desktop-window-titlebar,body[data-ui-theme="graphite"] .desktop-window-titlebar{background:linear-gradient(#314254,#243343);border-color:#52677c;color:#fff}
+body[data-ui-theme="windows-dark"] .desktop-window-content,body[data-ui-theme="graphite"] .desktop-window-content{background:#1a2734}
+body[data-ui-theme="classic-light"] .modern-ribbon{border-radius:0;box-shadow:none}
+.workspace-preferences-dialog{width:min(900px,calc(100vw - 28px));max-height:88vh;overflow:auto;padding:0;border:1px solid #718096;border-radius:12px;background:#f7f9fc;color:#172536;box-shadow:0 24px 80px #0008}
+.workspace-preferences-dialog::backdrop{background:#091321b8;backdrop-filter:blur(3px)}
+.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;background:#e9eef5;border-bottom:1px solid #c7d0dc}
+.workspace-preferences-dialog h2{margin:0;font-size:18px}.workspace-preferences-dialog header p{margin:4px 0 0;font-size:12px;color:#536477}
+.workspace-pref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
+.workspace-pref-grid section{padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;min-width:0}
+.workspace-pref-grid h3{margin:0 0 10px;font-size:14px}
+.workspace-pref-field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e5eaf0;font-size:12px}
+.workspace-pref-field select{max-width:160px;padding:5px;border:1px solid #aab7c6;border-radius:5px;background:#fff;color:#172536}
+.workspace-pref-field input[type=color]{width:44px;height:28px;border:0;background:transparent}
+.workspace-pref-field input[type=range]{max-width:130px}
+.workspace-pref-note{font-size:11px;color:#526477;line-height:1.5}
+.workspace-preferences-dialog footer{border-top:1px solid #c7d0dc;border-bottom:0}
+body[data-ui-theme="windows-dark"] .workspace-preferences-dialog,body[data-ui-theme="graphite"] .workspace-preferences-dialog{background:#1c2a38;color:#edf4fb}
+body[data-ui-theme="windows-dark"] .workspace-pref-grid section,body[data-ui-theme="graphite"] .workspace-pref-grid section{background:#253648;border-color:#50647a}
+body[data-ui-theme="windows-dark"] .workspace-pref-field,body[data-ui-theme="graphite"] .workspace-pref-field{border-color:#43576b}
+@media(max-width:680px){.workspace-pref-grid{grid-template-columns:1fr}.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{align-items:flex-start;flex-wrap:wrap}}
+.desktop-window.auto-hide-window{transition:transform .18s ease,opacity .18s ease}
+.desktop-window.auto-hide-window:not(:hover):not(:focus-within){opacity:.18;transform:translateX(-92%);pointer-events:auto}
+body.mode-modern .desktop-window.is-floating{box-shadow:0 14px 36px #15283c55;border:1px solid #6d91b6}
+.dmi-gauge{background:var(--dmi-panel-bg,#101b29);border-radius:10px;cursor:default}
+body.dmi-touch-gauge .dmi-gauge{cursor:crosshair}
+.dmi-functions button{background:color-mix(in srgb,var(--dmi-accent,#e0b64d) 18%,#26394e)}
+.dmi-functions button.active{background:var(--dmi-accent,#e0b64d);color:#101820}
+.canvas-wrap{background-color:var(--board-background,#f5f7fa)}
+
+/* Switchboard: quadrícula, escala de símbols i paleta de vies configurables */
+body.mode-modern .canvas-wrap{background-image:linear-gradient(to right,#8b9aab22 1px,transparent 1px),linear-gradient(to bottom,#8b9aab22 1px,transparent 1px);background-size:var(--board-grid-size,24px) var(--board-grid-size,24px)}
+.track-piece .rail{stroke:var(--track-color,#d4dce5);stroke-width:calc(8px * var(--track-symbol-scale,1))}
+.track-piece .sleeper{stroke-width:calc(5px * var(--track-symbol-scale,1))}
+.block-shape{stroke-width:calc(4px * var(--track-symbol-scale,1))}
+.dispatcher-block.hide-dispatcher-meta .dispatcher-meta{display:none}
+body[data-ui-theme="windows-dark"] .canvas-wrap,body[data-ui-theme="graphite"] .canvas-wrap{border-color:#465a70}
+.desktop-window-tabs{display:flex;gap:4px;min-height:30px;padding:3px 6px;background:#e4eaf2;border-bottom:1px solid #bdc9d6;overflow-x:auto}
+.desktop-window-tabs button{padding:4px 9px!important;font-size:11px;white-space:nowrap}
+.desktop-window-tabs button.active{background:#cfe3f7!important;border-color:#4c91cb!important}
+.desktop-window-dock-menu{max-width:105px;height:24px;min-width:85px;padding:2px;font-size:10px;background:#f8fafc;color:#283747;border:1px solid #c0c9d4;border-radius:3px}
+body[data-ui-theme="windows-dark"] .desktop-window-tabs,body[data-ui-theme="graphite"] .desktop-window-tabs{background:#1b2937;border-color:#4c6075}
+body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-ui-theme="graphite"] .desktop-window-tabs button.active{background:#31516e!important;color:#fff!important}
+
+.locomotive-dmi{background:var(--dmi-panel-bg,#101b29)}
+.dmi-gauge-arc{stroke:color-mix(in srgb,var(--dmi-accent,#e0b64d) 30%,#496078)}
+.dmi-gauge-hub,.dmi-needle{stroke:var(--dmi-accent,#e0b64d)}
+.dmi-dial-arc{stroke:var(--dmi-accent,#e0b64d)}
+.dmi-dial{background:radial-gradient(circle at center,var(--dmi-panel-bg,#19283a) 56%,transparent 57%),conic-gradient(from 225deg,#3c8fba 0deg,var(--dmi-accent,#e0b64d) 230deg,#34465c 270deg)}
+
+.dmi-functions button{min-width:var(--dmi-function-button-size,42px);min-height:var(--dmi-function-button-size,42px)}
+.dmi-vertical-range input[type=range]{height:var(--dmi-slider-height,158px);min-height:var(--dmi-slider-height,158px)}
+.dispatcher-block.hide-dispatcher-status .dispatcher-state{display:none}
+.dispatcher-reservation{color:var(--reserved-route-color,#cce5ff)}
+.dmi-functions{grid-template-columns:repeat(auto-fit,minmax(var(--dmi-function-button-size,42px),1fr))}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within){transform:translateX(92%)}
+
+/* Selector de mode compacte amb icones i etiquetes accessibles. */
+.top-actions{gap:6px}
+.mode-btn.mode-icon-btn{position:relative;width:34px;min-width:34px;height:32px;min-height:32px;padding:5px!important;display:inline-flex;align-items:center;justify-content:center;border-radius:6px}
+.mode-btn.mode-icon-btn svg{display:block;width:19px;height:19px;flex:0 0 19px}
+.mode-btn-label{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.mode-btn.mode-icon-btn[data-tooltip]::after{content:attr(data-tooltip);position:absolute;top:calc(100% + 7px);right:0;z-index:2147483647;width:max-content;max-width:190px;padding:6px 9px;border:1px solid #52647a;border-radius:5px;background:#172536;color:#fff;font:600 11px/1.3 "Segoe UI",sans-serif;box-shadow:0 4px 14px #0003;opacity:0;visibility:hidden;pointer-events:none}
+.mode-btn.mode-icon-btn:hover::after,.mode-btn.mode-icon-btn:focus-visible::after{opacity:1;visibility:visible}
+.mode-btn.mode-icon-btn:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
+@media(max-width:600px){.top-actions{gap:4px}.mode-btn.mode-icon-btn{width:30px;min-width:30px;height:30px;min-height:30px}}

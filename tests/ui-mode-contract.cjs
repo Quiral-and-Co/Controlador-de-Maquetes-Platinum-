@@ -1,0 +1,56 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const app = fs.readFileSync('app.js', 'utf8');
+const main = fs.readFileSync('electron/main.cjs', 'utf8');
+const preload = fs.readFileSync('electron/preload.cjs', 'utf8');
+
+assert.match(app, /mode:'modern'/, 'modern interface must be the default');
+const modeStart = app.indexOf('function setMode(');
+const modeEnd = app.indexOf('window.JMRI_TC_DISPATCHER =', modeStart);
+assert.ok(modeStart >= 0 && modeEnd > modeStart, 'mode switch implementation must exist');
+const modeSource = app.slice(modeStart, modeEnd);
+assert.match(modeSource, /document\.body\?\.classList\?\.toggle\('mode-modern'/);
+assert.match(modeSource, /setUiMode\?\.\(next\)/);
+assert.doesNotMatch(modeSource, /state\.config\s*=|state\.selectedIds\s*=|state\.selectedLevel\s*=/,
+  'switching interface mode must not replace project, selection or active level');
+assert.match(preload, /setUiMode:\s*mode\s*=>/);
+assert.match(main, /autoHideMenuBar:\s*true/);
+assert.match(main, /setMenuBarVisibility\(activeMode === 'classic'\)/, 'native menu must be visible only in classic mode');
+assert.match(app, /ribbon\.hidden=next!=='modern'/, 'ribbon visibility must be explicitly synchronized with mode');
+assert.match(main, /Menús clàssics/);
+assert.match(main, /Menús moderns/);
+assert.match(main, /ipcMain\.on\('ui:mode'/);
+assert.match(main, /JMRI_TC_ENABLE_DCC:\s*'0'/);
+assert.match(main, /JMRI_TC_SAFETY_VALIDATED:\s*'0'/);
+assert.match(main, /label: 'Ferrocarril'/, 'Railroad menu must be present in the native menu');
+assert.match(main, /Configurar sistema digital/, 'digital-system configuration must be reachable');
+assert.match(main, /Estat de la connexió i de la central/, 'connection diagnostics must be available');
+assert.match(main, /Aturar tots els trens .*enabled: false/, 'global train stop must remain disabled until fail-safe validation');
+assert.match(main, /Activar alimentació de via .*enabled: false/, 'track power must remain physically locked');
+assert.match(app, /command==='openCommandStation'/, 'Railroad setup command must open the digital-system panel');
+assert.match(app, /command==='showDigitalStatus'/, 'Railroad diagnostics must report read-only status');
+assert.match(app, /sortides físiques i DCC: BLOQUEJATS/, 'diagnostics must state the physical-output lock');
+console.log('PASS Railroad menu, digital setup navigation, read-only diagnostics and physical-output locks');
+console.log('PASS Windows UI mode contract and fail-safe defaults');
+
+assert.match(app, /JMRI_TC_DESKTOP\?\.setMode/);
+const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
+const styles = fs.readFileSync('styles.css', 'utf8');
+assert.match(manager, /let activeMode = null;/, 'initial modern mode must be applied instead of being skipped as already active');
+assert.match(manager, /desktop-window-titlebar/);
+assert.match(manager, /desktop-taskbar/);
+assert.match(styles, /resize:both/);
+assert.match(manager, /pointermove/);
+assert.match(manager, /leaveModern/);
+assert.match(manager, /Tauler de disseny de la maqueta/);
+console.log('PASS floating modern desktop windows, taskbar and classic restore contract');
+
+const html = fs.readFileSync('index.html','utf8');
+assert.match(html, /id="modernRibbon"/, 'modern mode must provide a real ribbon');
+assert.match(html, /data-ribbon-tab="home"/);
+assert.match(html, /data-ribbon-page="railroad"/);
+assert.match(app, /data-ribbon-command/);
+assert.match(app, /function handleAppCommand\(command\)/, 'ribbon actions must share the real command dispatcher');
+assert.match(app, /addEventListener\('click',\(\)=>handleAppCommand\(button\.dataset\.ribbonCommand\)\)/);
+console.log('PASS modern ribbon tabs and functional command routing');

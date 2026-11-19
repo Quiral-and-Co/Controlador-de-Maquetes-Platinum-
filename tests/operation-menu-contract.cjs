@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const html=fs.readFileSync('index.html','utf8'),menu=fs.readFileSync('electron/main.cjs','utf8'),app=fs.readFileSync('app.js','utf8'),core=fs.readFileSync('operation-core.js','utf8'),ui=fs.readFileSync('operation-ui.js','utf8'),quiral=fs.readFileSync('metge-quiral-core.js','utf8');
+for(const label of ['Operació','Macros','Banderes','Comptadors','Esdeveniments programats'])assert.ok(html.includes(label),'falta etiqueta '+label);
+for(const command of ['operationOpen','operationMacroCreate','operationFlagCreate','operationCounterCreate','operationEventCreate','operationRefreshEvents'])assert.ok(html.includes('data-ribbon-command="'+command+'"'),'falta ordre Ribbon '+command);
+for(const label of ['Operació','Macros','Banderes','Comptadors','Esdeveniments programats'])assert.ok(menu.includes("label: '"+label+"'"),'falta menú natiu '+label);
+for(const command of ['operationOpen','operationMacroCreate','operationFlagCreate','operationCounterCreate','operationEventCreate','operationRefreshEvents'])assert.ok(app.includes("command==='"+command+"'"),'falta gestor '+command);
+assert.ok(core.includes("['SET_FLAG','TOGGLE_FLAG','INCREMENT_COUNTER','DECREMENT_COUNTER','RESET_COUNTER','LOG']"));
+assert.ok(ui.includes('operatorConfirmed:true')&&ui.includes('confirm('));assert.ok(quiral.includes('operation-integrity')&&quiral.includes('operation-physical-lock'));
+assert.ok(menu.includes("JMRI_TC_ENABLE_DCC: '0'")&&menu.includes("JMRI_TC_SAFETY_VALIDATED: '0'"));
+console.log('PASS: Operation menu/Ribbon, logical-only whitelist, manual event authorization and fail-safe contracts');

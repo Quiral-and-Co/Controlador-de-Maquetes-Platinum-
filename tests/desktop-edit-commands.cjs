@@ -1,0 +1,27 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const app=fs.readFileSync('app.js','utf8');
+const main=fs.readFileSync('electron/main.cjs','utf8');
+const preload=fs.readFileSync('electron/preload.cjs','utf8');
+for(const command of ['cut','copy','paste','delete','selectAll']) assert.ok(app.includes("command==='"+command+"'"));
+for(const fn of ['copySelectedPieces','cutSelectedPieces','pastePieces','deleteSelectedPieces','selectAllPieces']) assert.ok(app.includes('function '+fn+'('));
+assert.ok(app.includes('editCommands.copySelection(state.config,state.selectedLevel,state.selectedIds)'));
+assert.ok(app.includes('editCommands.cutSelection(state.config,state.selectedLevel,state.selectedIds)'));
+assert.ok(app.includes('editCommands.pasteClipboard(state.config,state.selectedLevel,state.editClipboard'));
+assert.ok(app.includes('editCommands.removeSelection(state.config,state.selectedLevel,state.selectedIds)'));
+assert.ok(fs.readFileSync('index.html','utf8').includes('edit-commands-core.js'));
+assert.ok(fs.existsSync('tests/edit-commands-core.cjs'));
+assert.ok(main.includes("item('Retallar', 'cut', 'CmdOrCtrl+X')"));
+assert.ok(main.includes("item('Seleccionar-ho tot', 'selectAll', 'CmdOrCtrl+A')"));
+assert.ok(main.includes('options.importXtc === true'));
+assert.ok(preload.includes("openProject: options => ipcRenderer.invoke('project:open', options)"));
+assert.ok(app.includes('openProject({importXtc:importMode===true})'));
+console.log('PASS classic Edit menu clipboard, selection and delete command contract');
+
+for(const command of ['backup','importElements','exportElements','pageSetup','printPreview','print','preferences']) assert.ok(main.includes("'"+command+"'"));
+for(const bridge of ['createBackup','printDocument','printPreview','pageSetup']) assert.ok(preload.includes(bridge));
+for(const fn of ['createProjectBackup','exportSelectedElements','importSelectedElements','showPreferences','configureAutosave']) assert.ok(app.includes('function '+fn+'(')||app.includes('async function '+fn+'('));
+assert.ok(main.includes("ipcMain.handle('project:backup'"));
+assert.ok(main.includes("ipcMain.handle('document:preview'"));
+console.log('PASS File menu backup, element interchange, print and preferences contract');
