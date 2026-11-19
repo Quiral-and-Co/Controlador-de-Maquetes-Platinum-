@@ -12,7 +12,7 @@ function state(){
  if(saved.projectId!==projectId||(!saved.records.length&&!saved.audit.length)){
   const legacy=core.load(root.localStorage,LEGACY_STORAGE_KEY);
   saved=legacy.projectId===projectId?legacy:(embedded?.projectId===projectId?embedded:{projectId});
- } else if(embedded?.projectId===projectId&&String(embedded.updatedAt||'')>String(saved.updatedAt||'')) saved=embedded;
+ }
  const s=core.createState(saved);s.projectId=projectId;core.reconcile(s,c);core.updateValidation(s,c,physical);c.validationMasterRegistry=s;
  const persistence={ok:!!root.navigator?.locks?.request,saved:lastPersistence.ok,error:root.navigator?.locks?.request?'':(lastPersistence.error||'El navegador no ofereix bloqueig transaccional; escriptures desactivades.')};
  return{c,s,persistence,storageKey};
