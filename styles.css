@@ -306,3 +306,12 @@ body.native-panel-window{overflow:auto!important;background:#101b28}
 
 html[data-native-panel-loading='true'] body{visibility:hidden!important}
 .native-panel-window .topbar{display:none!important}
+
+/* Modes de treball independents: edició i explotació. */
+.workflow-mode-btn{display:inline-flex;align-items:center;gap:5px}
+.workflow-mode-btn svg{width:19px;height:19px;flex:0 0 19px}
+body .workflow-mode-btn.active,body.mode-modern .workflow-mode-btn.active{background:#23864b!important;border-color:#176b39!important;color:#fff!important;box-shadow:inset 0 0 0 1px #ffffff25,0 1px 3px #0002}
+.workflow-mode-btn:not(.active){background:transparent}
+body:not(.workflow-editing) .editor-sidebar input:not([type=search]),body:not(.workflow-editing) .editor-sidebar select,body:not(.workflow-editing) .editor-sidebar textarea,body:not(.workflow-editing) .properties-panel input,body:not(.workflow-editing) .properties-panel select,body:not(.workflow-editing) .properties-panel textarea{opacity:.68}
+body:not(.workflow-editing) .track-port{pointer-events:none;opacity:.38}
+body.workflow-operation .workflow-mode-btn[aria-pressed=true]{outline:1px solid #176b39}
