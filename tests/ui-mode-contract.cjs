@@ -74,6 +74,11 @@ assert.match(vmrUi,/persistSnapshot\(\{c,s,storageKey\}\)/,'reconciliation chang
 const vmrCore=fs.readFileSync('validation-master-registry-core.js','utf8');
 assert.match(vmrCore,/if\(changed\)state\.updatedAt=nowIso\(now\)/,'VMR reconciliation timestamps must remain stable when no data changes');
 assert.match(app,/state\.history=\[\];state\.future=\[\]/,'remote workspace revisions must invalidate stale undo/redo history');
+const styles=fs.readFileSync('styles.css','utf8');
+assert.match(styles,/\.desktop-window-content\{[^}]*overflow:hidden/,'each floating window must own its viewport without an outer scrollbar');
+assert.match(styles,/\.desktop-window-content>\.track-area\{[^}]*overflow:hidden/,'the layout-design window must not create a second nested scrollbar');
+assert.match(styles,/\.desktop-window-content>\.track-area \.canvas-wrap\{[^}]*overflow:auto/,'only the track canvas must scroll independently inside the design window');
+assert.match(styles,/\.desktop-window-content>\.editor-sidebar,.desktop-window-content>\.properties-panel\{[^}]*overflow:auto/,'catalogue and properties must remain independently scrollable in their own windows');
 console.log('PASS revisioned workspace synchronization, serialized layout writes and VMR transactional persistence');
 assert.match(manager, /leaveModern/);
 assert.match(manager, /Tauler de disseny de la maqueta/);
