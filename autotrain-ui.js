@@ -4,7 +4,7 @@ const core=window.JMRI_TC_AUTOTRAIN_CORE;if(!core)return;
 const $=id=>document.getElementById(id);
 let enabled=false,sourceId=null;
 function snapshot(){return window.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{blocks:[],blockStates:{},reservations:{},routes:[]};}
-function setEnabled(value){enabled=value===true;document.body.classList.toggle('autotrain-drag-active',enabled);document.querySelectorAll('[data-autotrain-toggle]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.classList.toggle('active',enabled);});if(!enabled)sourceId=null;decorateBlocks();const message=$('dispatcherMessage');if(message)message.textContent=enabled?'AutoTrain actiu: arrossega un bloc ocupat fins al bloc de destinació.':'AutoTrain desactivat.';}
+function setEnabled(value){enabled=value===true;document.body.classList.toggle('autotrain-drag-active',enabled);document.querySelectorAll('[data-autotrain-toggle]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.classList.toggle('active',enabled);});if(!enabled)sourceId=null;decorateBlocks();decorateSwitchboard();const message=$('dispatcherMessage');if(message)message.textContent=enabled?'AutoTrain actiu: arrossega un bloc ocupat fins al bloc de destinació.':'AutoTrain desactivat.';}
 function decorateBlocks(){
  const host=$('dispatcherBlocks');if(!host)return;
  const blocks=snapshot().blocks||[];
@@ -22,6 +22,21 @@ function decorateBlocks(){
   row.addEventListener('dragover',event=>{if(!enabled||!sourceId||sourceId===row.dataset.blockId)return;event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='move';row.classList.add('autotrain-target');});
   row.addEventListener('dragleave',()=>row.classList.remove('autotrain-target'));
   row.addEventListener('drop',event=>{if(!enabled)return;event.preventDefault();row.classList.remove('autotrain-target');const from=event.dataTransfer?.getData('text/plain')||sourceId,to=row.dataset.blockId;sourceId=null;prepare(from,to);});
+ });
+}
+function decorateSwitchboard(){
+ const host=$('trackSvg');if(!host)return;
+ host.querySelectorAll('.track-piece[data-block-id]').forEach(piece=>{
+  const id=piece.dataset.blockId;if(!id)return;
+  piece.draggable=enabled;piece.classList.toggle('autotrain-draggable',enabled);
+  if(piece.dataset.autotrainBound==='1')return;piece.dataset.autotrainBound='1';
+  piece.addEventListener('dragstart',event=>{
+   if(!enabled||window.JMRI_TC_BOARD?.getTrainEditMode?.()===true){event.preventDefault();return;}
+   sourceId=piece.dataset.blockId;event.dataTransfer?.setData('text/plain',sourceId);if(event.dataTransfer)event.dataTransfer.effectAllowed='move';
+  });
+  piece.addEventListener('dragover',event=>{if(!enabled||!sourceId||sourceId===piece.dataset.blockId)return;event.preventDefault();piece.classList.add('autotrain-target');});
+  piece.addEventListener('dragleave',()=>piece.classList.remove('autotrain-target'));
+  piece.addEventListener('drop',event=>{if(!enabled)return;event.preventDefault();piece.classList.remove('autotrain-target');const from=event.dataTransfer?.getData('text/plain')||sourceId,to=piece.dataset.blockId;sourceId=null;prepare(from,to);});
  });
 }
 function ensureDialog(){
@@ -55,7 +70,7 @@ function prepare(from,to){
 }
 function initialize(){
  document.querySelectorAll('[data-autotrain-toggle]').forEach(b=>b.addEventListener('click',()=>setEnabled(!enabled)));
- const host=$('dispatcherBlocks');if(host){new MutationObserver(()=>decorateBlocks()).observe(host,{childList:true});decorateBlocks();}
+ const host=$('dispatcherBlocks');if(host){new MutationObserver(()=>{decorateBlocks();decorateSwitchboard();}).observe(host,{childList:true});decorateBlocks();decorateSwitchboard();}const svg=$('trackSvg');if(svg)new MutationObserver(decorateSwitchboard).observe(svg,{childList:true,subtree:true});
  window.JMRI_TC_AUTOTRAIN_UI={setEnabled,isEnabled:()=>enabled,refresh:decorateBlocks};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
