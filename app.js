@@ -7,7 +7,9 @@
       levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]},
     selectedLevel:1, selectedIds:[], filePath:null, isDirty:false, mode:'modern', drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
   };
-  const nativeWindowId = new URLSearchParams(location.search).get('nativeWindowId') || 'main';
+  const nativeSearch = typeof window.location?.search === 'string' ? window.location.search : '';
+  const nativeWindowIdMatch = nativeSearch.match(/[?&]nativeWindowId=([^&]*)/);
+  const nativeWindowId = nativeWindowIdMatch ? decodeURIComponent(nativeWindowIdMatch[1].replace(/\+/g, ' ')) : 'main';
   let applyingRemoteWorkspaceState = false;
   const level = () => state.config.levels.find(x=>x.id===state.selectedLevel);
   const pieces = () => level()?.tracks || [];
