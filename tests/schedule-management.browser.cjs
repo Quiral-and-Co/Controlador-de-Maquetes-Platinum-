@@ -8,15 +8,20 @@ const root=path.resolve(__dirname,'..');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'};
 const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname),file=path.resolve(root,'.'+pathname);if(!file.startsWith(root+path.sep)&&file!==path.join(root,'index.html')){res.writeHead(403).end();return;}fs.readFile(file,(err,data)=>{if(err){res.writeHead(404).end(String(err));return;}res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(data);});});
 (async()=>{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser,context;try{browser=await chromium.launch({headless:true,args:['--no-sandbox']});context=await browser.newContext();const page=await context.newPage();page.on('pageerror',e=>console.error('Schedule browser error:',e.stack||e.message));await page.goto('http://127.0.0.1:'+server.address().port+'/index.html');await page.waitForFunction(()=>window.JMRI_TC_SCHEDULE_UI&&window.JMRI_TC_SCHEDULES&&window.JMRI_TC_DISPATCHER);
-// Keep this schedule workflow isolated from the unrelated auto-hidden Märklin catalogue window,
-// whose exposed edge can overlap controls in the shared floating desktop workspace.
-await page.locator('.desktop-window[aria-label="Base de dades digital · Märklin CS2 60215"]').evaluate(node=>{node.hidden=true;});
-// Activate the schedule window through the same window manager/taskbar path a user uses.
-// Floating windows can overlap by design; the target window must be brought to front before
-// asserting that its controls receive pointer events.
-await page.evaluate(()=>{const w=document.querySelector('#schedulePanel')?.closest('.desktop-window');if(!w)throw new Error('Schedule panel is not registered as a floating window');if(!window.JMRI_TC_DESKTOP.focusWindow(w.getAttribute('aria-label')))throw new Error('Could not focus the schedule window');});
-// Verify collapsed auto-hide panels no longer intercept real pointer hits on schedule controls.
-await page.waitForFunction(()=>{const b=document.querySelector('#scheduleSave');if(!b)return false;const r=b.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===b||b.contains(hit);});await page.evaluate(()=>{const c=window.JMRI_TC_DISPATCHER.getConfig();c.dispatcher={routes:[{id:'R-SCH-1',name:'Ruta de prova',blockIds:['B1','B2'],turnoutRequirements:[]}]};c.traffic={locomotives:[{id:'L-SCH-1',name:'Locomotora de prova',wiThrottleId:'S3'}]};window.JMRI_TC_DISPATCHER.refresh();});
+// Isolate this module test from other floating panels. The desktop intentionally allows
+// overlapping windows, so unrelated windows must not obscure the schedule form in this test.
+await page.evaluate(()=>{
+ const target=document.querySelector('#schedulePanel')?.closest('.desktop-window');
+ if(!target)throw new Error('Schedule panel is not registered as a floating window');
+ document.querySelectorAll('.desktop-window').forEach(win=>{win.hidden=win!==target;});
+ target.hidden=false;
+ if(!window.JMRI_TC_DESKTOP.focusWindow(target.getAttribute('aria-label')))throw new Error('Could not focus the schedule window');
+ const button=document.querySelector('#scheduleSave');
+ if(!button)throw new Error('Schedule save button is missing');
+ button.scrollIntoView({block:'center',inline:'center'});
+});
+// Verify the actual control receives pointer hits after it has been scrolled into view.
+await page.waitForFunction(()=>{const b=document.querySelector('#scheduleSave');if(!b)return false;const r=b.getBoundingClientRect();if(r.width<=0||r.height<=0||r.left<0||r.top<0||r.right>innerWidth||r.bottom>innerHeight)return false;const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===b||b.contains(hit);});await page.evaluate(()=>{const c=window.JMRI_TC_DISPATCHER.getConfig();c.dispatcher={routes:[{id:'R-SCH-1',name:'Ruta de prova',blockIds:['B1','B2'],turnoutRequirements:[]}]};c.traffic={locomotives:[{id:'L-SCH-1',name:'Locomotora de prova',wiThrottleId:'S3'}]};window.JMRI_TC_DISPATCHER.refresh();});
 const create=async(name,time)=>{await page.locator('#scheduleName').fill(name);await page.locator('#scheduleRoute').selectOption('R-SCH-1');await page.locator('#scheduleLoco').selectOption('L-SCH-1');await page.locator('#scheduleTime').fill(time);await page.locator('#scheduleSave').click();};
 await create('Tren matí','08:30');await page.waitForFunction(()=>window.JMRI_TC_DISPATCHER.getConfig().schedules?.schedules?.length===1);
 await create('Tren tarda','15:30');await page.waitForFunction(()=>window.JMRI_TC_DISPATCHER.getConfig().schedules.schedules.length===2);
