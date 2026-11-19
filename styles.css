@@ -197,3 +197,21 @@ body.mode-modern .ribbon-group button.ribbon-icon-button:focus-visible{outline:2
 
 /* Els tooltips han de poder sortir de la superfície de la cinta sense quedar retallats. */
 body.mode-modern .modern-ribbon{overflow:visible}
+
+/* Cinta compacta i uniforme: reserva menys alçada a les finestres */
+body.mode-modern .modern-ribbon{width:100%;height:112px;min-height:112px;max-height:112px;overflow:visible;display:flex;flex-direction:column}
+body.mode-modern .ribbon-tabs{height:32px;min-height:32px;max-height:32px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:2px 6px}
+body.mode-modern .ribbon-tab{height:27px;min-height:27px;padding:4px 10px;font-size:11px;flex:0 0 auto}
+body.mode-modern .ribbon-page{height:79px;min-height:79px;max-height:79px;flex:1 1 auto;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;align-items:center;padding:5px 8px;gap:6px}
+body.mode-modern .ribbon-group{height:67px;min-height:67px;max-height:67px;justify-content:space-between;gap:3px;padding:2px 8px 3px}
+body.mode-modern .ribbon-group>div{flex-wrap:nowrap;gap:4px}
+body.mode-modern .ribbon-group button.ribbon-icon-button{width:42px;min-width:42px;height:42px;min-height:42px;padding:3px!important;border-radius:6px}
+body.mode-modern .ribbon-icon{width:26px;height:26px;flex:0 0 26px}
+body.mode-modern .desktop-workspace{height:calc(100vh - 205px);min-height:480px;overflow:auto}
+body.mode-modern .desktop-window{resize:both;min-width:260px;min-height:190px;max-width:none;max-height:none;overflow:hidden}
+body.mode-modern .desktop-window.is-maximized,body.mode-modern .desktop-window.is-docked{resize:none}
+body.mode-modern .desktop-window-titlebar{touch-action:none}
+body.mode-modern .desktop-window-controls{gap:3px;flex:0 0 auto}
+body.mode-modern .desktop-window-controls button{width:25px;min-width:25px;height:23px;padding:0;font-size:13px}
+body.mode-modern .desktop-taskbar{min-height:36px}
+@media(max-width:760px){body.mode-modern .modern-ribbon{height:104px;min-height:104px;max-height:104px}body.mode-modern .ribbon-page{height:72px;min-height:72px;max-height:72px}body.mode-modern .ribbon-group button.ribbon-icon-button{width:38px;min-width:38px;height:38px;min-height:38px}}
