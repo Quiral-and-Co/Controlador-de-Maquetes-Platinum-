@@ -2,10 +2,35 @@
 'use strict';
 const root=window,core=root.JMRI_TC_ValidationMasterRegistry,physical=root.JMRI_TC_PhysicalValidationCore;
 if(!core||!physical)return;
-const $=id=>document.getElementById(id);const checkpoint=()=>root.JMRI_TC_DISPATCHER?.checkpoint?.();let timer=null,installed=false;
+const $=id=>document.getElementById(id);const checkpoint=()=>root.JMRI_TC_DISPATCHER?.checkpoint?.();let timer=null,installed=false,lastPersistence={ok:false,error:'Encara no s’ha desat cap canvi.'};
 const LEGACY_STORAGE_KEY='jmri-tc-validation-master-registry-v1';
 function createProjectId(){return 'JMRI-TC-PROJECT-'+(root.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));}
-function state(){const c=root.JMRI_TC_DISPATCHER?.getConfig?.()||{};const projectId=String(c.projectId||c.validationMasterRegistry?.projectId||createProjectId());c.projectId=projectId;const storageKey=core.storageKey(projectId);let saved=c.validationMasterRegistry;if(!saved){saved=core.load(root.localStorage,storageKey);if(saved.projectId!==projectId){const legacy=core.load(root.localStorage,LEGACY_STORAGE_KEY);saved=legacy.projectId===projectId?legacy:{projectId};}}const s=core.createState(saved);s.projectId=projectId;core.reconcile(s,c);core.updateValidation(s,c,physical);c.validationMasterRegistry=s;const persistence=core.save(s,root.localStorage,storageKey);return{c,s,persistence,storageKey};}
+function state(){
+ const c=root.JMRI_TC_DISPATCHER?.getConfig?.()||{},projectId=core.ensureProjectId(c,createProjectId),storageKey=core.storageKey(projectId);
+ const embedded=c.validationMasterRegistry;
+ let saved=core.load(root.localStorage,storageKey);
+ if(saved.projectId!==projectId||(!saved.records.length&&!saved.audit.length)){
+  const legacy=core.load(root.localStorage,LEGACY_STORAGE_KEY);
+  saved=legacy.projectId===projectId?legacy:(embedded?.projectId===projectId?embedded:{projectId});
+ } else if(embedded?.projectId===projectId&&String(embedded.updatedAt||'')>String(saved.updatedAt||'')) saved=embedded;
+ const s=core.createState(saved);s.projectId=projectId;core.reconcile(s,c);core.updateValidation(s,c,physical);c.validationMasterRegistry=s;
+ const persistence={ok:!!root.navigator?.locks?.request,error:root.navigator?.locks?.request?'':'El navegador no ofereix bloqueig transaccional; escriptures desactivades.'};
+ return{c,s,persistence,storageKey};
+}
+async function persistTransaction(snapshot,mutate){
+ if(!root.navigator?.locks?.request)return{ok:false,error:'No hi ha suport per a bloqueig transaccional entre finestres.'};
+ return root.navigator.locks.request('jmri-tc-vmr:'+snapshot.storageKey,{mode:'exclusive'},async()=>{
+  const latest=core.load(root.localStorage,snapshot.storageKey);
+  const s=core.createState(latest.projectId===snapshot.s.projectId?latest:snapshot.s);s.projectId=snapshot.s.projectId;
+  core.reconcile(s,snapshot.c);core.updateValidation(s,snapshot.c,physical);
+  const result=mutate(s);
+  if(result?.ok===false)return result;
+  const saved=core.save(s,root.localStorage,snapshot.storageKey);
+  if(!saved.ok)return saved;
+  snapshot.c.validationMasterRegistry=s;lastPersistence={ok:true,error:''};
+  return{ok:true,result,state:s};
+ });
+}
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function render(){const host=$('validationMasterRegistry');if(!host)return;const {c,s,persistence,storageKey}=state();host.replaceChildren();
  const summary=document.createElement('p');summary.textContent='Registres: '+s.records.filter(r=>r.present!==false).length+' · esdeveniments: '+s.audit.length+' · projecte JSON: actualitzat en memòria · navegador: '+(persistence.ok?'desat':'ERROR: '+persistence.error);host.append(summary);
@@ -15,7 +40,7 @@ function render(){const host=$('validationMasterRegistry');if(!host)return;const
  const act=document.createElement('button');act.type='button';act.textContent='Generar acta Markdown + JSON';act.addEventListener('click',()=>{const fresh=state(),a=core.buildAct(fresh.s,fresh.c);download(a.id+'.md',a.markdown,'text/markdown;charset=utf-8');download(a.id+'.json',JSON.stringify(a,null,2),'application/json');});controls.append(act);
  const json=document.createElement('button');json.type='button';json.textContent='Exportar registre JSON';json.addEventListener('click',()=>download('validation-master-registry.json',core.serialize(s),'application/json'));controls.append(json);
  const refresh=document.createElement('button');refresh.type='button';refresh.textContent='Actualitzar registre';refresh.addEventListener('click',render);controls.append(refresh);host.append(controls);
- const note=document.createElement('label');note.textContent='Anotació de traçabilitat ';const input=document.createElement('input');input.type='text';input.placeholder='Nota de revisió / incidència';note.append(input);const add=document.createElement('button');add.type='button';add.textContent='Afegir nota';add.addEventListener('click',()=>{const id=s.records.find(r=>r.present!==false)?.registryId;if(!id){alert('No hi ha elements al registre.');return;}checkpoint();const result=core.appendNote(s,id,input.value);if(!result.ok)alert(result.error);else{core.save(s,root.localStorage,storageKey);input.value='';render();}});note.append(add);host.append(note);
+ const note=document.createElement('label');note.textContent='Anotació de traçabilitat ';const input=document.createElement('input');input.type='text';input.placeholder='Nota de revisió / incidència';note.append(input);const add=document.createElement('button');add.type='button';add.textContent='Afegir nota';add.disabled=!persistence.ok;add.addEventListener('click',async()=>{const id=s.records.find(r=>r.present!==false)?.registryId;if(!id){alert('No hi ha elements al registre.');return;}checkpoint();add.disabled=true;try{const result=await persistTransaction({c,s,storageKey},fresh=>core.appendNote(fresh,id,input.value));if(!result.ok)alert(result.error||'No s’ha pogut desar la nota.');else{input.value='';render();}}catch(error){alert('Error de persistència: '+String(error?.message||error));}finally{add.disabled=false;}});note.append(add);host.append(note);
 }
 function install(){if(installed||!$('validationMasterRegistry'))return;installed=true;render();timer=setInterval(render,2500);}
 root.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI={refresh:render,stop(){if(timer)clearInterval(timer);timer=null;}};
