@@ -17,21 +17,9 @@ on:
       - '**.css'
       - '**.cjs'
       - 'tests/**'
+  # Validate every PR regardless of its target branch or changed-file filter.
+  # This prevents release/maintenance PRs from silently skipping the Windows gate.
   pull_request:
-    branches: [main, 'feature/**', 'release/**']
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'README.md'
-      - 'docs/**'
-      - 'traffic-bridge.js'
-      - 'electron/**'
-      - '.github/workflows/windows-installer.yml'
-      - '**.js'
-      - '**.html'
-      - '**.css'
-      - '**.cjs'
-      - 'tests/**'
 
 permissions:
   contents: read
