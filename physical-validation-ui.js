@@ -3,6 +3,7 @@
 const root=window,core=root.JMRI_TC_PhysicalValidationCore,topology=root.JMRI_TC_SignallingTopologyCore;
 if(!core)return;
 const $=id=>document.getElementById(id);
+const checkpoint=()=>root.JMRI_TC_DISPATCHER?.checkpoint?.();
 let selectedSignalId=null,installed=false,timer=null,lastFingerprint='';
 function config(){return root.JMRI_TC_DISPATCHER?.getConfig?.()||{};}
 function topologyResults(c){return topology?topology.inspect(c,c.signals||[],root.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{}):{};}
@@ -30,12 +31,12 @@ function renderMatrix(c){
    if(entry.levelName){const meta=document.createElement('p');meta.textContent=entry.levelName;card.append(meta);}
    entry.checks.forEach(check=>{
     const row=document.createElement('label');row.className='validation-check';
-    const input=document.createElement('input');input.type='checkbox';input.checked=check.checked;input.addEventListener('change',()=>{core.setCheck(c,entry.key,check.id,input.checked);refresh();});
+    const input=document.createElement('input');input.type='checkbox';input.checked=check.checked;input.addEventListener('change',()=>{checkpoint();const result=core.setCheck(c,entry.key,check.id,input.checked);if(!result.ok){input.checked=!input.checked;return;}refresh();});
     const text=document.createElement('span');text.textContent=(check.kind==='software'?'PROGRAMARI · ':'FÍSIC · ')+check.label;row.append(input,text);card.append(row);
    });
    const failure=document.createElement('label');failure.className='validation-failure';
    const failInput=document.createElement('input');failInput.type='checkbox';failInput.checked=entry.failed;
-   failInput.addEventListener('change',()=>{core.setFailure(c,entry.key,failInput.checked,failInput.checked?'Incidència marcada per l’operador':'');refresh();});
+   failInput.addEventListener('change',()=>{checkpoint();const result=core.setFailure(c,entry.key,failInput.checked,failInput.checked?'Incidència marcada per l’operador':'');if(!result.ok){failInput.checked=!failInput.checked;return;}refresh();});
    failure.append(failInput,document.createTextNode('Incidència / no conforme'));card.append(failure);
    if(entry.failed&&entry.failureReason){const reason=document.createElement('p');reason.className='validation-error';reason.textContent=entry.failureReason;card.append(reason);}
    section.append(card);
