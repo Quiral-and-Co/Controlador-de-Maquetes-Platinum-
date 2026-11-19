@@ -51,8 +51,8 @@ window.JMRI_TC_TRAFFIC_CONTROL={
   const planner=window.JMRI_TC_AUTOTRAIN_CORE,c=config();
   if(!planner||!c)return{ok:false,error:'Motor AutoTrain o projecte no disponible.'};
   const snap=window.JMRI_TC_DISPATCHER_UI?.getSnapshot?.()||{};
-  const profile=c.trainRoster?.speedProfiles?.[String(input?.locomotiveId||'')];
-  const check=planner.validatePlan({blockIds:input?.blockIds,snapshot:snap,locomotiveId:input?.locomotiveId,editMode:window.JMRI_TC_BOARD?.getTrainEditMode?.()===true,speedProfileVerified:profile?.verified===true&&Number.isFinite(Number(profile.maxKmh))&&Number(profile.maxKmh)>0&&Array.isArray(profile.points)&&profile.points.length>=2,sourceConfirmed:input?.sourceConfirmed===true});
+  const profile=c.trainRoster?.speedProfiles?.[String(input?.locomotiveId||'')],trainAssigned=(c.trainRoster?.trains||[]).some(t=>String(t.engineId)===String(input?.locomotiveId));
+  const check=planner.validatePlan({blockIds:input?.blockIds,snapshot:snap,locomotiveId:input?.locomotiveId,editMode:window.JMRI_TC_BOARD?.getTrainEditMode?.()===true,trainAssigned,speedProfileVerified:profile?.verified===true&&Number.isFinite(Number(profile.maxKmh))&&Number(profile.maxKmh)>0&&Array.isArray(profile.points)&&profile.points.length>=2,sourceConfirmed:input?.sourceConfirmed===true});
   if(!check.ok)return check;
   if(!runtime.locomotives.some(l=>l.id===String(input.locomotiveId)))return{ok:false,error:'La locomotora seleccionada no està registrada al mòdul de circulacions.'};
   log('AutoTrain: ruta validada i preparada en mode segur. No s’ha creat cap horari ni s’ha enviat cap ordre física.'); 
