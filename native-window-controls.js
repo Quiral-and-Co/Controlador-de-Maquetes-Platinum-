@@ -3,9 +3,11 @@
   const api = window.jmriDesktop;
   if (!api || document.querySelector('[data-native-window-controls]')) return;
   const definitions = [
-    ['editor','Editor de maqueta','🛤️'],['levels','Nivells','▤'],['catalogue','Catàleg de vies','🧩'],
-    ['properties','Propietats i geometria XYZ','📐'],['dispatcher','Despatxador','🚦'],['routes','Itineraris i blocs','🔀'],
-    ['traffic','Trànsit i circulacions','🚆'],['schedules','Horaris','🗓️'],['operation','Operació','⚙️'],
+    ['switchboard','Panell d’accessoris (Switchboard)','🎛️'],['keyboard','Teclat d’accessoris (Keyboard)','⌨️'],
+    ['routes','Rutes i itineraris (Routes)','🔀'],['schedules','Horaris (Schedules)','🗓️'],
+    ['trainWindow','Finestra del tren (Train Window)','🚂'],['editor','Editor de maqueta','🛤️'],['levels','Nivells','▤'],['catalogue','Catàleg de vies','🧩'],
+    ['properties','Propietats i geometria XYZ','📐'],['dispatcher','Despatxador','🚦'],
+    ['traffic','Trànsit i circulacions','🚆'],['operation','Operació','⚙️'],
     ['commandStation','Central digital','🎛️'],['locomotiveDmi','DMI de locomotora','🚄'],['trainProtection','Protecció del tren','🛡️'],
     ['trainGround','Terminal tren-terra','📡'],['spielewelt','Món de Jocs','🎮'],['signalling','Senyalització','🚥'],
     ['validation','Validació i seguretat','✓'],['diagnostics','Metge Quiral','🩺']
@@ -89,6 +91,8 @@
       const icon = document.createElement('span'); icon.className = 'native-dock-icon'; icon.textContent = glyph;
       const text = document.createElement('span'); text.textContent = label; launch.append(icon,text); launch.addEventListener('click', () => open(type));
       const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = '+'; duplicate.title = 'Obrir una còpia independent de ' + label;
+      const duplicable = ['switchboard','keyboard','trainWindow'].includes(type);
+      duplicate.hidden = !duplicable;
       duplicate.setAttribute('aria-label','Duplicar ' + label); duplicate.addEventListener('click', () => open(type,true));
       const favourite = document.createElement('button'); favourite.type = 'button'; favourite.className = 'native-dock-fav';
       const isFavourite = preferences.favourites.includes(type); favourite.textContent = isFavourite ? '★' : '☆';
