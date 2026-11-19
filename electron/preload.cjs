@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('jmriDesktop', Object.freeze({
   moveNativeWindow: options => ipcRenderer.invoke('native-window:move', options),
   closeNativeWindow: id => ipcRenderer.invoke('native-window:close', id),
   showAllNativeWindows: () => ipcRenderer.invoke('native-window:show-all'),
+  toggleAlwaysOnTop: enabled => ipcRenderer.invoke('native-window:toggle-always-on-top', enabled),
+  isAlwaysOnTop: () => ipcRenderer.invoke('native-window:is-always-on-top'),
   publishWorkspaceState: state => ipcRenderer.invoke('native-window:publish-state', state),
   onWorkspaceState: callback => {
     if (typeof callback !== 'function') return () => {};
