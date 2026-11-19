@@ -64,6 +64,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     if (!win.webContents.isDestroyed()) win.webContents.send(channel, payload);
   });
   const persist = async () => {
+    await layoutReady;
     const layout = {};
     const main = getMainWindow();
     if (main && !main.isDestroyed()) {
