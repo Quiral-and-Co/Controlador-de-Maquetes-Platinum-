@@ -587,7 +587,7 @@
   const desktopApi=window.jmriDesktop;
   desktopApi?.onWorkspaceState?.(payload=>{if(payload?.sourceId!==nativeWindowId)applyWorkspaceState(payload);});
   (async()=>{
-    if(new URLSearchParams(location.search).has('nativePanel') && desktopApi?.getWorkspaceState){
+    if(nativeWindowId!=='main' && desktopApi?.getWorkspaceState){
       try { const snapshot=await desktopApi.getWorkspaceState(); if(snapshot) applyWorkspaceState(snapshot); }
       catch(error){ console.warn('[Espai de treball] No s’ha pogut recuperar l’estat inicial:',error); }
     }
