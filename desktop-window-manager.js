@@ -35,7 +35,16 @@
     return node.classList.contains('summary-grid') ? 'Estat de la maqueta' : 'Eina de treball';
   };
 
-  function makeWindow(node, title, bounds) {
+  function panelKeyFor(node) {
+    if (node.classList.contains('editor-sidebar')) return 'editor-sidebar';
+    if (node.classList.contains('track-area')) return 'track-area';
+    if (node.classList.contains('properties-panel')) return 'properties-panel';
+    if (node.id) return 'section-' + node.id;
+    const classes = [...node.classList].filter(name => name !== 'hidden').sort();
+    return 'section-' + (classes.join('-') || 'panel');
+  }
+
+  function makeWindow(node, title, bounds, panelKey) {
     const placeholder = document.createComment('JMRI desktop window position');
     node.parentNode.insertBefore(placeholder, node);
     const win = document.createElement('section');
@@ -71,6 +80,10 @@
     dock.type = 'button'; dock.textContent = '⇥';
     dock.title = 'Ancorar a la dreta (clic repetit: esquerra)';
     dock.setAttribute('aria-label', 'Ancorar ' + title);
+    const detach = document.createElement('button');
+    detach.type = 'button'; detach.textContent = '↗';
+    detach.title = 'Desacoblar com a finestra nativa de Windows';
+    detach.setAttribute('aria-label', 'Desacoblar ' + title + ' en una finestra nativa');
     const close = document.createElement('button');
     close.type = 'button'; close.textContent = '×';
     close.title = 'Amagar finestra';
@@ -82,7 +95,7 @@
     const dockMenu=document.createElement('select');dockMenu.className='desktop-window-dock-menu';dockMenu.title='Opcions d’acoblament i finestra flotant';dockMenu.setAttribute('aria-label','Opcions de finestra');
     [['','Finestra'],['left','Acoblar esquerra'],['right','Acoblar dreta'],['top','Acoblar dalt'],['bottom','Acoblar baix'],['float','Finestra flotant']].forEach(([v,label])=>{const option=document.createElement('option');option.value=v;option.textContent=label;dockMenu.append(option);});
     dockMenu.addEventListener('change',()=>{if(dockMenu.value==='float'){win.classList.remove('is-docked');win.classList.add('is-floating');win.style.left=Math.max(12,win.offsetLeft+24)+'px';win.style.top=Math.max(12,win.offsetTop+24)+'px';}else if(dockMenu.value){dockWindow(dockMenu.value);win.classList.remove('is-floating');}dockMenu.value='';});
-    controls.append(minimize, maximize, original, dock, dockMenu, close);
+    controls.append(minimize, maximize, original, dock, dockMenu, detach, close);
     bar.append(caption, controls);
     const content = document.createElement('div');
     content.className = 'desktop-window-content';
@@ -126,6 +139,22 @@
     original.addEventListener('click', restoreOriginal);
     dock.addEventListener('click', () => { const side=win.dataset.dockSide==='left'?'right':'left'; win.dataset.dockSide=side; dockWindow(side); win.classList.remove('is-floating'); });
     close.addEventListener('click', hide);
+    detach.addEventListener('click', async () => {
+      const api = window.jmriDesktop;
+      if (!api?.openNativePanel || !panelKey) return;
+      detach.disabled = true;
+      detach.title = 'Desacoblant el panell…';
+      try {
+        const result = await api.openNativePanel({ panelKey, title });
+        record.detachedId = result.id;
+        hide();
+        detach.textContent = '↙';
+        detach.title = 'El panell és en una finestra nativa. Es restaurarà quan la tanquis.';
+      } catch (error) {
+        detach.disabled = false;
+        detach.title = 'No s’ha pogut desacoblar: ' + error.message;
+      }
+    });
     resizeHandle.addEventListener('pointerdown', event => {
       if (event.button !== 0 || win.classList.contains('is-maximized') || win.classList.contains('is-docked')) return;
       event.preventDefault(); event.stopPropagation();
@@ -176,7 +205,7 @@
     });
     win.addEventListener('pointerdown', () => { win.style.zIndex = String(++zIndex); });
     taskbar.append(task);
-    const record = { node, placeholder, win, task, bar, content, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }, restore: null, groupHost: null };
+    const record = { node, placeholder, win, task, bar, content, panelKey, detachedId: null, detach, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }, restore: null, groupHost: null };
     records.push(record);
     win.addEventListener('dblclick', event => { if (event.target.closest('.desktop-window-titlebar') && !event.target.closest('button')) maximizeWindow(); });
     win.addEventListener('pointerdown', () => { if (win.classList.contains('is-maximized')) return; win.style.zIndex=String(++zIndex); });
@@ -186,6 +215,29 @@
     if (workspace) return;
     const main = document.querySelector('main');
     if (!main) return;
+    const nativePanelKey = new URLSearchParams(location.search).get('nativePanel');
+    if (nativePanelKey) {
+      const editor = main.querySelector(':scope > .editor-shell');
+      const candidates = [];
+      if (editor) candidates.push(...editor.querySelectorAll('.editor-sidebar,.track-area,.properties-panel'));
+      candidates.push(...[...main.children].filter(node =>
+        !node.matches('.notice,.toolbar,.modern-ribbon') &&
+        node.matches('section,.resource-grid,.monitor-grid')
+      ));
+      const selected = candidates.find(node => panelKeyFor(node) === nativePanelKey);
+      if (!selected) {
+        main.replaceChildren();
+        const error = document.createElement('p');
+        error.textContent = 'No s’ha trobat el panell sol·licitat. Torna a obrir-lo des de l’escriptori principal.';
+        main.append(error);
+        return;
+      }
+      main.replaceChildren(selected);
+      document.body.classList.add('native-panel-window');
+      selected.classList.add('native-panel-root');
+      selected.setAttribute('data-native-panel', nativePanelKey);
+      return;
+    }
     const notice = main.querySelector(':scope > .notice');
     const toolbar = main.querySelector(':scope > .toolbar');
     workspace = document.createElement('div');
@@ -199,7 +251,7 @@
     let x = 18, y = 18;
     const add = (node, title, w, h, left, top) => {
       if (!node) return;
-      makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h });
+      makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h }, panelKeyFor(node));
       x += 34; y += 28;
       if (x > 760) x = 18;
       if (y > 500) y = 18;
@@ -232,6 +284,19 @@
       add(node, title, 700, 500, 18 + (index % 2) * 720, 680 + Math.floor(index / 2) * 540);
     });
     workspace.style.minHeight = (700 + Math.ceil(direct.length / 2) * 540) + 'px';
+    if (window.jmriDesktop?.onNativeWindowClosed) {
+      window.jmriDesktop.onNativeWindowClosed(({ id }) => {
+        const record = records.find(item => item.detachedId === id);
+        if (!record) return;
+        record.detachedId = null;
+        record.detach.disabled = false;
+        record.detach.textContent = '↗';
+        record.detach.title = 'Desacoblar com a finestra nativa de Windows';
+        record.win.hidden = false;
+        record.win.style.zIndex = String(++zIndex);
+        record.task.classList.add('is-open');
+      });
+    }
     if (notice) notice.classList.add('desktop-notice');
     if (toolbar) toolbar.classList.add('desktop-commandbar');
   }
