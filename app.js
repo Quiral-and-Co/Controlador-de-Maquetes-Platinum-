@@ -12,6 +12,9 @@
   const nativeWindowIdMatch = nativeSearch.match(/[?&]nativeWindowId=([^&]*)/);
   const nativeWindowId = nativeWindowIdMatch ? decodeURIComponent(nativeWindowIdMatch[1].replace(/\+/g, ' ')) : 'main';
   let applyingRemoteWorkspaceState = false;
+  let workspaceRevision = 0;
+  let workspacePublishInFlight = false;
+  let workspacePublishPending = false;
   const level = () => state.config.levels.find(x=>x.id===state.selectedLevel);
   const pieces = () => level()?.tracks || [];
   const log = msg => {const li=document.createElement('li');li.textContent=`${new Date().toLocaleTimeString()} · ${msg}`;$('eventLog').prepend(li);while($('eventLog').children.length>35)$('eventLog').lastElementChild.remove();};
@@ -56,13 +59,34 @@
     renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SCHEDULE_UI?.refresh?.();window.JMRI_TC_OPERATION_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
     publishWorkspaceState();
   }
-  function publishWorkspaceState(){
+  async function publishWorkspaceState(){
     if(applyingRemoteWorkspaceState || !window.jmriDesktop?.publishWorkspaceState) return;
-    const payload={kind:'app-state',sourceId:nativeWindowId,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},filePath:state.filePath,isDirty:state.isDirty,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},powerUpdatedAt:state.powerUpdatedAt,jmriPower:state.jmriPower};
-    window.jmriDesktop.publishWorkspaceState(payload).catch(error=>console.warn('[Espai de treball] No s’ha pogut sincronitzar l’estat:',error));
+    if(workspacePublishInFlight){workspacePublishPending=true;return;}
+    workspacePublishInFlight=true;
+    const payload={kind:'app-state',sourceId:nativeWindowId,baseRevision:workspaceRevision,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},filePath:state.filePath,isDirty:state.isDirty,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},powerUpdatedAt:state.powerUpdatedAt,jmriPower:state.jmriPower};
+    const sentConfig=JSON.stringify(payload.config);
+    try {
+      const result=await window.jmriDesktop.publishWorkspaceState(payload);
+      if(result?.ok===true){workspaceRevision=result.revision;}
+      else if(result?.conflict===true){
+        if(result.state && JSON.stringify(state.config)===sentConfig){
+          applyWorkspaceState({...result.state,revision:result.revision});
+          log('S’ha rebut una revisió més recent de l’espai de treball; s’ha aplicat sense sobreescriure dades.');
+        } else {
+          workspacePublishPending=false;
+          log('CONFLICTE DE SINCRONITZACIÓ: hi ha canvis locals i una revisió remota més recent. No s’ha sobreescrit cap dada; cal revisar i tornar a carregar l’estat compartit.');
+          console.warn('[Espai de treball] Conflicte de revisió; publicació bloquejada.',{localRevision:workspaceRevision,remoteRevision:result.revision});
+        }
+      }
+    } catch(error){console.warn('[Espai de treball] No s’ha pogut sincronitzar l’estat:',error);}
+    finally {
+      workspacePublishInFlight=false;
+      if(workspacePublishPending){workspacePublishPending=false;publishWorkspaceState();}
+    }
   }
   function applyWorkspaceState(payload){
     if(!payload || payload.kind!=='app-state' || !payload.config || !Array.isArray(payload.config.levels)) return false;
+    if(Number.isSafeInteger(payload.revision)){if(payload.revision<workspaceRevision)return false;workspaceRevision=payload.revision;}
     applyingRemoteWorkspaceState=true;
     try {
       state.config=clone(payload.config);
@@ -621,7 +645,7 @@
   desktopApi?.onWorkspaceState?.(payload=>{if(payload?.sourceId!==nativeWindowId)applyWorkspaceState(payload);});
   (async()=>{
     if(nativeWindowId!=='main' && desktopApi?.getWorkspaceState){
-      try { const snapshot=await desktopApi.getWorkspaceState(); if(snapshot) applyWorkspaceState(snapshot); }
+      try { const snapshot=await desktopApi.getWorkspaceState(); if(snapshot?.state){workspaceRevision=Number.isSafeInteger(snapshot.revision)?snapshot.revision:0;applyWorkspaceState({...snapshot.state,revision:workspaceRevision});} }
       catch(error){ console.warn('[Espai de treball] No s’ha pogut recuperar l’estat inicial:',error); }
     }
     setMode(state.mode);render();applyViewBox();
