@@ -12,7 +12,6 @@
     if(!graph.has(b))graph.set(b,[]);
     const requirements=Array.isArray(route.turnoutRequirements)?route.turnoutRequirements.map(x=>({systemName:String(x.systemName||''),requiredState:String(x.requiredState||x.requiredPosition||'').toUpperCase()})):[];
     graph.get(a).push({to:b,requirements,routeId:String(route.id||'')});
-    graph.get(b).push({to:a,requirements,routeId:String(route.id||'')});
    }
   }
   for(const edges of graph.values())edges.sort((a,b)=>a.to.localeCompare(b.to));
