@@ -278,5 +278,7 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 
 .dmi-functions button{min-width:var(--dmi-function-button-size,42px);min-height:var(--dmi-function-button-size,42px)}
 .dmi-vertical-range input[type=range]{height:var(--dmi-slider-height,158px);min-height:var(--dmi-slider-height,158px)}
-.dispatcher-block.hide-dispatcher-meta .dispatcher-state{display:none}
+.dispatcher-block.hide-dispatcher-status .dispatcher-state{display:none}
+.dispatcher-reservation{color:var(--reserved-route-color,#cce5ff)}
+.dmi-functions{grid-template-columns:repeat(auto-fit,minmax(var(--dmi-function-button-size,42px),1fr))}
 .desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within){transform:translateX(92%)}
