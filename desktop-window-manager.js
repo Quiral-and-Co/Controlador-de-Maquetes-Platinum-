@@ -102,7 +102,7 @@
     minimize.addEventListener('click', hide);
     maximize.addEventListener('click', maximizeWindow);
     original.addEventListener('click', restoreOriginal);
-    dock.addEventListener('click', () => dockWindow(win.dataset.dockSide === 'left' ? 'right' : 'left'));
+    dock.addEventListener('click', () => { const side=win.dataset.dockSide==='left'?'right':'left'; win.dataset.dockSide=side; dockWindow(side); });
     close.addEventListener('click', hide);
     bar.addEventListener('pointerdown', event => {
       if (event.target.closest('button')) return;
