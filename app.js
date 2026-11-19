@@ -492,6 +492,8 @@
   $('helpDialog')?.querySelectorAll?.('[data-help-topic]')?.forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
   $('helpDialogClose')?.addEventListener('click',()=> $('helpDialog')?.close());
   function handleAppCommand(command){
+    const editOnlyCommands=new Set(['undo','redo','cut','paste','delete','duplicate','portMode','createParallel','suggestGaps','trainNewEngine','trainNewCar','trainNewTrainSet','trainNewTrain','trainCouple','trainUncouple','trainDelete','operationMacroCreate','operationFlagCreate','operationCounterCreate','operationEventCreate','scheduleCreate']);
+    if(!editingMode&&editOnlyCommands.has(command)){log('Acció bloquejada: activa el Mode edició per modificar o configurar la maqueta.');return;}
     if(command==='workspacePreferences')window.JMRI_TC_WORKSPACE_PREFS?.open?.();
     else if(command==='toggleToolbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('toolbar',!(p.get('toolbar')!==false));}
     else if(command==='toggleTaskbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('taskbar',!(p.get('taskbar')!==false));}
