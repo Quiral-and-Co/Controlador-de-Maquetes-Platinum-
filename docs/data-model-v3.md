@@ -38,3 +38,17 @@ L'acció **Validar topologia** inspecciona totes les peces i connexions dels cin
 - distància entre els dos extrems connectats: màxim 1 mm.
 
 Els ports sense connexió es compten com a **avisos**, no com a errors: el projecte encara no conté el traçat definitiu. Aquesta comprovació és geomètrica/topològica i no certifica continuïtat elèctrica, polaritat, cablejat de via, detecció S88, reserves ni seguretat operacional.
+
+## Auditoria de gàlibs i interferències 3D (editor 0.12)
+
+El perfil opcional `clearanceProfile` desa dos llindars **entre eixos**:
+
+- `horizontalAxisMm`: separació horitzontal mínima configurada per l'usuari.
+- `verticalAxisMm`: separació vertical mínima configurada per l'usuari.
+- `source: "user-defined"` i `verified: false`: el programa no certifica l'origen ni la validació física dels valors.
+
+Els dos llindars comencen sense configurar-se; no s'infereixen de l'escala H0 ni de la separació prevista de 110 mm entre nivells. L'auditoria mostreja rectes, corbes i rutes de desviaments genèrics, transforma els punts a coordenades del tauler i compara la separació horitzontal i vertical. Les peces connectades directament s'exclouen de la comparació entre si. Les peces especials, els perfils Z incomplets i els desviaments amb perfil vertical no definit queden com a geometria pendent.
+
+Estats possibles: `CONFLICT`, `POTENTIAL_CONFLICT`, `UNCONFIGURED`, `INCOMPLETE`, `EMPTY` i `WITHIN_THRESHOLDS_UNVERIFIED`. Aquest darrer estat vol dir únicament que no s'ha trobat cap conflicte dins dels llindars introduïts; **no vol dir que el gàlib sigui segur o verificat**. Les geometries sense `geometryStatus: "confirmed"` mai no produeixen una declaració de separació verificada.
+
+La comparació usa mostreig geomètric de 5 mm per defecte i tolerància de projecció d'1 mm; és una eina de detecció preliminar, no un càlcul de gàlib reglamentari ni una comprovació de vehicles, estructures, pantògrafs, cablejat, deformacions o toleràncies de muntatge. No envia ordres a JMRI/CS2 ni habilita sortides físiques.
