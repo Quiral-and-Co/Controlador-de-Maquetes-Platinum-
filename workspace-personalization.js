@@ -42,7 +42,7 @@ function open(){
  const add=(id,label,node)=>$(id).append(field(label,node));
  const view=$('workspacePrefView'),wins=$('workspacePrefWindows'),train=$('workspacePrefTrain'),board=$('workspacePrefBoard'),disp=$('workspacePrefDispatcher');
  [view,wins,train,board,disp].forEach(n=>n.replaceChildren());
- add('workspacePrefView','Interfície',select(prefs.interfaceMode,[['modern','Cinta moderna (Ribbon)'],['classic','Menús clàssics i barres']],v=>{prefs.interfaceMode=v;save();document.getElementById(v==='modern'?'modeModern':'modeClassic')?.click();}));
+ add('workspacePrefView','Mode d’inici del programa',select(prefs.interfaceMode,[['modern','Modern · cinta d’opcions'],['classic','Clàssic · menús i barres']],v=>{prefs.interfaceMode=v;save();document.getElementById(v==='modern'?'modeModern':'modeClassic')?.click();}));
  add('workspacePrefView','UI Style · aparença global',select(prefs.theme,[['windows-7','Windows 7'],['windows-10','Windows 8/10'],['windows-native','Natiu del sistema operatiu'],['office-blue','Office blau'],['office-silver','Office platejat'],['office-black','Office negre / fosc'],['office-white','Office blanc']],v=>{prefs.theme=v;save();}));
  add('workspacePrefView','Barra d’eines principal',checkbox(prefs.toolbar,v=>{prefs.toolbar=v;save();}));
  add('workspacePrefView','Barra de finestres',checkbox(prefs.taskbar,v=>{prefs.taskbar=v;save();}));
