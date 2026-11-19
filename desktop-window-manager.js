@@ -379,24 +379,24 @@
       records.forEach(({ win, task, initial }) => {
         win.hidden = false; win.classList.remove('is-maximized','is-docked','is-floating'); win.style.left = initial.x + 'px'; win.style.top = initial.y + 'px';
         win.style.width = initial.w + 'px'; win.style.height = initial.h + 'px';
-        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+        bringToFront(win); task.classList.add('is-open');
       });
     },
     cascade() {
       records.forEach(({ win, task }, index) => {
         win.hidden = false; win.classList.remove('is-floating'); win.style.left = (18 + index * 34) + 'px'; win.style.top = (18 + index * 28) + 'px';
-        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+        bringToFront(win); task.classList.add('is-open');
       });
     },
     dock(side) {
       if (!workspace) return;
-      records.forEach((record,index)=>{const {win,task}=record;if(!win.classList.contains('is-docked')&&!win.classList.contains('is-maximized'))record.restore={x:win.offsetLeft,y:win.offsetTop,w:win.offsetWidth,h:win.offsetHeight};win.hidden=false;win.classList.remove('is-maximized','is-floating');win.classList.add('is-docked');const w=workspace.clientWidth||1440,h=workspace.clientHeight||900;const b={left:{x:6,y:6,w:w/2-9,h:h-12},right:{x:w/2+3,y:6,w:w/2-9,h:h-12},top:{x:6,y:6,w:w-12,h:h/2-9},bottom:{x:6,y:h/2+3,w:w-12,h:h/2-9}}[side];const n=records.length;const slot=side==='left'||side==='right'?Math.max(200,(h-12)/n):Math.max(260,(w-12)/n);if(side==='left'||side==='right'){b.y=6+index*slot;b.h=slot-6;}else{b.x=6+index*slot;b.w=slot-6;}win.style.left=b.x+'px';win.style.top=b.y+'px';win.style.width=b.w+'px';win.style.height=b.h+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
+      records.forEach((record,index)=>{const {win,task}=record;if(!win.classList.contains('is-docked')&&!win.classList.contains('is-maximized'))record.restore={x:win.offsetLeft,y:win.offsetTop,w:win.offsetWidth,h:win.offsetHeight};win.hidden=false;win.classList.remove('is-maximized','is-floating');win.classList.add('is-docked');const w=workspace.clientWidth||1440,h=workspace.clientHeight||900;const b={left:{x:6,y:6,w:w/2-9,h:h-12},right:{x:w/2+3,y:6,w:w/2-9,h:h-12},top:{x:6,y:6,w:w-12,h:h/2-9},bottom:{x:6,y:h/2+3,w:w-12,h:h/2-9}}[side];const n=records.length;const slot=side==='left'||side==='right'?Math.max(200,(h-12)/n):Math.max(260,(w-12)/n);if(side==='left'||side==='right'){b.y=6+index*slot;b.h=slot-6;}else{b.x=6+index*slot;b.w=slot-6;}win.style.left=b.x+'px';win.style.top=b.y+'px';win.style.width=b.w+'px';win.style.height=b.h+'px';bringToFront(win);task.classList.add('is-open');});
     },
     tilePreset(preset='grid') {
       if (!workspace || !records.length) return;
       const count=records.length, cols=preset==='columns'?count:preset==='two-columns'?2:Math.ceil(Math.sqrt(count)), rows=Math.ceil(count/cols);
       const width=Math.max(260,Math.floor((workspace.clientWidth||1440)/cols)),height=Math.max(200,Math.floor((workspace.clientHeight||900)/rows));
-      records.forEach(({win,task},index)=>{const col=index%cols,row=Math.floor(index/cols);win.hidden=false;win.classList.remove('is-maximized','is-docked','is-floating');win.style.left=(col*width+6)+'px';win.style.top=(row*height+6)+'px';win.style.width=Math.max(240,width-12)+'px';win.style.height=Math.max(180,height-12)+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
+      records.forEach(({win,task},index)=>{const col=index%cols,row=Math.floor(index/cols);win.hidden=false;win.classList.remove('is-maximized','is-docked','is-floating');win.style.left=(col*width+6)+'px';win.style.top=(row*height+6)+'px';win.style.width=Math.max(240,width-12)+'px';win.style.height=Math.max(180,height-12)+'px';bringToFront(win);task.classList.add('is-open');});
     },
     tile() {
       if (!workspace || !records.length) return;
@@ -407,7 +407,7 @@
         const col = index % columns, row = Math.floor(index / columns);
         win.hidden = false; win.classList.remove('is-maximized','is-docked','is-floating'); win.style.left = (col * width + 8) + 'px'; win.style.top = (row * height + 8) + 'px';
         win.style.width = Math.max(260, width - 16) + 'px'; win.style.height = Math.max(200, height - 16) + 'px';
-        win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+        bringToFront(win); task.classList.add('is-open');
       });
     }
   });
