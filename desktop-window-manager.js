@@ -8,6 +8,13 @@
   // No mode is applied until app.js sends its initial state. This ensures
   // the default modern mode actually builds the floating-window workspace.
   let activeMode = null;
+
+  function bringToFront(win) {
+    const highest = workspace ? [...workspace.querySelectorAll('.desktop-window')].reduce((value, item) => Math.max(value, Number.parseInt(item.style.zIndex, 10) || 0), zIndex) : zIndex;
+    zIndex = highest + 1;
+    win.style.zIndex = String(zIndex);
+    return zIndex;
+  }
   const requestedNativePanel = new URLSearchParams(location.search).get('nativePanel');
   if (requestedNativePanel) document.documentElement.setAttribute('data-native-panel-loading', 'true');
 
@@ -24,7 +31,7 @@
   }
   function activateGroupTab(host,selected) {
     (host.tabs||[host]).forEach(item=>{if(item.content)item.content.hidden=item!==selected; if(item.groupTab)item.groupTab.classList.toggle('active',item===selected);});
-    host.win.hidden=false;host.win.style.zIndex=String(++zIndex);
+    host.win.hidden=false;bringToFront(host.win);
   }
 
   const titleFor = node => {
@@ -57,7 +64,7 @@
     win.style.top = bounds.y + 'px';
     win.style.width = bounds.w + 'px';
     win.style.height = bounds.h + 'px';
-    win.style.zIndex = String(++zIndex);
+    bringToFront(win);
 
     const bar = document.createElement('header');
     bar.className = 'desktop-window-titlebar';
@@ -113,7 +120,7 @@
     task.addEventListener('click', () => {
       if(record.detachedId){ window.jmriDesktop?.openNativePanel?.({panelKey, title}).catch(() => {}); return; }
       if(record.groupHost){activateGroupTab(record.groupHost,record);task.classList.add('is-open');return;}
-      win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open');
+      win.hidden = false; bringToFront(win); task.classList.add('is-open');
     });
     const hide = () => { win.hidden = true; task.classList.remove('is-open'); };
     const boundsNow = () => ({ x: win.offsetLeft, y: win.offsetTop, w: win.offsetWidth, h: win.offsetHeight });
@@ -183,7 +190,7 @@
       if (event.target.closest('button')) return;
       if (event.button !== 0) return;
       event.preventDefault();
-      win.style.zIndex = String(++zIndex);
+      bringToFront(win);
       const startX = event.clientX, startY = event.clientY;
       if (win.classList.contains('is-maximized')) return;
       const startLeft = win.offsetLeft, startTop = win.offsetTop;
@@ -206,12 +213,12 @@
       bar.addEventListener('pointerup', end);
       bar.addEventListener('pointercancel', end);
     });
-    win.addEventListener('pointerdown', () => { win.style.zIndex = String(++zIndex); });
+    win.addEventListener('pointerdown', () => { bringToFront(win); });
     taskbar.append(task);
     const record = { node, placeholder, win, task, bar, content, panelKey, detachedId: null, detach, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }, restore: null, groupHost: null };
     records.push(record);
     win.addEventListener('dblclick', event => { if (event.target.closest('.desktop-window-titlebar') && !event.target.closest('button')) maximizeWindow(); });
-    win.addEventListener('pointerdown', () => { if (win.classList.contains('is-maximized')) return; win.style.zIndex=String(++zIndex); });
+    win.addEventListener('pointerdown', () => { if (win.classList.contains('is-maximized')) return; bringToFront(win); });
   }
 
   function enterModern() {
@@ -307,7 +314,7 @@
         record.detach.textContent = '↗';
         record.detach.title = 'Desacoblar com a finestra nativa de Windows';
         record.win.hidden = false;
-        record.win.style.zIndex = String(++zIndex);
+        bringToFront(record.win);
         record.task.classList.add('is-open');
       });
     }
@@ -355,18 +362,18 @@
       makeWindow(node, title || titleFor(node), safeBounds, panelKeyFor(node));
       const record = records[records.length - 1];
       record.win.hidden = false;
-      record.win.style.zIndex = String(++zIndex);
+      bringToFront(record.win);
       record.task.classList.add('is-open');
       return true;
     },
     getWindows() { return records.map(({ win }) => ({ title: win.getAttribute('aria-label'), visible: !win.hidden })); },
-    showAll() { records.forEach(({ win, task }) => { win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open'); }); },
+    showAll() { records.forEach(({ win, task }) => { win.hidden = false; bringToFront(win); task.classList.add('is-open'); }); },
     minimizeAll() { records.forEach(({ win, task }) => { win.hidden = true; task.classList.remove('is-open'); }); },
     focusWindow(query) {
       const needle = String(query || '').toLowerCase();
       const record = records.find(({ win }) => win.getAttribute('aria-label').toLowerCase().includes(needle));
       if (!record) return false;
-      record.win.hidden = false; record.win.style.zIndex = String(++zIndex); record.task.classList.add('is-open'); return true;
+      record.win.hidden = false; bringToFront(record.win); record.task.classList.add('is-open'); return true;
     },
     restoreLayout() {
       records.forEach(({ win, task, initial }) => {
