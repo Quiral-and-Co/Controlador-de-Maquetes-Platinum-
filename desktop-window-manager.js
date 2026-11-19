@@ -15,6 +15,8 @@
     if(host===from)return;
     if(!host.tabs){host.tabs=[host];host.tabbar=document.createElement('nav');host.tabbar.className='desktop-window-tabs';host.win.insertBefore(host.tabbar,host.content);}
     const tab=document.createElement('button');tab.type='button';tab.textContent=source.win.getAttribute('aria-label');tab.addEventListener('click',()=>activateGroupTab(host,source));
+    tab.title='Doble clic per desacoblar aquesta pestanya';
+    tab.addEventListener('dblclick',()=>{source.content.hidden=false;source.win.append(source.content);source.win.hidden=false;source.groupHost=null;source.groupTab=null;tab.remove();host.tabs=host.tabs.filter(x=>x!==source);if(host.tabs.length===1){host.tabbar?.remove();host.tabbar=null;host.tabs=null;}});
     host.tabbar.append(tab);host.tabs.push(source);source.groupHost=host;source.groupTab=tab;
     source.content.hidden=true;host.win.append(source.content);source.win.hidden=true;activateGroupTab(host,source);
   }
