@@ -8,6 +8,7 @@ const routes=[
 assert.deepEqual(core.shortestPath(routes,'A','D').blockIds,['A','B','C','D']);
 assert.equal(core.shortestPath(routes,'A','Z').ok,false);
 assert.equal(core.shortestPath(routes,'A','A').ok,false);
+assert.equal(core.shortestPath(routes,'D','A').ok,false);
 const snapshot={
  blocks:['A','B','C'].map(id=>({id,verified:true,sensorIds:['S-'+id]})),
  blockStates:{A:'OCCUPIED',B:'FREE',C:'FREE'},
