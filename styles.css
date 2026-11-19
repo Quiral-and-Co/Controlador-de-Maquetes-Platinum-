@@ -348,3 +348,28 @@ body.mode-modern .desktop-taskbar{flex:0 0 auto}
   body.mode-modern main{height:auto;min-height:0;overflow:visible}
   body.mode-modern .desktop-workspace{flex:0 0 auto;height:calc(100dvh - 300px);min-height:300px;overflow:auto}
 }
+
+
+/* Evita que els grups de la cinta es comprimeixin i se superposin.
+   Cada grup conserva l'amplada real dels seus botons; la pàgina gestiona
+   l'excés d'amplada amb desplaçament horitzontal. */
+body.mode-modern .ribbon-page {
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+body.mode-modern .ribbon-group {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+}
+body.mode-modern .ribbon-group > div {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
+  flex-wrap: nowrap;
+}
+body.mode-modern .ribbon-group button.ribbon-icon-button {
+  flex: 0 0 42px;
+}
