@@ -4,6 +4,8 @@ const root=path.resolve(__dirname,'..'),mime={'.html':'text/html','.js':'text/ja
 const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname),file=path.resolve(root,'.'+pathname);if(!file.startsWith(root+path.sep)&&file!==path.join(root,'index.html')){res.writeHead(403).end();return;}fs.readFile(file,(err,data)=>{if(err){res.writeHead(404).end(String(err));return;}res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(data);});});
 (async()=>{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser,context;try{browser=await chromium.launch({headless:true,args:['--no-sandbox']});context=await browser.newContext();const page=await context.newPage();page.on('pageerror',e=>console.error('Operation browser error:',e.stack||e.message));page.on('dialog',d=>d.accept());await page.goto('http://127.0.0.1:'+server.address().port+'/index.html');await page.waitForFunction(()=>window.JMRI_TC_OPERATION_UI&&window.JMRI_TC_OPERATION&&window.JMRI_TC_DISPATCHER);
 await page.locator('[data-ribbon-tab="operation"]').click();assert.equal(await page.locator('[data-ribbon-page="operation"]').isVisible(),true);
+// Ribbon commands must activate the floating Operation window before its controls are used.
+await page.locator('[data-ribbon-command="operationFlagCreate"]').click();
 await page.locator('#operationFlagName').fill('Tren preparat');await page.locator('#operationFlagCreate').click();
 await page.locator('#operationCounterName').fill('Voltes');await page.locator('#operationCounterCreate').click();
 await page.locator('#operationMacroName').fill('Comptar volta');await page.locator('#operationMacroCreate').click();
