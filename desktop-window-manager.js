@@ -9,6 +9,20 @@
   // the default modern mode actually builds the floating-window workspace.
   let activeMode = null;
 
+  function groupInto(source,target) {
+    if(!source||!target||source===target||source.groupHost===target)return;
+    const host=target.groupHost||target,from=source.groupHost||source;
+    if(host===from)return;
+    if(!host.tabs){host.tabs=[host];host.tabbar=document.createElement('nav');host.tabbar.className='desktop-window-tabs';host.win.insertBefore(host.tabbar,host.content);}
+    const tab=document.createElement('button');tab.type='button';tab.textContent=source.win.getAttribute('aria-label');tab.addEventListener('click',()=>activateGroupTab(host,source));
+    host.tabbar.append(tab);host.tabs.push(source);source.groupHost=host;source.groupTab=tab;
+    source.content.hidden=true;host.win.append(source.content);source.win.hidden=true;activateGroupTab(host,source);
+  }
+  function activateGroupTab(host,selected) {
+    (host.tabs||[host]).forEach(item=>{if(item.content)item.content.hidden=item!==selected; if(item.groupTab)item.groupTab.classList.toggle('active',item===selected);});
+    host.win.hidden=false;host.win.style.zIndex=String(++zIndex);
+  }
+
   const titleFor = node => {
     const heading = node.querySelector('h1,h2,h3,[aria-labelledby]');
     if (heading) {
@@ -59,7 +73,10 @@
     close.type = 'button'; close.textContent = '×';
     close.title = 'Amagar finestra';
     close.setAttribute('aria-label', 'Amagar ' + title);
-    controls.append(minimize, maximize, original, dock, close);
+    const dockMenu=document.createElement('select');dockMenu.className='desktop-window-dock-menu';dockMenu.title='Opcions d’acoblament i finestra flotant';dockMenu.setAttribute('aria-label','Opcions de finestra');
+    [['','Finestra'],['left','Acoblar esquerra'],['right','Acoblar dreta'],['top','Acoblar dalt'],['bottom','Acoblar baix'],['float','Finestra flotant']].forEach(([v,label])=>{const option=document.createElement('option');option.value=v;option.textContent=label;dockMenu.append(option);});
+    dockMenu.addEventListener('change',()=>{if(dockMenu.value==='float'){win.classList.remove('is-docked');win.classList.add('is-floating');win.style.left=Math.max(12,win.offsetLeft+24)+'px';win.style.top=Math.max(12,win.offsetTop+24)+'px';}else if(dockMenu.value){dockWindow(dockMenu.value);win.classList.remove('is-floating');}dockMenu.value='';});
+    controls.append(minimize, maximize, original, dock, dockMenu, close);
     bar.append(caption, controls);
     const content = document.createElement('div');
     content.className = 'desktop-window-content';
@@ -73,9 +90,8 @@
     task.textContent = title;
     task.title = 'Mostrar ' + title;
     task.addEventListener('click', () => {
-      win.hidden = false;
-      win.style.zIndex = String(++zIndex);
-      task.classList.add('is-open');
+      if(record.groupHost){activateGroupTab(record.groupHost,record);task.classList.add('is-open');return;}
+      win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open');
     });
     const hide = () => { win.hidden = true; task.classList.remove('is-open'); };
     const boundsNow = () => ({ x: win.offsetLeft, y: win.offsetTop, w: win.offsetWidth, h: win.offsetHeight });
@@ -102,7 +118,7 @@
     minimize.addEventListener('click', hide);
     maximize.addEventListener('click', maximizeWindow);
     original.addEventListener('click', restoreOriginal);
-    dock.addEventListener('click', () => { const side=win.dataset.dockSide==='left'?'right':'left'; win.dataset.dockSide=side; dockWindow(side); });
+    dock.addEventListener('click', () => { const side=win.dataset.dockSide==='left'?'right':'left'; win.dataset.dockSide=side; dockWindow(side); win.classList.remove('is-floating'); });
     close.addEventListener('click', hide);
     bar.addEventListener('pointerdown', event => {
       if (event.target.closest('button')) return;
@@ -114,11 +130,15 @@
       const startLeft = win.offsetLeft, startTop = win.offsetTop;
       saveRestoreBounds(); win.classList.remove('is-docked');
       bar.setPointerCapture?.(event.pointerId);
+      let lastPointer=event;
       const move = e => {
-        win.style.left = Math.max(0, startLeft + e.clientX - startX) + 'px';
+        lastPointer=e;win.style.left = Math.max(0, startLeft + e.clientX - startX) + 'px';
         win.style.top = Math.max(0, startTop + e.clientY - startY) + 'px';
       };
       const end = () => {
+        const targetBar=document.elementFromPoint(lastPointer.clientX,lastPointer.clientY)?.closest('.desktop-window-titlebar');
+        const targetRecord=records.find(item=>item.bar===targetBar);
+        if(targetRecord&&targetRecord!==record)groupInto(record,targetRecord);
         bar.removeEventListener('pointermove', move);
         bar.removeEventListener('pointerup', end);
         bar.removeEventListener('pointercancel', end);
@@ -129,7 +149,7 @@
     });
     win.addEventListener('pointerdown', () => { win.style.zIndex = String(++zIndex); });
     taskbar.append(task);
-    const record = { node, placeholder, win, task, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }, restore: null };
+    const record = { node, placeholder, win, task, bar, content, initial: { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }, restore: null, groupHost: null };
     records.push(record);
     win.addEventListener('dblclick', event => { if (event.target.closest('.desktop-window-titlebar') && !event.target.closest('button')) maximizeWindow(); });
     win.addEventListener('pointerdown', () => { if (win.classList.contains('is-maximized')) return; win.style.zIndex=String(++zIndex); });
@@ -228,27 +248,27 @@
       record.win.hidden = false; record.win.style.zIndex = String(++zIndex); record.task.classList.add('is-open'); return true;
     },
     restoreLayout() {
-      records.forEach(({ win, task, initial, record }) => {
-        win.hidden = false; win.classList.remove('is-maximized','is-docked'); win.style.left = initial.x + 'px'; win.style.top = initial.y + 'px';
+      records.forEach(({ win, task, initial }) => {
+        win.hidden = false; win.classList.remove('is-maximized','is-docked','is-floating'); win.style.left = initial.x + 'px'; win.style.top = initial.y + 'px';
         win.style.width = initial.w + 'px'; win.style.height = initial.h + 'px';
         win.style.zIndex = String(++zIndex); task.classList.add('is-open');
       });
     },
     cascade() {
       records.forEach(({ win, task }, index) => {
-        win.hidden = false; win.style.left = (18 + index * 34) + 'px'; win.style.top = (18 + index * 28) + 'px';
+        win.hidden = false; win.classList.remove('is-floating'); win.style.left = (18 + index * 34) + 'px'; win.style.top = (18 + index * 28) + 'px';
         win.style.zIndex = String(++zIndex); task.classList.add('is-open');
       });
     },
     dock(side) {
       if (!workspace) return;
-      records.forEach((record,index)=>{const {win,task}=record;if(!win.classList.contains('is-docked')&&!win.classList.contains('is-maximized'))record.restore={x:win.offsetLeft,y:win.offsetTop,w:win.offsetWidth,h:win.offsetHeight};win.hidden=false;win.classList.remove('is-maximized');win.classList.add('is-docked');const w=workspace.clientWidth||1440,h=workspace.clientHeight||900;const b={left:{x:6,y:6,w:w/2-9,h:h-12},right:{x:w/2+3,y:6,w:w/2-9,h:h-12},top:{x:6,y:6,w:w-12,h:h/2-9},bottom:{x:6,y:h/2+3,w:w-12,h:h/2-9}}[side];const n=records.length;const slot=side==='left'||side==='right'?Math.max(200,(h-12)/n):Math.max(260,(w-12)/n);if(side==='left'||side==='right'){b.y=6+index*slot;b.h=slot-6;}else{b.x=6+index*slot;b.w=slot-6;}win.style.left=b.x+'px';win.style.top=b.y+'px';win.style.width=b.w+'px';win.style.height=b.h+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
+      records.forEach((record,index)=>{const {win,task}=record;if(!win.classList.contains('is-docked')&&!win.classList.contains('is-maximized'))record.restore={x:win.offsetLeft,y:win.offsetTop,w:win.offsetWidth,h:win.offsetHeight};win.hidden=false;win.classList.remove('is-maximized','is-floating');win.classList.add('is-docked');const w=workspace.clientWidth||1440,h=workspace.clientHeight||900;const b={left:{x:6,y:6,w:w/2-9,h:h-12},right:{x:w/2+3,y:6,w:w/2-9,h:h-12},top:{x:6,y:6,w:w-12,h:h/2-9},bottom:{x:6,y:h/2+3,w:w-12,h:h/2-9}}[side];const n=records.length;const slot=side==='left'||side==='right'?Math.max(200,(h-12)/n):Math.max(260,(w-12)/n);if(side==='left'||side==='right'){b.y=6+index*slot;b.h=slot-6;}else{b.x=6+index*slot;b.w=slot-6;}win.style.left=b.x+'px';win.style.top=b.y+'px';win.style.width=b.w+'px';win.style.height=b.h+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
     },
     tilePreset(preset='grid') {
       if (!workspace || !records.length) return;
       const count=records.length, cols=preset==='columns'?count:preset==='two-columns'?2:Math.ceil(Math.sqrt(count)), rows=Math.ceil(count/cols);
       const width=Math.max(260,Math.floor((workspace.clientWidth||1440)/cols)),height=Math.max(200,Math.floor((workspace.clientHeight||900)/rows));
-      records.forEach(({win,task},index)=>{const col=index%cols,row=Math.floor(index/cols);win.hidden=false;win.classList.remove('is-maximized','is-docked');win.style.left=(col*width+6)+'px';win.style.top=(row*height+6)+'px';win.style.width=Math.max(240,width-12)+'px';win.style.height=Math.max(180,height-12)+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
+      records.forEach(({win,task},index)=>{const col=index%cols,row=Math.floor(index/cols);win.hidden=false;win.classList.remove('is-maximized','is-docked','is-floating');win.style.left=(col*width+6)+'px';win.style.top=(row*height+6)+'px';win.style.width=Math.max(240,width-12)+'px';win.style.height=Math.max(180,height-12)+'px';win.style.zIndex=String(++zIndex);task.classList.add('is-open');});
     },
     tile() {
       if (!workspace || !records.length) return;
@@ -257,7 +277,7 @@
       const height = Math.max(220, Math.floor(760 / rows));
       records.forEach(({ win, task }, index) => {
         const col = index % columns, row = Math.floor(index / columns);
-        win.hidden = false; win.classList.remove('is-maximized','is-docked'); win.style.left = (col * width + 8) + 'px'; win.style.top = (row * height + 8) + 'px';
+        win.hidden = false; win.classList.remove('is-maximized','is-docked','is-floating'); win.style.left = (col * width + 8) + 'px'; win.style.top = (row * height + 8) + 'px';
         win.style.width = Math.max(260, width - 16) + 'px'; win.style.height = Math.max(200, height - 16) + 'px';
         win.style.zIndex = String(++zIndex); task.classList.add('is-open');
       });
