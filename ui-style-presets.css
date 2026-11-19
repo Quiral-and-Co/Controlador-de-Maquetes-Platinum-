@@ -1,0 +1,22 @@
+/* UI Style presets: global frames, tabs and controls. */
+:root{--ui-accent:#1672c4;--ui-frame:#202d3d;--ui-panel:#182433;--ui-surface:#243348;--ui-border:#405168;--ui-text:#e8edf4;--ui-muted:#aebdce;--ui-radius:8px}
+body[data-ui-theme="windows-7"]{--ui-accent:#2678b8;--ui-frame:#dceaf5;--ui-panel:#eaf3fa;--ui-surface:#f5f9fc;--ui-border:#9bb8d0;--ui-text:#172b3d;--ui-muted:#48647d;--ui-radius:7px}
+body[data-ui-theme="windows-7"] .topbar,body[data-ui-theme="windows-7"] .modern-ribbon,body[data-ui-theme="windows-7"] .desktop-window{background:linear-gradient(180deg,#f8fcff,#cbdfee);border-color:#8eabc2;color:#17324a;box-shadow:inset 0 1px #fff,0 2px 7px #17324a22}
+body[data-ui-theme="windows-10"]{--ui-accent:#0078d4;--ui-frame:#f3f6fa;--ui-panel:#fff;--ui-surface:#edf2f7;--ui-border:#c7d2df;--ui-text:#1c2733;--ui-muted:#596b7d;--ui-radius:2px}
+body[data-ui-theme="windows-native"]{color-scheme:light dark;--ui-accent:AccentColor;--ui-frame:Canvas;--ui-panel:Canvas;--ui-surface:ButtonFace;--ui-border:ButtonBorder;--ui-text:CanvasText;--ui-muted:GrayText;--ui-radius:4px}
+body[data-ui-theme="office-blue"]{--ui-accent:#2f5597;--ui-frame:#d9e2f3;--ui-panel:#eaf0f8;--ui-surface:#cfdcf0;--ui-border:#9eafd0;--ui-text:#172b4d;--ui-muted:#536987;--ui-radius:3px}
+body[data-ui-theme="office-silver"]{--ui-accent:#64748b;--ui-frame:#e5e7eb;--ui-panel:#f3f4f6;--ui-surface:#dfe3e8;--ui-border:#b8c0ca;--ui-text:#252b33;--ui-muted:#626b76;--ui-radius:3px}
+body[data-ui-theme="office-black"]{--ui-accent:#777f8c;--ui-frame:#17191d;--ui-panel:#22252b;--ui-surface:#30343c;--ui-border:#4c535e;--ui-text:#f1f3f5;--ui-muted:#b2bac4;--ui-radius:3px}
+body[data-ui-theme="office-white"]{--ui-accent:#4777ad;--ui-frame:#fff;--ui-panel:#fff;--ui-surface:#f4f6f8;--ui-border:#d6dce3;--ui-text:#202a35;--ui-muted:#647181;--ui-radius:3px}
+body[data-ui-theme] .topbar,body[data-ui-theme] .modern-ribbon,body[data-ui-theme] .desktop-commandbar,body[data-ui-theme] .toolbar,body[data-ui-theme] .desktop-window,body[data-ui-theme] .desktop-taskbar,body[data-ui-theme] .canvas-status,body[data-ui-theme] .status-bar,body[data-ui-theme] [data-status-bar]{background-color:var(--ui-frame);border-color:var(--ui-border);color:var(--ui-text);border-radius:var(--ui-radius)}
+body[data-ui-theme] .sidebar,body[data-ui-theme] .track-area,body[data-ui-theme] .right-panel,body[data-ui-theme] .panel-card,body[data-ui-theme] .modern-panel,body[data-ui-theme] .dispatcher-subpanel,body[data-ui-theme] .properties-panel{background-color:var(--ui-panel);border-color:var(--ui-border);color:var(--ui-text)}
+body[data-ui-theme] button,body[data-ui-theme] .mode-btn,body[data-ui-theme] .ribbon-tab,body[data-ui-theme] .desktop-window-tab{background-color:var(--ui-surface);border-color:var(--ui-border);color:var(--ui-text);border-radius:var(--ui-radius)}
+body[data-ui-theme] button.primary,body[data-ui-theme] .mode-btn.active,body[data-ui-theme] .ribbon-tab.active,body[data-ui-theme] .desktop-window-tab.active{background:var(--ui-accent);border-color:var(--ui-accent);color:white}
+body[data-ui-theme] input,body[data-ui-theme] select,body[data-ui-theme] textarea{border-color:var(--ui-border);color:var(--ui-text)}
+body[data-ui-theme="windows-7"] button,body[data-ui-theme="windows-7"] .ribbon-tab{background-image:linear-gradient(#fff9,#dce8f2)}
+body[data-ui-theme="office-black"] button,body[data-ui-theme="office-black"] .ribbon-tab{background-image:linear-gradient(#ffffff0d,#00000012)}
+body.auto-hide-taskbar .desktop-taskbar{transform:translateY(calc(100% - 5px));transition:transform .18s ease;z-index:20}
+body.auto-hide-taskbar .desktop-taskbar:hover,body.auto-hide-taskbar .desktop-taskbar:focus-within{transform:translateY(0)}
+body.auto-hide-statusbar .canvas-status,body.auto-hide-statusbar .status-bar,body.auto-hide-statusbar [data-status-bar]{transform:translateY(calc(100% - 5px));transition:transform .18s ease;position:relative;z-index:10}
+body.auto-hide-statusbar .canvas-status:hover,body.auto-hide-statusbar .canvas-status:focus-within,body.auto-hide-statusbar .status-bar:hover,body.auto-hide-statusbar .status-bar:focus-within,body.auto-hide-statusbar [data-status-bar]:hover,body.auto-hide-statusbar [data-status-bar]:focus-within{transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){body.auto-hide-taskbar .desktop-taskbar,body.auto-hide-statusbar .canvas-status,body.auto-hide-statusbar .status-bar,body.auto-hide-statusbar [data-status-bar]{transition:none}}
