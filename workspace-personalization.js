@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const KEY='quiral.workspace.preferences.v1';
-const defaults={theme:'windows-light',interfaceMode:'modern',toolbar:true,taskbar:true,statusbar:true,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherSort:'name',autoHide:[]};
+const defaults={theme:'windows-light',interfaceMode:'modern',toolbar:true,taskbar:true,statusbar:true,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherStatus:true,dispatcherSort:'name',trafficSort:'recent',dmiButtonSize:42,dmiSliderSize:158,autoHide:[]};
 let prefs={...defaults};
 try{prefs={...prefs,...JSON.parse(localStorage.getItem(KEY)||'{}')};}catch{}
 const $=id=>document.getElementById(id);
@@ -17,6 +17,8 @@ function apply(){
  document.documentElement.style.setProperty('--ribbon-icon-size',prefs.iconSize+'px');
  document.documentElement.style.setProperty('--dmi-panel-bg',prefs.dmiBackground);
  document.documentElement.style.setProperty('--dmi-accent',prefs.dmiAccent);
+ document.documentElement.style.setProperty('--dmi-function-button-size',prefs.dmiButtonSize+'px');
+ document.documentElement.style.setProperty('--dmi-slider-height',prefs.dmiSliderSize+'px');
  document.documentElement.style.setProperty('--board-background',prefs.boardBackground);
  document.documentElement.style.setProperty('--board-grid-size',prefs.gridSize+'px');
  document.documentElement.style.setProperty('--track-symbol-scale',String(prefs.trackScale/100));
@@ -50,6 +52,8 @@ function open(){
  add('workspacePrefTrain','Mostrar botons F0–F32',checkbox(prefs.dmiFunctions,v=>{prefs.dmiFunctions=v;save();}));
  add('workspacePrefTrain','Mostrar controls lliscants',checkbox(prefs.dmiSliders,v=>{prefs.dmiSliders=v;save();}));
  add('workspacePrefTrain','Velocímetre tàctil (clic per fixar consigna)',checkbox(prefs.dmiGaugeTouch,v=>{prefs.dmiGaugeTouch=v;save();}));
+ add('workspacePrefTrain','Mida dels botons de funció',select(prefs.dmiButtonSize,[['34','Petita'],['42','Mitjana'],['50','Gran']],v=>{prefs.dmiButtonSize=Number(v);save();}));
+ add('workspacePrefTrain','Alçada dels controls lliscants',select(prefs.dmiSliderSize,[['120','120 px'],['158','158 px'],['190','190 px'],['220','220 px']],v=>{prefs.dmiSliderSize=Number(v);save();}));
  add('workspacePrefTrain','Color de fons DMI',color(prefs.dmiBackground,v=>{prefs.dmiBackground=v;save();}));
  add('workspacePrefTrain','Color d’accent DMI',color(prefs.dmiAccent,v=>{prefs.dmiAccent=v;save();}));
  add('workspacePrefBoard','Mida de quadrícula',select(prefs.gridSize,[['12','12 px'],['16','16 px'],['20','20 px'],['24','24 px'],['32','32 px'],['40','40 px']],v=>{prefs.gridSize=Number(v);save();}));
@@ -58,7 +62,9 @@ function open(){
  add('workspacePrefBoard','Color de les vies',color(prefs.trackColor,v=>{prefs.trackColor=v;save();}));
  add('workspacePrefBoard','Color de rutes reservades',color(prefs.reservedColor,v=>{prefs.reservedColor=v;save();}));
  add('workspacePrefDispatcher','Mostrar informació secundària de blocs',checkbox(prefs.dispatcherMeta,v=>{prefs.dispatcherMeta=v;save();}));
+ add('workspacePrefDispatcher','Mostrar columna d’estat',checkbox(prefs.dispatcherStatus,v=>{prefs.dispatcherStatus=v;save();}));
  add('workspacePrefDispatcher','Ordenar blocs per',select(prefs.dispatcherSort,[['name','Nom'],['status','Estat'],['level','Nivell']],v=>{prefs.dispatcherSort=v;save();}));
+ add('workspacePrefDispatcher','Ordenar trens actius per',select(prefs.trafficSort,[['recent','Activitat recent'],['locomotive','Locomotora'],['route','Itinerari'],['status','Estat']],v=>{prefs.trafficSort=v;save();}));
  $('workspacePrefReset').onclick=()=>{prefs={...defaults};save();dialog.close();open();};
  if(!dialog.open)dialog.showModal();
 }
