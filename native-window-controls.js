@@ -45,8 +45,10 @@
   const heading = document.createElement('strong'); heading.textContent = 'Accés ràpid';
   const sideButton = document.createElement('button'); sideButton.type = 'button'; sideButton.textContent = '⇄'; sideButton.title = 'Canviar de costat';
   sideButton.setAttribute('aria-label', 'Canviar la barra al costat oposat');
+  const pinButton = document.createElement('button'); pinButton.type = 'button'; pinButton.textContent = '📌 Sempre al davant';
+  pinButton.title = 'Manté aquesta finestra nativa per sobre de les altres'; pinButton.setAttribute('aria-pressed','false');
   const collapseButton = document.createElement('button'); collapseButton.type = 'button'; collapseButton.textContent = '×'; collapseButton.title = 'Amagar la barra';
-  collapseButton.setAttribute('aria-label', 'Amagar la barra lateral'); head.append(heading, sideButton, collapseButton);
+  collapseButton.setAttribute('aria-label', 'Amagar la barra lateral'); head.append(heading, pinButton, sideButton, collapseButton);
   const tools = document.createElement('div'); tools.className = 'native-dock-tools';
   const display = document.createElement('select'); display.setAttribute('aria-label', 'Monitor de destinació');
   display.innerHTML = '<option value="">Monitor principal / recordat</option>';
@@ -105,6 +107,18 @@
       entry.append(launch,duplicate,favourite); list.append(entry);
     });
   }
+  pinButton.addEventListener('click', async () => {
+    try {
+      const pinned = await api.toggleAlwaysOnTop();
+      pinButton.setAttribute('aria-pressed', String(pinned));
+      pinButton.textContent = pinned ? '📌 Fixada al davant' : '📌 Sempre al davant';
+      pinButton.title = pinned ? 'Desactiva Sempre al davant per a aquesta finestra' : 'Manté aquesta finestra nativa per sobre de les altres';
+    } catch (error) { status.textContent = 'No s’ha pogut canviar Sempre al davant: ' + error.message; }
+  });
+  api.isAlwaysOnTop().then(pinned => {
+    pinButton.setAttribute('aria-pressed', String(pinned));
+    pinButton.textContent = pinned ? '📌 Fixada al davant' : '📌 Sempre al davant';
+  }).catch(() => {});
   sideButton.addEventListener('click', () => { preferences.side = preferences.side === 'right' ? 'left' : 'right'; renderDockState(); });
   collapseButton.addEventListener('click', () => { preferences.collapsed = true; renderDockState(); });
   tab.addEventListener('click', () => { preferences.collapsed = false; renderDockState(); });
