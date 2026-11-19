@@ -6,6 +6,7 @@ const desktop=fs.readFileSync('desktop-window-manager.js','utf8');
 const app=fs.readFileSync('app.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('styles.css','utf8');
+const uiCss=fs.readFileSync('ui-style-presets.css','utf8');
 const dmi=fs.readFileSync('locomotive-dmi-ui.js','utf8');
 const dispatcher=fs.readFileSync('dispatcher.js','utf8');
 const traffic=fs.readFileSync('traffic.js','utf8');
@@ -19,6 +20,8 @@ assert.ok(dmi.includes('dmiGaugeTouch')&&dmi.includes('isDmiSafe'),'El velocíme
 assert.ok(dispatcher.includes("dispatcherSort")&&dispatcher.includes("dispatcherMeta"),"No s'apliquen preferències del despatxador");
 assert.ok(traffic.includes('trafficSort'),'No s'aplica ordenació dels trens actius');
 assert.ok(html.includes('ui-style-presets.css'),'No es carrega el catàleg d’estils UI');
+for(const preset of ['windows-7','windows-10','windows-native','office-blue','office-silver','office-black','office-white'])assert.ok(uiCss.includes('data-ui-theme=\"'+preset+'\"'),'Falta el preset visual: '+preset);
+assert.ok(uiCss.includes('auto-hide-taskbar')&&uiCss.includes('auto-hide-statusbar'),'Falta auto-ocultació de barres');
 assert.ok(prefs.includes('windows-7')&&prefs.includes('office-blue')&&prefs.includes('office-silver')&&prefs.includes('office-black')&&prefs.includes('office-white'),'Falten els estils Windows/Office');
 assert.ok(css.includes('desktop-window-tabs')&&css.includes('auto-hide-window'),'Falten estils de pestanyes o auto-ocultació');
 console.log('Workspace personalization contract: OK');
