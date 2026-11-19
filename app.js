@@ -601,7 +601,11 @@
     const edit=$('modeEditing'),operation=$('modeOperation');
     if(edit){edit.classList.toggle('active',editingMode);edit.setAttribute('aria-pressed',String(editingMode));}
     if(operation){operation.classList.toggle('active',operationMode);operation.setAttribute('aria-pressed',String(operationMode));}
-    $('portModeBtn')?.toggleAttribute('disabled',!editingMode);
+    const portModeButton=$('portModeBtn');
+    if(portModeButton){
+      if(typeof portModeButton.toggleAttribute==='function')portModeButton.toggleAttribute('disabled',!editingMode);
+      else portModeButton.disabled=!editingMode;
+    }
     if(!editingMode){state.portMode=false;state.pendingPort=null;const status=$('portStatus');if(status)status.textContent='Mode edició desactivat: connexions protegides.';}
   }
   function setEditingMode(enabled){editingMode=Boolean(enabled);try{localStorage.setItem('quiral.workflow.modes.v1',JSON.stringify({editing:editingMode,operation:operationMode}));}catch(_){}syncWorkflowModes();log('Mode edició '+(editingMode?'activat: configuració i modificacions permeses.':'desactivat: maqueta en només lectura.'));}
