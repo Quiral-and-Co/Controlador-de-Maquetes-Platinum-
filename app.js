@@ -69,7 +69,7 @@
       const result=await window.jmriDesktop.publishWorkspaceState(payload);
       if(result?.ok===true){workspaceRevision=result.revision;}
       else if(result?.conflict===true){
-        if(result.state && JSON.stringify(state.config)===sentConfig){
+        if(result.state && JSON.stringify(state.config)===sentConfig && state.selectedLevel===payload.selectedLevel && JSON.stringify(state.selectedIds)===JSON.stringify(payload.selectedIds) && JSON.stringify(state.viewBox)===JSON.stringify(payload.viewBox) && state.filePath===payload.filePath && state.isDirty===payload.isDirty){
           applyWorkspaceState({...result.state,revision:result.revision});
           log('S’ha rebut una revisió més recent de l’espai de treball; s’ha aplicat sense sobreescriure dades.');
         } else {
@@ -90,6 +90,7 @@
     applyingRemoteWorkspaceState=true;
     try {
       state.config=clone(payload.config);
+      state.history=[];state.future=[];updateHistoryButtons();
       state.selectedLevel=state.config.levels.some(item=>item.id===payload.selectedLevel)?payload.selectedLevel:state.config.levels[0]?.id;
       state.selectedIds=Array.isArray(payload.selectedIds)?payload.selectedIds.filter(id=>state.config.levels.some(item=>(item.tracks||[]).some(piece=>piece.id===id))):[];
       if(payload.viewBox && ['x','y','width','height'].every(key=>Number.isFinite(payload.viewBox[key]))) state.viewBox={...payload.viewBox};
