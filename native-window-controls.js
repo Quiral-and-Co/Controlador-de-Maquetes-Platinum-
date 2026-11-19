@@ -5,7 +5,7 @@
   const definitions = [
     ['switchboard','Panell d’accessoris (Switchboard)','🎛️'],['keyboard','Teclat d’accessoris (Keyboard)','⌨️'],
     ['routes','Rutes i itineraris (Routes)','🔀'],['schedules','Horaris (Schedules)','🗓️'],
-    ['trainWindow','Finestra del tren (Train Window)','🚂'],['editor','Editor de maqueta','🛤️'],['levels','Nivells','▤'],['catalogue','Catàleg de vies','🧩'],
+    ['trainWindow','Finestra del tren (Train Window)','🚂'],['trainDetector','Detecció d’ocupació (Train Detector)','📍'],['editor','Editor de maqueta','🛤️'],['levels','Nivells','▤'],['catalogue','Catàleg de vies','🧩'],
     ['properties','Propietats i geometria XYZ','📐'],['dispatcher','Despatxador','🚦'],
     ['traffic','Trànsit i circulacions','🚆'],['operation','Operació','⚙️'],
     ['commandStation','Central digital','🎛️'],['locomotiveDmi','DMI de locomotora','🚄'],['trainProtection','Protecció del tren','🛡️'],
