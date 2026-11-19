@@ -59,6 +59,7 @@ function refreshBlocks(){
 }
 function initialize(){
  const host=$('virtualContactList');if(!host)return;
+ const style=document.createElement('style');style.textContent='.virtual-contact-editor{margin-top:14px}.virtual-contact-list{display:grid;gap:8px}.virtual-contact-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px;border:1px solid #aaa5;border-radius:8px}.virtual-contact-row>div{display:grid;gap:4px;min-width:0}.virtual-contact-row small{opacity:.75}.virtual-contact-state{font-size:12px}.virtual-contact-state.active{color:#16833d}.virtual-contact-state.unknown{color:#a66a00}.virtual-contact-row button{flex:none}';document.head.append(style);
  $('virtualContactType').addEventListener('change',updateFields);$('virtualContactCreate').addEventListener('click',create);
  $('virtualContactBlock').addEventListener('change',()=>{const b=blocks().find(x=>x.id===$('virtualContactBlock').value);if(b)$('virtualContactDistance').max=String(Math.max(1,Number(b.lengthMm)-1));});
  refreshBlocks();updateFields();render();decorateSwitchboard();
@@ -67,6 +68,7 @@ function initialize(){
    const x=input||{};if(!x.runId||!x.blockId||x.verified!==true||x.profileVerified!==true)return{ok:false,error:'Estimació rebutjada: cal runId, bloc, posició i perfil calibrat verificats.'};
    const positionMm=x.positionMm===undefined?undefined:Number(x.positionMm),elapsedSeconds=x.elapsedSeconds===undefined?undefined:Number(x.elapsedSeconds);
    if((positionMm===undefined&&elapsedSeconds===undefined)||(positionMm!==undefined&&(!Number.isFinite(positionMm)||positionMm<0))||(elapsedSeconds!==undefined&&(!Number.isFinite(elapsedSeconds)||elapsedSeconds<0)))return{ok:false,error:'Posició o temps no vàlids.'};
+   for(const [key,value] of positionEstimates)if(value.runId===String(x.runId)&&key!==String(x.blockId))positionEstimates.delete(key);
    positionEstimates.set(String(x.blockId),{runId:String(x.runId),blockId:String(x.blockId),positionMm,elapsedSeconds,verified:true,profileVerified:true});
    render();return{ok:true};
   },
