@@ -329,3 +329,19 @@ body.native-panel-window,body.native-panel-window main,body.native-panel-window 
 .top-actions #connectionBadge{order:3}
 .top-actions #modeClassic,.top-actions #modeModern{order:4}
 @media(max-width:720px){.topbar{align-items:flex-start;flex-wrap:wrap}.top-actions{flex-wrap:wrap;justify-content:flex-start}}
+
+
+/* Modern desktop: keep the application inside the viewport.
+   Scrolling belongs to each panel, not to the document behind the windows. */
+html:has(body.mode-modern),body.mode-modern{height:100%;min-height:0;overflow:hidden}
+body.mode-modern{height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+body.mode-modern main{flex:1 1 auto;min-height:0;height:auto;max-height:none;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box}
+body.mode-modern .desktop-workspace{flex:1 1 auto;height:auto;min-height:220px;max-height:none;overflow:auto;overscroll-behavior:contain}
+body.mode-modern .desktop-window-content{min-height:0;overflow:auto;overscroll-behavior:contain}
+body.mode-modern .desktop-taskbar{flex:0 0 auto}
+@media(max-width:760px){
+  html:has(body.mode-modern),body.mode-modern{height:auto;min-height:100%;overflow-y:auto}
+  body.mode-modern{height:auto;min-height:100dvh}
+  body.mode-modern main{height:auto;min-height:0;overflow:visible}
+  body.mode-modern .desktop-workspace{flex:0 0 auto;height:calc(100dvh - 300px);min-height:300px;overflow:auto}
+}
