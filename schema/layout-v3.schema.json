@@ -66,6 +66,38 @@
     },
     "feedback": {
       "type": "object"
+    },
+    "clearanceProfile": {
+      "type": "object",
+      "required": [
+        "horizontalAxisMm",
+        "verticalAxisMm",
+        "source",
+        "verified"
+      ],
+      "properties": {
+        "horizontalAxisMm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "verticalAxisMm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source": {
+          "const": "user-defined"
+        },
+        "verified": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "$defs": {

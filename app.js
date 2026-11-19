@@ -31,6 +31,10 @@
   if(!selectionMove)throw new Error('No s’ha carregat selection-move-core.js abans de app.js.');
   const trackJunction = window.JMRI_TC_TRACK_JUNCTION;
   if(!trackJunction)throw new Error('No s’ha carregat track-junction-core.js abans de app.js.');
+  const trackTopology3D = window.JMRI_TC_TRACK_TOPOLOGY_3D;
+  if(!trackTopology3D)throw new Error('No s’ha carregat track-topology-3d-core.js abans de app.js.');
+  const trackClearance = window.JMRI_TC_TRACK_CLEARANCE;
+  if(!trackClearance)throw new Error('No s’ha carregat track-clearance-core.js abans de app.js.');
   function applyViewBox(){const v=state.viewBox;$('trackSvg').setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${v.height}`);$('zoomReadout').textContent=`${Math.round(viewport.zoomPercent(v,BOARD))}%`;}
   function viewportCenter(){return {x:state.viewBox.x+state.viewBox.width/2,y:state.viewBox.y+state.viewBox.height/2};}
   function zoomViewport(factor,anchor){state.viewBox=viewport.zoomAt(state.viewBox,factor,anchor,BOARD);applyViewBox();}
@@ -46,7 +50,7 @@
     const assigned=state.config.levels.flatMap(l=>l.tracks||[]).filter(p=>p.sensorName);$('unknownCount').textContent=assigned.filter(p=>state.sensors[p.sensorName]===undefined).length;
     $('levelList').replaceChildren();state.config.levels.forEach(l=>{const b=document.createElement('button');b.className='level-btn'+(l.id===state.selectedLevel?' selected':'');b.innerHTML=`<span>${esc(l.name)}</span><small>${(l.tracks||[]).length} peces</small>`;b.onclick=()=>{state.selectedLevel=l.id;state.selectedIds=[];render();};$('levelList').append(b);});
     $('currentLevelTitle').textContent=lev.name;$('currentLevelSubtitle').textContent=`Cota ${lev.elevationMm} mm · ${lev.tracks.length} peces · coordenades en mm`;
-    renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
+    renderPieces();renderProperties();renderClearanceSettings();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
   }
   function sensorStateFor(p,sourceLevel=level()){
     if(!p.sensorName)return {code:'NONE',label:'Sense sensor'};
@@ -324,12 +328,19 @@
       for(const p of l.tracks){if(p.blockId&&!l.blocks.some(b=>b.id===p.blockId))throw Error(`La peça ${p.id} referencia un bloc inexistent.`);if(p.sensorName&&!l.sensors.some(x=>x.systemName===p.sensorName))throw Error(`La peça ${p.id} referencia un sensor inexistent.`);}syncRelations(l);
     }
     if(!Array.isArray(c.connections))c.connections=[];const connectionIds=new Set();for(const x of c.connections){if(!x.id||connectionIds.has(x.id))throw Error(`ID de connexió absent o duplicat: ${x.id||'(buit)'}`);connectionIds.add(x.id);if(!trackIds.has(x.from?.pieceId)||!trackIds.has(x.to?.pieceId))throw Error(`Connexió ${x.id} apunta a una peça inexistent.`);if(x.from.pieceId===x.to.pieceId)throw Error(`Connexió ${x.id} no pot unir una peça amb ella mateixa.`);if(trackLevel.get(x.from.pieceId)!==trackLevel.get(x.to.pieceId)||String(x.levelId)!==String(trackLevel.get(x.from.pieceId)))throw Error(`Connexió ${x.id} travessa nivells diferents o té levelId incorrecte.`);if(typeof x.verified!=='boolean')x.verified=false;}
+    if(c.clearanceProfile!==undefined){
+      if(!c.clearanceProfile||typeof c.clearanceProfile!=='object'||Array.isArray(c.clearanceProfile))throw Error('Perfil de gàlibs invàlid.');
+      const h=c.clearanceProfile.horizontalAxisMm===undefined||c.clearanceProfile.horizontalAxisMm===null||c.clearanceProfile.horizontalAxisMm===''?null:Number(c.clearanceProfile.horizontalAxisMm);
+      const v=c.clearanceProfile.verticalAxisMm===undefined||c.clearanceProfile.verticalAxisMm===null||c.clearanceProfile.verticalAxisMm===''?null:Number(c.clearanceProfile.verticalAxisMm);
+      if((h!==null&&(!Number.isFinite(h)||h<0))||(v!==null&&(!Number.isFinite(v)||v<0)))throw Error('Els llindars de gàlib han de ser nombres no negatius.');
+      c.clearanceProfile={horizontalAxisMm:h,verticalAxisMm:v,source:'user-defined',verified:false};
+    }
     return c;
   }
   // Auditoria topològica local: no crea ni modifica connexions i no parla amb el maquinari.
   function auditTopology(){
     const errors=[],warnings=[],occupied=new Map(),known=new Map(),allPieces=new Map();
-    for(const l of state.config.levels)for(const p of (l.tracks||[])){allPieces.set(p.id,{piece:p,level:l});for(const q of worldPorts(p))known.set(`${p.id}:${q.port}`,{...q,piece:p,levelId:l.id});}
+    for(const l of state.config.levels)for(const p of (l.tracks||[])){allPieces.set(p.id,{piece:p,level:l});for(const q of worldPorts(p))known.set(`${p.id}:${q.port}`,{...q,zMm:trackTopology3D.portZ(p,l,q.port),piece:p,levelId:l.id});}
     const seen=new Set();
     for(const c of (state.config.connections||[])){
       const a=known.get(`${c.from?.pieceId}:${c.from?.port}`),b=known.get(`${c.to?.pieceId}:${c.to?.port}`);
@@ -339,9 +350,10 @@
       const canonical=[key1,key2].sort().join('|');
       if(seen.has(canonical))errors.push(`Connexió duplicada entre ${key1} i ${key2}.`);seen.add(canonical);
       for(const k of [key1,key2]){if(occupied.has(k))errors.push(`Port ${k} utilitzat per més d’una connexió.`);else occupied.set(k,c.id);}
-      const gap=Math.hypot(a.x-b.x,a.y-b.y);
+      const gap=trackTopology3D.gap3D(a,b);
       if((a.piece.geometryStatus&&a.piece.geometryStatus!=='confirmed')||(b.piece.geometryStatus&&b.piece.geometryStatus!=='confirmed'))warnings.push(`Connexió ${c.id}: inclou una peça amb geometria parcial/no verificada; no certifica l’encaix físic.`);
-      if(gap>1)errors.push(`Connexió ${c.id}: discontinuïtat geomètrica de ${gap.toFixed(1)} mm (tolerància 1 mm).`);
+      if(!gap.valid)errors.push(`Connexió ${c.id}: cota Z absent o no vàlida en un extrem; auditoria XYZ bloquejada.`);
+      else if(gap.distanceMm>1)errors.push(`Connexió ${c.id}: discontinuïtat geomètrica XYZ de ${gap.distanceMm.toFixed(1)} mm (ΔZ ${gap.verticalMm.toFixed(1)} mm, tolerància 1 mm).`);
       if(a.pieceId===b.pieceId)errors.push(`Connexió ${c.id}: auto connexió no permesa.`);
     }
     let open=0;
@@ -352,6 +364,58 @@
     log(summary);return {errors,warnings,ports:known.size,connectedPorts:occupied.size};
   }
   $('validateTopologyBtn').onclick=auditTopology;
+
+  function renderClearanceSettings(){
+    const profile=state.config.clearanceProfile||{},horizontal=$('clearanceHorizontalAxisMm'),vertical=$('clearanceVerticalAxisMm');
+    if(document.activeElement!==horizontal)horizontal.value=profile.horizontalAxisMm??'';
+    if(document.activeElement!==vertical)vertical.value=profile.verticalAxisMm??'';
+  }
+  function auditClearance(){
+    const report=trackClearance.audit(state.config,state.config.clearanceProfile||{});
+    const labels={
+      EMPTY:'No hi ha peces: no s’ha avaluat cap interferència.',
+      UNCONFIGURED:'Llindars incomplets: només es mostren possibles encreuaments en planta; no es pot declarar cap separació acceptable.',
+      CONFLICT:'Conflicte geomètric dins dels dos llindars introduïts.',
+      POTENTIAL_CONFLICT:'Possible conflicte: hi ha geometria provisional o no confirmada.',
+      INCOMPLETE:'Auditoria incompleta: hi ha peces sense geometria o cota Z suficient.',
+      WITHIN_THRESHOLDS_UNVERIFIED:'Cap conflicte dins dels llindars introduïts. Això NO és una validació física ni un certificat de gàlib.'
+    };
+    const details=report.findings.slice(0,6).map(x=>`${x.pieceA} ↔ ${x.pieceB}: ΔXY ${x.horizontalMm.toFixed(1)} mm; ΔZ ${x.verticalMm.toFixed(1)} mm (${x.status}).`);
+    const crossings=report.projectedCrossings.filter(x=>!report.findings.some(f=>f.pieceA===x.pieceA&&f.pieceB===x.pieceB)).slice(0,4)
+      .map(x=>`${x.pieceA} ↔ ${x.pieceB}: encreuament en planta; ΔZ aproximada ${x.verticalAtHorizontalMm.toFixed(1)} mm.`);
+    const missing=report.unsupported.slice(0,5).map(x=>`${x.pieceId}: ${x.reason}.`);
+    const summary=`${labels[report.status]} Parelles de rutes examinades: ${report.routePairsChecked}. Conflictes: ${report.findings.length}. Encreuaments en planta: ${report.projectedCrossings.length}. Geometries pendents: ${report.unsupported.length}.`;
+    $('clearanceReport').textContent=[summary,...details,...crossings,...missing,report.note].join(' ');
+    $('clearanceReport').className=`small clearance-report clearance-${report.status.toLowerCase()}`;
+    $('clearanceReport').setAttribute('data-status',report.status);
+    log(summary);
+    return report;
+  }
+  function applyClearanceProfile(){
+    try{
+      const read=(id,label)=>{
+        const raw=String($(id).value??'').trim();
+        if(!raw)return null;
+        const n=Number(raw);
+        if(!Number.isFinite(n)||n<0)throw new Error(label+' ha de ser un nombre no negatiu.');
+        return n;
+      };
+      const horizontalAxisMm=read('clearanceHorizontalAxisMm','La separació horitzontal');
+      const verticalAxisMm=read('clearanceVerticalAxisMm','La separació vertical');
+      checkpoint();
+      state.config.clearanceProfile={horizontalAxisMm,verticalAxisMm,source:'user-defined',verified:false};
+      renderClearanceSettings();
+      return auditClearance();
+    }catch(error){
+      $('clearanceReport').textContent=error.message;
+      $('clearanceReport').className='small clearance-report clearance-error';
+      $('clearanceReport').setAttribute('data-status','INVALID_PROFILE');
+      log('Perfil de gàlibs no desat: '+error.message);
+      return null;
+    }
+  }
+  $('applyClearanceProfileBtn').onclick=applyClearanceProfile;
+  $('auditClearanceBtn').onclick=auditClearance;
 
   function setProjectName(name){$('configName').textContent=(state.isDirty?'* ':'')+(name||'Projecte nou');}
   function downloadText(content,name,type='text/plain'){
