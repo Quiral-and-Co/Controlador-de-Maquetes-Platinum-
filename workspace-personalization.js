@@ -27,7 +27,7 @@ function apply(){
  const functions=$('dmiFunctionButtons');if(functions)functions.hidden=!prefs.dmiFunctions;
  document.querySelectorAll('.dmi-lever .dmi-vertical-range').forEach(n=>n.hidden=!prefs.dmiSliders);
  const board=document.querySelector('.canvas-wrap');if(board)board.style.backgroundColor=prefs.boardBackground;
- document.querySelectorAll('.desktop-window').forEach(win=>{const title=win.getAttribute('aria-label')||'';const key=title.toLowerCase();const auto=prefs.autoHide.some(x=>key.includes(x));win.classList.toggle('auto-hide-window',auto);});
+ document.querySelectorAll('.desktop-window').forEach(win=>{const title=win.getAttribute('aria-label')||'';const key=title.toLowerCase();const auto=prefs.autoHide.some(x=>key.includes(x));win.classList.toggle('auto-hide-window',auto);win.dataset.autohideSide=key.includes('propietats')?'right':'left';});
 }
 function field(label,control){const wrap=document.createElement('label');wrap.className='workspace-pref-field';const name=document.createElement('span');name.textContent=label;wrap.append(name,control);return wrap;}
 function select(value,options,onchange){const el=document.createElement('select');options.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;el.append(o);});el.value=String(value);el.addEventListener('change',()=>onchange(el.value));return el;}
