@@ -21,7 +21,7 @@ assert.ok(html.includes('id="dmiGauge"'),"No s'ha identificat el velocímetre t�
 assert.ok(prefs.includes('contextmenu'),'No hi ha commutació de cinta amb clic dret');
 assert.ok(dmi.includes('dmiGaugeTouch')&&dmi.includes('isDmiSafe'),'El velocímetre tàctil no comprova la porta de seguretat');
 assert.ok(dispatcher.includes("dispatcherSort")&&dispatcher.includes("dispatcherMeta"),"No s'apliquen preferències del despatxador");
-assert.ok(traffic.includes('trafficSort'),'No s'aplica ordenació dels trens actius');
+assert.ok(traffic.includes('trafficSort'), "No s'aplica ordenació dels trens actius");
 assert.ok(html.includes('ui-style-presets.css'),'No es carrega el catàleg d’estils UI');
 for(const preset of ['windows-7','windows-10','windows-native','office-blue','office-silver','office-black','office-white'])assert.ok(uiCss.includes('data-ui-theme=\"'+preset+'\"'),'Falta el preset visual: '+preset);
 assert.ok(uiCss.includes('auto-hide-taskbar')&&uiCss.includes('auto-hide-statusbar'),'Falta auto-ocultació de barres');
