@@ -34,7 +34,8 @@
       const sensors=level.sensors||[];
       for(const block of level.blocks||[]){
         const result=evaluateBlock(block,sensors,telemetry,now,maxAge);
-        rows.push({levelId:level.id,levelName:level.name||('Nivell '+level.id),blockId:block.id,name:block.name||block.id,...result,sensorCount:block.sensorIds?.length||0});
+        const sensorReadings=(block.sensorIds||[]).map(id=>{const sensor=sensors.find(s=>s.id===id);const current=sensor&&telemetry?.connected===true&&fresh(telemetry.sensorUpdatedAt?.[sensor.systemName],now,maxAge)&&telemetry.sensors?.[sensor.systemName]!==undefined?sensorState(telemetry.sensors[sensor.systemName],sensor.invert===true):'UNKNOWN';return{id,sensorName:sensor?.systemName||id,userName:sensor?.userName||'',state:current,verified:sensor?.verified===true};});
+        rows.push({levelId:level.id,levelName:level.name||('Nivell '+level.id),blockId:block.id,name:block.name||block.id,...result,sensorCount:block.sensorIds?.length||0,sensorReadings});
       }
     }
     return rows;
