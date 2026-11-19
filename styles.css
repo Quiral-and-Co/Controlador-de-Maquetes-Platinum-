@@ -185,7 +185,6 @@ body.mode-modern .desktop-taskbar{position:relative;z-index:0;isolation:isolate}
 /* La cinta ha de romandre sempre per damunt de les finestres flotants, també després de cascada. */
 body.mode-modern .modern-ribbon{position:sticky!important;top:72px!important;z-index:2147483000!important;isolation:isolate!important;}
 body.mode-modern .desktop-workspace{position:relative!important;z-index:0!important;isolation:isolate!important;}
-body.mode-modern .desktop-window{z-index:auto!important;}
 \n
 /* Cinta moderna: icones SVG multicolor i noms accessibles en passar-hi el punter. */
 body.mode-modern .ribbon-group button.ribbon-icon-button{width:58px;min-width:58px;height:58px;min-height:58px;padding:5px 4px!important;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid #d5dce5;border-radius:7px;box-shadow:0 1px 2px #172b4010;position:relative}
