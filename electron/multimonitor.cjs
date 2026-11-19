@@ -1,14 +1,26 @@
 'use strict';
 
+const { randomUUID } = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const WINDOW_TYPES = Object.freeze({
   editor: 'Editor de maqueta',
+  levels: 'Gestió de nivells',
+  catalogue: 'Catàleg de vies',
+  properties: 'Propietats i geometria XYZ',
   dispatcher: 'Despatxador',
+  routes: 'Itineraris i blocs',
   traffic: 'Trànsit i circulacions',
   schedules: 'Horaris',
   operation: 'Operació',
+  commandStation: 'Central digital',
+  locomotiveDmi: 'DMI de locomotora',
+  trainProtection: 'Protecció del tren',
+  trainGround: 'Terminal tren-terra',
+  spielewelt: 'Món de Jocs',
+  signalling: 'Senyalització',
+  validation: 'Validació i seguretat',
   diagnostics: 'Metge Quiral'
 });
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
@@ -28,6 +40,10 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const statePath = path.join(app.getPath('userData'), 'native-window-layout.json');
   let saved = {};
   let state = null;
+  const layoutReady = fs.readFile(statePath, 'utf8').then(content => {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed;
+  }).catch(() => {});
 
   const displays = () => screen.getAllDisplays();
   const displayFor = id => displays().find(item => String(item.id) === String(id)) || screen.getPrimaryDisplay();
@@ -49,9 +65,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const safePersist = () => { persist().catch(error => console.error('[Finestres natives] No s’ha pogut desar la disposició:', error)); };
 
   async function openWindow(options = {}) {
+    await layoutReady;
     const type = typeof options.type === 'string' ? options.type : '';
     if (!Object.hasOwn(WINDOW_TYPES, type)) throw new TypeError('Tipus de finestra no permès.');
-    const id = type;
+    const duplicate = options.duplicate === true;
+    const id = duplicate ? `${type}-${randomUUID()}` : type;
     const existing = windows.get(id);
     if (existing && !existing.isDestroyed()) {
       if (existing.isMinimized()) existing.restore();
@@ -126,7 +144,9 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   ipcMain.handle('native-window:publish-state', (event, payload) => {
     const sender = BrowserWindow.fromWebContents(event.sender);
     if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('L’estat compartit ha de ser un objecte JSON.');
     const serialized = JSON.stringify(payload);
+    if (typeof serialized !== 'string') throw new TypeError('L’estat compartit no és serialitzable.');
     if (Buffer.byteLength(serialized, 'utf8') > MAX_STATE_BYTES) throw new Error('L’estat compartit supera els 2 MB.');
     state = payload;
     broadcast('workspace:state', payload);
@@ -150,11 +170,6 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   });
   screen.on('display-added', () => broadcast('workspace:displays-changed', displays().map(display => ({ id: String(display.id), bounds: display.bounds }))));
   app.on('before-quit', safePersist);
-
-  fs.readFile(statePath, 'utf8').then(content => {
-    const parsed = JSON.parse(content);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed;
-  }).catch(() => {});
 
   return Object.freeze({
     openWindow,
