@@ -72,7 +72,7 @@ $('tdAddSensor').onclick=()=>{
  if(all.some(s=>s.systemName===systemName)){$('tdConfigMessage').textContent='Aquest system name ja està registrat.';return;}
  window.JMRI_TC_DISPATCHER?.checkpoint?.();
  selected.level.sensors=selected.level.sensors||[];
- const sensor={id:'S-'+systemName,systemName,userName,verified:false,invert:false};
+ const safe=systemName.replace(/[^a-zA-Z0-9_-]/g,'_');let sensorId='S-'+safe,suffix=2;while((selected.level.sensors||[]).some(s=>s.id===sensorId))sensorId='S-'+safe+'-'+suffix++;const sensor={id:sensorId,systemName,userName,verified:false,invert:false};
  selected.level.sensors.push(sensor);
  const requested=window.JMRI_TC_BOARD?.requestSensorReading?.(systemName);
  window.JMRI_TC_DISPATCHER?.refresh?.();$('tdSystemName').value='';$('tdUserName').value='';
