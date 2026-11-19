@@ -55,7 +55,7 @@ function prepare(from,to){
  const roster=window.JMRI_TC_DISPATCHER?.getConfig?.()?.trainRoster||{},profiles=roster.speedProfiles||{},trains=roster.trains||[];
  const eligible=locos.filter(l=>{const p=profiles[l.id],assigned=trains.some(t=>String(t.engineId)===String(l.id));return assigned&&p?.verified===true&&Number.isFinite(Number(p.maxKmh))&&Number(p.maxKmh)>0&&Array.isArray(p.points)&&p.points.length>=2;});
  if(!eligible.length){alert('No hi ha cap locomotora amb un perfil de velocitat calibrat i verificat. AutoTrain queda bloquejat.');return;}
- const validation=core.validatePlan({blockIds:found.blockIds,snapshot:snap,locomotiveId:eligible[0].id,speedProfileVerified:true,sourceConfirmed:true,editMode:false});
+ const validation=core.validatePlan({blockIds:found.blockIds,snapshot:snap,locomotiveId:eligible[0].id,trainAssigned:true,speedProfileVerified:true,sourceConfirmed:true,editMode:false});
  if(!validation.ok){alert('AutoTrain rebutjat: '+validation.error);return;}
  const dialog=ensureDialog(),select=$('autoTrainLoco');select.replaceChildren();
  eligible.forEach(l=>{const option=document.createElement('option');option.value=l.id;option.textContent=l.name+' · '+l.wiThrottleId;select.append(option);});
