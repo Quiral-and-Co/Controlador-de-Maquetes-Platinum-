@@ -509,6 +509,7 @@
     else if(command==='copy')copySelectedPieces();
     else if(command==='paste')pastePieces();
     else if(command==='delete')deleteSelectedPieces();
+    else if(command==='duplicate')$('duplicateBtn')?.click?.();
     else if(command==='selectAll')selectAllPieces();
     else if(command==='zoomIn')zoomViewport(0.8,viewportCenter());
     else if(command==='zoomOut')zoomViewport(1.25,viewportCenter());
