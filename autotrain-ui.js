@@ -52,8 +52,8 @@ function prepare(from,to){
  if(window.JMRI_TC_BOARD?.getTrainEditMode?.()===true){setEnabled(false);return;}
  const snap=snapshot(),found=core.shortestPath(snap.routes,from,to);if(!found.ok){alert(found.error);return;}
  const locos=window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()?.locomotives||[];
- const profiles=window.JMRI_TC_DISPATCHER?.getConfig?.()?.trainRoster?.speedProfiles||{};
- const eligible=locos.filter(l=>{const p=profiles[l.id];return p?.verified===true&&Number.isFinite(Number(p.maxKmh))&&Number(p.maxKmh)>0&&Array.isArray(p.points)&&p.points.length>=2;});
+ const roster=window.JMRI_TC_DISPATCHER?.getConfig?.()?.trainRoster||{},profiles=roster.speedProfiles||{},trains=roster.trains||[];
+ const eligible=locos.filter(l=>{const p=profiles[l.id],assigned=trains.some(t=>String(t.engineId)===String(l.id));return assigned&&p?.verified===true&&Number.isFinite(Number(p.maxKmh))&&Number(p.maxKmh)>0&&Array.isArray(p.points)&&p.points.length>=2;});
  if(!eligible.length){alert('No hi ha cap locomotora amb un perfil de velocitat calibrat i verificat. AutoTrain queda bloquejat.');return;}
  const validation=core.validatePlan({blockIds:found.blockIds,snapshot:snap,locomotiveId:eligible[0].id,speedProfileVerified:true,sourceConfirmed:true,editMode:false});
  if(!validation.ok){alert('AutoTrain rebutjat: '+validation.error);return;}
