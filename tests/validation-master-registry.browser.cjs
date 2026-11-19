@@ -95,8 +95,14 @@ function samePersistedFields(actual, expected, label) {
       const catalogueZ = Number.parseInt(getComputedStyle(catalogue).zIndex, 10);
       const addNote = [...registry.querySelectorAll('button')].find(button => button.textContent.trim() === 'Afegir nota');
       if (!(registryZ > catalogueZ) || !addNote) return false;
+      // The registry can be taller than its floating window. Scroll its own
+      // content area so the real pointer-hit assertion targets a visible button.
+      addNote.scrollIntoView({ block:'center', inline:'nearest' });
       const rect = addNote.getBoundingClientRect();
-      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false;
+      const hit = document.elementFromPoint(x, y);
       return !!hit && (hit === addNote || addNote.contains(hit));
     }, null, { timeout:5000 });
 
