@@ -135,7 +135,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
       minimizable: true,
       maximizable: true,
       fullscreenable: true,
-      title: type === 'desktopPanel' && typeof options.title === 'string' ? options.title.replace(/[\\u0000-\\u001f]/g, '').slice(0, 80) || WINDOW_TYPES[type] : WINDOW_TYPES[type],
+      title: type === 'desktopPanel' && typeof options.title === 'string' ? options.title.slice(0, 80) || WINDOW_TYPES[type] : WINDOW_TYPES[type],
       backgroundColor: '#101b28',
       webPreferences: {
         contextIsolation: true,
