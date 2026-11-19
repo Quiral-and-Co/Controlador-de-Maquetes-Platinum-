@@ -294,3 +294,12 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .mode-btn.mode-icon-btn:hover::after,.mode-btn.mode-icon-btn:focus-visible::after{opacity:1;visibility:visible}
 .mode-btn.mode-icon-btn:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
 @media(max-width:600px){.top-actions{gap:4px}.mode-btn.mode-icon-btn{width:30px;min-width:30px;height:30px;min-height:30px}}
+
+
+/* A detached modern workspace panel fills its own native Windows BrowserWindow. */
+body.native-panel-window{overflow:auto!important;background:#101b28}
+.native-panel-window main{display:block!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:100vh!important;margin:0!important;padding:12px!important;overflow:auto!important}
+.native-panel-window .native-panel-root{display:block!important;position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:auto!important;min-height:calc(100vh - 24px)!important;max-height:none!important;margin:0!important;overflow:auto!important}
+.native-panel-window .editor-shell{display:block!important;width:100%!important;height:100%!important;min-height:0!important}
+.native-panel-window .editor-sidebar.native-panel-root,.native-panel-window .properties-panel.native-panel-root{width:100%!important;max-width:none!important}
+.native-panel-window .track-area.native-panel-root{display:flex!important;flex-direction:column!important;min-height:calc(100vh - 24px)!important}
