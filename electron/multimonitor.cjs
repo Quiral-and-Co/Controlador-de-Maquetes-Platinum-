@@ -69,7 +69,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     if (main && !main.isDestroyed()) {
       const bounds = main.getBounds();
       const display = screen.getDisplayMatching ? screen.getDisplayMatching(bounds) : screen.getPrimaryDisplay();
-      layout[MAIN_WINDOW_KEY] = { bounds, displayId: String(display.id), type: 'main' };
+      layout[MAIN_WINDOW_KEY] = { bounds, displayId: main.__displayId || String(display.id), type: 'main' };
     }
     for (const [id, win] of windows) {
       if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
@@ -81,6 +81,18 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     await fs.rename(temp, statePath);
   };
   const safePersist = () => { persist().catch(error => console.error('[Finestres natives] No s’ha pogut desar la disposició:', error)); };
+  const mainAtInstall = getMainWindow();
+  if (mainAtInstall) {
+    const initialDisplay = screen.getDisplayMatching ? screen.getDisplayMatching(mainAtInstall.getBounds()) : screen.getPrimaryDisplay();
+    mainAtInstall.__displayId = String(initialDisplay.id);
+    const trackMainBounds = () => {
+      const matching = screen.getDisplayMatching ? screen.getDisplayMatching(mainAtInstall.getBounds()) : screen.getPrimaryDisplay();
+      mainAtInstall.__displayId = String(matching.id);
+      safePersist();
+    };
+    mainAtInstall.on('move', trackMainBounds);
+    mainAtInstall.on('resize', trackMainBounds);
+  }
 
   async function restoreMainWindow() {
     await layoutReady;
@@ -89,6 +101,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     if (!main || main.isDestroyed() || !mainState?.bounds) return false;
     const target = displayFor(mainState.displayId);
     main.setBounds(clampBounds(mainState.bounds, target));
+    main.__displayId = String(target.id);
     return true;
   }
 
@@ -197,8 +210,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     const main = getMainWindow();
     if (main && !main.isDestroyed()) {
       const mainBounds = main.getBounds();
-      const mainDisplay = screen.getDisplayMatching ? screen.getDisplayMatching(mainBounds) : screen.getPrimaryDisplay();
-      if (!available.some(display => String(display.id) === String(mainDisplay.id))) main.setBounds(clampBounds(mainBounds, screen.getPrimaryDisplay()));
+      if (!available.some(display => String(display.id) === String(main.__displayId))) {
+        const target = screen.getPrimaryDisplay();
+        main.setBounds(clampBounds(mainBounds, target));
+        main.__displayId = String(target.id);
+      }
     }
     for (const win of windows.values()) {
       if (win.isDestroyed()) continue;
