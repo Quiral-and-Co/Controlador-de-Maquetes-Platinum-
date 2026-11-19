@@ -14,13 +14,14 @@ const snapshot={
  blockStates:{A:'OCCUPIED',B:'FREE',C:'FREE'},
  reservations:{}
 };
-const valid={blockIds:['A','B','C'],snapshot,locomotiveId:'L1',speedProfileVerified:true,sourceConfirmed:true};
+const valid={blockIds:['A','B','C'],snapshot,locomotiveId:'L1',speedProfileVerified:true,sourceConfirmed:true,trainAssigned:true};
 assert.equal(core.validatePlan(valid).ok,true);
 assert.match(core.validatePlan({...valid,snapshot:{...snapshot,blockStates:{...snapshot.blockStates,B:'UNKNOWN'}}}).error,/B/);
 assert.match(core.validatePlan({...valid,editMode:true}).error,/edició/);
 assert.match(core.validatePlan({...valid,snapshot:{...snapshot,blocks:snapshot.blocks.map(b=>b.id==='B'?{...b,verified:false}:b)}}).error,/B/);
 assert.match(core.validatePlan({...valid,snapshot:{...snapshot,reservations:{B:'other'}}}).error,/reservat/);
 assert.match(core.validatePlan({...valid,speedProfileVerified:false}).error,/perfil de velocitat/);
+assert.match(core.validatePlan({...valid,trainAssigned:false}).error,/assignada/);
 assert.match(core.validatePlan({...valid,sourceConfirmed:false}).error,/bloc d’origen/);
 const conflict=core.shortestPath([
  {id:'x',blockIds:['A','B'],turnoutRequirements:[{systemName:'T1',requiredState:'CLOSED'}]},
