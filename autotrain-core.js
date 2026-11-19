@@ -50,6 +50,7 @@
    if(reservations[id])return{ok:false,error:'Bloc '+id+' ja està reservat.'};
   }
   if(input?.locomotiveId===undefined||input?.locomotiveId===null||String(input.locomotiveId)==='')return{ok:false,error:'Selecciona una locomotora registrada.'};
+  if(input?.trainAssigned!==true)return{ok:false,error:'La locomotora no està assignada a cap tren del registre.'};
   if(input?.speedProfileVerified!==true)return{ok:false,error:'La locomotora no té un perfil de velocitat calibrat i verificat.'};
   if(input?.sourceConfirmed!==true)return{ok:false,error:'Confirma que la locomotora seleccionada és físicament al bloc d’origen.'};
   return{ok:true,blockIds:path};
