@@ -57,7 +57,7 @@
   }
   function publishWorkspaceState(){
     if(applyingRemoteWorkspaceState || !window.jmriDesktop?.publishWorkspaceState) return;
-    const payload={kind:'app-state',sourceId:nativeWindowId,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},isDirty:state.isDirty};
+    const payload={kind:'app-state',sourceId:nativeWindowId,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},filePath:state.filePath,isDirty:state.isDirty,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},powerUpdatedAt:state.powerUpdatedAt,jmriPower:state.jmriPower};
     window.jmriDesktop.publishWorkspaceState(payload).catch(error=>console.warn('[Espai de treball] No s’ha pogut sincronitzar l’estat:',error));
   }
   function applyWorkspaceState(payload){
@@ -68,7 +68,14 @@
       state.selectedLevel=state.config.levels.some(item=>item.id===payload.selectedLevel)?payload.selectedLevel:state.config.levels[0]?.id;
       state.selectedIds=Array.isArray(payload.selectedIds)?payload.selectedIds.filter(id=>state.config.levels.some(item=>(item.tracks||[]).some(piece=>piece.id===id))):[];
       if(payload.viewBox && ['x','y','width','height'].every(key=>Number.isFinite(payload.viewBox[key]))) state.viewBox={...payload.viewBox};
+      state.filePath=typeof payload.filePath==='string'?payload.filePath:null;
       state.isDirty=payload.isDirty===true;
+      state.sensors=payload.sensors&&typeof payload.sensors==='object'?{...payload.sensors}:{};
+      state.turnouts=payload.turnouts&&typeof payload.turnouts==='object'?{...payload.turnouts}:{};
+      state.sensorUpdatedAt=payload.sensorUpdatedAt&&typeof payload.sensorUpdatedAt==='object'?{...payload.sensorUpdatedAt}:{};
+      state.turnoutUpdatedAt=payload.turnoutUpdatedAt&&typeof payload.turnoutUpdatedAt==='object'?{...payload.turnoutUpdatedAt}:{};
+      state.powerUpdatedAt=Number(payload.powerUpdatedAt)||0;
+      state.jmriPower=typeof payload.jmriPower==='string'?payload.jmriPower:'UNKNOWN';
       render();applyViewBox();
     } finally { applyingRemoteWorkspaceState=false; }
     return true;
