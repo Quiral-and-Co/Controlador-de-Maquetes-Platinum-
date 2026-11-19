@@ -7,6 +7,8 @@
       levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]},
     selectedLevel:1, selectedIds:[], filePath:null, isDirty:false, mode:'modern', drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
   };
+  const nativeWindowId = new URLSearchParams(location.search).get('nativeWindowId') || 'main';
+  let applyingRemoteWorkspaceState = false;
   const level = () => state.config.levels.find(x=>x.id===state.selectedLevel);
   const pieces = () => level()?.tracks || [];
   const log = msg => {const li=document.createElement('li');li.textContent=`${new Date().toLocaleTimeString()} · ${msg}`;$('eventLog').prepend(li);while($('eventLog').children.length>35)$('eventLog').lastElementChild.remove();};
@@ -49,6 +51,25 @@
     $('levelList').replaceChildren();state.config.levels.forEach(l=>{const b=document.createElement('button');b.className='level-btn'+(l.id===state.selectedLevel?' selected':'');b.innerHTML=`<span>${esc(l.name)}</span><small>${(l.tracks||[]).length} peces</small>`;b.onclick=()=>{state.selectedLevel=l.id;state.selectedIds=[];render();};$('levelList').append(b);});
     $('currentLevelTitle').textContent=lev.name;$('currentLevelSubtitle').textContent=`Cota ${lev.elevationMm} mm · ${lev.tracks.length} peces · coordenades en mm`;
     renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SCHEDULE_UI?.refresh?.();window.JMRI_TC_OPERATION_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
+    publishWorkspaceState();
+  }
+  function publishWorkspaceState(){
+    if(applyingRemoteWorkspaceState || !window.jmriDesktop?.publishWorkspaceState) return;
+    const payload={kind:'app-state',sourceId:nativeWindowId,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},isDirty:state.isDirty};
+    window.jmriDesktop.publishWorkspaceState(payload).catch(error=>console.warn('[Espai de treball] No s’ha pogut sincronitzar l’estat:',error));
+  }
+  function applyWorkspaceState(payload){
+    if(!payload || payload.kind!=='app-state' || !payload.config || !Array.isArray(payload.config.levels)) return false;
+    applyingRemoteWorkspaceState=true;
+    try {
+      state.config=clone(payload.config);
+      state.selectedLevel=state.config.levels.some(item=>item.id===payload.selectedLevel)?payload.selectedLevel:state.config.levels[0]?.id;
+      state.selectedIds=Array.isArray(payload.selectedIds)?payload.selectedIds.filter(id=>state.config.levels.some(item=>(item.tracks||[]).some(piece=>piece.id===id))):[];
+      if(payload.viewBox && ['x','y','width','height'].every(key=>Number.isFinite(payload.viewBox[key]))) state.viewBox={...payload.viewBox};
+      state.isDirty=payload.isDirty===true;
+      render();applyViewBox();
+    } finally { applyingRemoteWorkspaceState=false; }
+    return true;
   }
   function sensorStateFor(p,sourceLevel=level()){
     if(!p.sensorName)return {code:'NONE',label:'Sense sensor'};
@@ -562,5 +583,14 @@
   function setMode(m){const next=m==='classic'?'classic':'modern';const changed=state.mode!==next;state.mode=next;document.body?.classList?.toggle('mode-modern',next==='modern');const ribbon=$('modernRibbon');if(ribbon)ribbon.hidden=next!=='modern';window.JMRI_TC_DESKTOP?.setMode?.(next);$('modeClassic')?.classList?.toggle('active',next==='classic');$('modeModern')?.classList?.toggle('active',next==='modern');$('modeClassic')?.setAttribute('aria-pressed',String(next==='classic'));$('modeModern')?.setAttribute('aria-pressed',String(next==='modern'));$('modernPanel')?.classList?.add('hidden');window.jmriDesktop?.setUiMode?.(next);if(changed)log(next==='modern'?'Escriptori modern amb cinta d’opcions i finestres flotants activat.':'Interfície clàssica restaurada.');} $('modeClassic').onclick=()=>setMode('classic');$('modeModern').onclick=()=>setMode('modern');
   window.JMRI_TC_DISPATCHER = { getConfig:()=>state.config, checkpoint:()=>checkpoint(), checkpointFrom:before=>checkpointFrom(clone(before)), refresh:()=>render(), getSensorStates:()=>{const now=Date.now(),connected=state.ws?.readyState===WebSocket.OPEN&&now-state.lastWsPong<=15000;return connected?Object.fromEntries(Object.entries(state.sensors).filter(([name])=>Number.isFinite(state.sensorUpdatedAt[name])&&now-state.sensorUpdatedAt[name]<=15000)):{};}, getPowerState:()=>state.jmriPower, isConnected:()=>state.ws?.readyState===WebSocket.OPEN, log:message=>log(message) };
   window.JMRI_TC_BOARD={getTrainEditMode:()=>trainEditMode,getSensorState:sensorStateFor,getTurnoutState:turnoutStateFor,applySensorReading,applyTurnoutReading,requestSensorReading:name=>{const systemName=String(name||'').trim();if(!/^[A-Za-z0-9_.:-]{1,80}$/.test(systemName)||state.ws?.readyState!==WebSocket.OPEN)return false;try{state.ws.send(JSON.stringify({type:'sensor',data:{name:systemName}}));return true;}catch{return false;}},getSelectedLevel:()=>state.selectedLevel,getTelemetry:()=>({connected:state.ws?.readyState===WebSocket.OPEN,lastHeartbeatAt:state.lastWsPong,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},power:state.jmriPower,powerUpdatedAt:state.powerUpdatedAt}),refresh:()=>render()};
-  setMode(state.mode);render();applyViewBox();window.JMRI_TC_VIEWPORT_UI={getViewBox:()=>({...state.viewBox}),zoomIn:()=>zoomViewport(0.8,viewportCenter()),zoomOut:()=>zoomViewport(1.25,viewportCenter()),fit:fitViewport};
+  window.JMRI_TC_VIEWPORT_UI={getViewBox:()=>({...state.viewBox}),zoomIn:()=>zoomViewport(0.8,viewportCenter()),zoomOut:()=>zoomViewport(1.25,viewportCenter()),fit:fitViewport};
+  const desktopApi=window.jmriDesktop;
+  desktopApi?.onWorkspaceState?.(payload=>{if(payload?.sourceId!==nativeWindowId)applyWorkspaceState(payload);});
+  (async()=>{
+    if(new URLSearchParams(location.search).has('nativePanel') && desktopApi?.getWorkspaceState){
+      try { const snapshot=await desktopApi.getWorkspaceState(); if(snapshot) applyWorkspaceState(snapshot); }
+      catch(error){ console.warn('[Espai de treball] No s’ha pogut recuperar l’estat inicial:',error); }
+    }
+    setMode(state.mode);render();applyViewBox();
+  })();
 })();
