@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const api = window.jmriDesktop;
-  if (!api || document.querySelector('[data-native-window-controls]')) return;
+  if (!api || new URLSearchParams(location.search).has('nativePanel') || document.querySelector('[data-native-window-controls]')) return;
   const definitions = [
     ['switchboard','Panell d’accessoris (Switchboard)','🎛️'],['keyboard','Teclat d’accessoris (Keyboard)','⌨️'],
     ['routes','Rutes i itineraris (Routes)','🔀'],['schedules','Horaris (Schedules)','🗓️'],
