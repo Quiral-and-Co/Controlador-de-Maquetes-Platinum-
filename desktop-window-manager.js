@@ -261,7 +261,7 @@
     const add = (node, title, w, h, left, top) => {
       if (!node) return;
       makeWindow(node, title, { x: left ?? x, y: top ?? y, w, h }, panelKeyFor(node));
-      x += 34; y += 28;
+      x += 34; y += 24;
       if (x > 760) x = 18;
       if (y > 500) y = 18;
     };
@@ -296,7 +296,7 @@
       // Keep every panel reachable inside the viewport; the taskbar switches
       // focus, so panels must not be parked hundreds of pixels below the fold.
       const offset = index % 5;
-      add(node, title, 700, 500, 18 + offset * 28, 18 + offset * 24);
+      add(node, title, 700, 500, 18 + offset * 24, 18 + offset * 24);
     });
     if (window.jmriDesktop?.onNativeWindowClosed) {
       window.jmriDesktop.onNativeWindowClosed(({ id }) => {
