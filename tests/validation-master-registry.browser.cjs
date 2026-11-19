@@ -86,6 +86,12 @@ function samePersistedFields(actual, expected, label) {
     const registryTask = page.locator('.desktop-task').filter({ hasText:'Registre mestre de validació' });
     assert.equal(await registryTask.count(), 1, 'the validation registry must have a taskbar window entry');
     await registryTask.click();
+    await page.waitForFunction(() => {
+      const windows = [...document.querySelectorAll('.desktop-window')];
+      const registry = windows.find(node => node.getAttribute('aria-label') === 'Registre mestre de validació');
+      const catalogue = windows.find(node => node.getAttribute('aria-label') === 'Base de dades digital · Märklin CS2 60215');
+      return registry && catalogue && Number(registry.style.zIndex) > Number(catalogue.style.zIndex);
+    }, null, { timeout:5000 });
 
     const noteInput = page.locator('#validationMasterRegistry input[placeholder="Nota de revisió / incidència"]');
     await noteInput.fill('Anotació exclusiva del projecte A');
