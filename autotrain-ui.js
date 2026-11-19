@@ -42,7 +42,7 @@ function decorateSwitchboard(){
 function ensureDialog(){
  let dialog=$('autoTrainDialog');if(dialog)return dialog;
  dialog=document.createElement('dialog');dialog.id='autoTrainDialog';dialog.className='autotrain-dialog';
- dialog.innerHTML='<form method="dialog" class="autotrain-card"><h2>AutoTrain by Drag & Drop</h2><p id="autoTrainPath" class="autotrain-path"></p><label>Locomotora<select id="autoTrainLoco" required></select></label><p id="autoTrainStatus" role="status" aria-live="polite"></p><div class="autotrain-actions"><button value="cancel">Cancel·lar</button><button id="autoTrainConfirm" type="button" class="primary">Confirmar i iniciar</button></div></form>';
+ dialog.innerHTML='<form method="dialog" class="autotrain-card"><h2>AutoTrain by Drag & Drop</h2><p id="autoTrainPath" class="autotrain-path"></p><label>Locomotora<select id="autoTrainLoco" required></select></label><label class="autotrain-source-confirm"><input id="autoTrainSourceConfirm" type="checkbox"> Confirmo que aquesta locomotora és físicament al bloc d’origen.</label><p id="autoTrainStatus" role="status" aria-live="polite"></p><div class="autotrain-actions"><button value="cancel">Cancel·lar</button><button id="autoTrainConfirm" type="button" class="primary">Validar i preparar ruta</button></div></form>';
  document.body.append(dialog);
  const style=document.createElement('style');style.textContent='.autotrain-dialog{border:0;border-radius:12px;padding:0;max-width:min(520px,92vw);width:100%;box-shadow:0 18px 60px #0005}.autotrain-dialog::backdrop{background:#10182799}.autotrain-card{padding:22px;display:grid;gap:14px}.autotrain-card h2{margin:0}.autotrain-card label{display:grid;gap:6px}.autotrain-card select{padding:9px}.autotrain-path{font-weight:600;overflow-wrap:anywhere}.autotrain-actions{display:flex;justify-content:flex-end;gap:8px}.autotrain-draggable{cursor:grab}.autotrain-drag-active .autotrain-draggable{outline:1px dashed #159447;outline-offset:2px}.autotrain-source{opacity:.55}.autotrain-target{outline:2px solid #159447!important;background:#e5f6ea!important}.autotrain-drag-active{cursor:grabbing}';
  document.head.append(style);
@@ -63,8 +63,8 @@ function prepare(from,to){
  const validation=core.validatePlan({blockIds:found.blockIds,snapshot:snap,locomotiveId:locos[0].id,editMode:false});
  if(!validation.ok){alert('AutoTrain rebutjat: '+validation.error);return;}
  const dialog=ensureDialog(),select=$('autoTrainLoco');select.replaceChildren();
- locos.forEach(l=>{const option=document.createElement('option');option.value=l.id;option.textContent=l.name+' · '+l.wiThrottleId;select.append(option);});
- $('autoTrainPath').textContent=found.blockIds.join(' → ');
+ eligible.forEach(l=>{const option=document.createElement('option');option.value=l.id;option.textContent=l.name+' · '+l.wiThrottleId;select.append(option);});
+ $('autoTrainPath').textContent=found.blockIds.join(' → ');$('autoTrainSourceConfirm').checked=false;
  $('autoTrainStatus').textContent='Ruta calculada. Es tornaran a comprovar sensors, reserves, alimentació, desviaments i interbloqueigs DCC abans d’enviar cap ordre.';
  dialog._plan=found;dialog.showModal();
 }
