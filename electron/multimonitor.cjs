@@ -6,6 +6,9 @@ const path = require('node:path');
 
 const WINDOW_TYPES = Object.freeze({
   editor: 'Editor de maqueta',
+  switchboard: 'Panell d’accessoris (Switchboard)',
+  keyboard: 'Teclat d’accessoris (Keyboard)',
+  trainWindow: 'Finestra del tren (Train Window)',
   levels: 'Gestió de nivells',
   catalogue: 'Catàleg de vies',
   properties: 'Propietats i geometria XYZ',
