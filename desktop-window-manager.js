@@ -226,13 +226,17 @@
       ));
       const selected = candidates.find(node => panelKeyFor(node) === nativePanelKey);
       if (!selected) {
-        main.replaceChildren();
         const error = document.createElement('p');
         error.textContent = 'No s’ha trobat el panell sol·licitat. Torna a obrir-lo des de l’escriptori principal.';
         main.append(error);
         return;
       }
-      main.replaceChildren(selected);
+      const host = selected.closest('.editor-shell') || selected;
+      [...main.children].forEach(child => { if (child !== host) child.hidden = true; });
+      if (host !== selected) {
+        host.style.display = 'block';
+        host.querySelectorAll('.editor-sidebar,.track-area,.properties-panel').forEach(child => { child.hidden = child !== selected; });
+      }
       document.body.classList.add('native-panel-window');
       selected.classList.add('native-panel-root');
       selected.setAttribute('data-native-panel', nativePanelKey);
