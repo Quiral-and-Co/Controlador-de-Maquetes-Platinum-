@@ -38,7 +38,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const persist = async () => {
     const layout = {};
     for (const [id, win] of windows) {
-      if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: String(screen.getDisplayMatching(win.getBounds()).id), type: win.__windowType };
+      if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
     }
     saved = { ...saved, ...layout };
     await fs.mkdir(path.dirname(statePath), { recursive: true });
@@ -77,6 +77,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
       }
     });
     win.__windowType = type;
+    win.__displayId = String(target.id);
     windows.set(id, win);
     win.once('ready-to-show', () => { if (!win.isDestroyed()) win.show(); });
     win.on('move', safePersist);
@@ -92,7 +93,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
 
   ipcMain.handle('native-window:list', () => [...windows.entries()].filter(([, win]) => !win.isDestroyed()).map(([id, win]) => ({
     id, type: win.__windowType, title: WINDOW_TYPES[win.__windowType], bounds: win.getBounds(),
-    displayId: String(screen.getDisplayMatching(win.getBounds()).id), visible: win.isVisible()
+    displayId: win.__displayId, visible: win.isVisible()
   })));
   ipcMain.handle('native-window:displays', () => displays().map(display => ({
     id: String(display.id), label: display.label || `Pantalla ${display.id}`,
@@ -112,6 +113,7 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     const display = displayFor(options.displayId);
     const bounds = clampBounds(options.bounds || win.getBounds(), display);
     win.setBounds(bounds);
+    win.__displayId = String(display.id);
     win.show();
     win.focus();
     await persist();
@@ -136,10 +138,10 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     if (!available.length) return;
     for (const win of windows.values()) {
       if (win.isDestroyed()) continue;
-      const current = screen.getDisplayMatching(win.getBounds());
-      if (!available.some(display => display.id === current.id)) {
+      if (!available.some(display => String(display.id) === win.__displayId)) {
         const target = screen.getPrimaryDisplay();
         win.setBounds(clampBounds(win.getBounds(), target));
+        win.__displayId = String(target.id);
         win.show();
       }
     }
