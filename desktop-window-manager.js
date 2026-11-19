@@ -292,10 +292,12 @@
       let title = titleFor(node);
       if (node.classList.contains('summary-grid')) title = 'Estat de la maqueta';
       if (node.id === 'commandStationPanel') title = 'Centrals digitals';
-      const index = records.length - 3;
-      add(node, title, 700, 500, 18 + (index % 2) * 720, 680 + Math.floor(index / 2) * 540);
+      const index = Math.max(0, records.length - 3);
+      // Keep every panel reachable inside the viewport; the taskbar switches
+      // focus, so panels must not be parked hundreds of pixels below the fold.
+      const offset = index % 5;
+      add(node, title, 700, 500, 18 + offset * 28, 18 + offset * 24);
     });
-    workspace.style.minHeight = (700 + Math.ceil(direct.length / 2) * 540) + 'px';
     if (window.jmriDesktop?.onNativeWindowClosed) {
       window.jmriDesktop.onNativeWindowClosed(({ id }) => {
         const record = records.find(item => item.detachedId === id);
@@ -355,10 +357,6 @@
       record.win.hidden = false;
       record.win.style.zIndex = String(++zIndex);
       record.task.classList.add('is-open');
-      workspace.style.minHeight = Math.max(
-        Number.parseFloat(workspace.style.minHeight) || 0,
-        safeBounds.y + safeBounds.h + 24
-      ) + 'px';
       return true;
     },
     getWindows() { return records.map(({ win }) => ({ title: win.getAttribute('aria-label'), visible: !win.hidden })); },
