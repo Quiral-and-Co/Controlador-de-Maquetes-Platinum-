@@ -7,6 +7,7 @@ const preload = fs.readFileSync('electron/preload.cjs', 'utf8');
 
 assert.match(app, /function readPreferredInterfaceMode\(\)/, 'startup interface mode must be loaded from saved preferences');
 assert.match(app, /return saved\.interfaceMode==='classic'\?'classic':'modern'/, 'modern interface must be the default when no classic preference exists');
+assert.match(app, /if\(\/\[\?&\]nativePanel=\/\.test\(window\.location\.search\|\|''\)\)return 'modern'/, 'detached native module windows must render their panel in modern mode even when the main window prefers classic mode');
 assert.match(app, /saved\.interfaceMode=next/, 'manual mode changes must persist as the next startup mode');
 const personalization = fs.readFileSync('workspace-personalization.js', 'utf8');
 assert.match(personalization, /interfaceMode:'modern'/, 'fresh installations must default to modern mode');
