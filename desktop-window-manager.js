@@ -285,10 +285,13 @@
       node !== shellRecord?.placeholder && node.matches('section, .resource-grid, .monitor-grid')
     );
     direct.forEach(node => {
+      if (node.classList.contains('digital-catalogue')) {
+        add(node, 'Base de dades digital · Märklin CS2 60215', 760, 560, 18, 18);
+        return;
+      }
       let title = titleFor(node);
       if (node.classList.contains('summary-grid')) title = 'Estat de la maqueta';
       if (node.id === 'commandStationPanel') title = 'Centrals digitals';
-      const wide = /dispatcher|traffic|signalling|spielewelt|locomotive|train|protection|ground/i.test(node.className + ' ' + node.id);
       const index = records.length - 3;
       add(node, title, 700, 500, 18 + (index % 2) * 720, 680 + Math.floor(index / 2) * 540);
     });
@@ -338,6 +341,25 @@
       activeMode = next;
       if (next === 'modern') enterModern();
       else leaveModern();
+    },
+    registerPanel(node, title, bounds = { x: 18, y: 18, w: 760, h: 560 }) {
+      if (!node || !workspace || records.some(record => record.node === node)) return false;
+      const safeBounds = {
+        x: Math.max(0, Number(bounds.x) || 0),
+        y: Math.max(0, Number(bounds.y) || 0),
+        w: Math.max(320, Number(bounds.w) || 760),
+        h: Math.max(240, Number(bounds.h) || 560)
+      };
+      makeWindow(node, title || titleFor(node), safeBounds, panelKeyFor(node));
+      const record = records[records.length - 1];
+      record.win.hidden = false;
+      record.win.style.zIndex = String(++zIndex);
+      record.task.classList.add('is-open');
+      workspace.style.minHeight = Math.max(
+        Number.parseFloat(workspace.style.minHeight) || 0,
+        safeBounds.y + safeBounds.h + 24
+      ) + 'px';
+      return true;
     },
     getWindows() { return records.map(({ win }) => ({ title: win.getAttribute('aria-label'), visible: !win.hidden })); },
     showAll() { records.forEach(({ win, task }) => { win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open'); }); },
