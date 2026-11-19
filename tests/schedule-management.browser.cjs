@@ -11,8 +11,12 @@ const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new
 // Keep this schedule workflow isolated from the unrelated auto-hidden Märklin catalogue window,
 // whose exposed edge can overlap controls in the shared floating desktop workspace.
 await page.locator('.desktop-window[aria-label="Base de dades digital · Märklin CS2 60215"]').evaluate(node=>{node.hidden=true;});
+// Activate the schedule window through the same window manager/taskbar path a user uses.
+// Floating windows can overlap by design; the target window must be brought to front before
+// asserting that its controls receive pointer events.
+await page.evaluate(()=>{const w=document.querySelector('#schedulePanel')?.closest('.desktop-window');if(!w)throw new Error('Schedule panel is not registered as a floating window');if(!window.JMRI_TC_DESKTOP.focusWindow(w.getAttribute('aria-label')))throw new Error('Could not focus the schedule window');});
 // Verify collapsed auto-hide panels no longer intercept real pointer hits on schedule controls.
-await page.waitForFunction(()=>{const b=document.querySelector('#scheduleSave');if(!b)return false;const r=b.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===b;});await page.evaluate(()=>{const c=window.JMRI_TC_DISPATCHER.getConfig();c.dispatcher={routes:[{id:'R-SCH-1',name:'Ruta de prova',blockIds:['B1','B2'],turnoutRequirements:[]}]};c.traffic={locomotives:[{id:'L-SCH-1',name:'Locomotora de prova',wiThrottleId:'S3'}]};window.JMRI_TC_DISPATCHER.refresh();});
+await page.waitForFunction(()=>{const b=document.querySelector('#scheduleSave');if(!b)return false;const r=b.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===b||b.contains(hit);});await page.evaluate(()=>{const c=window.JMRI_TC_DISPATCHER.getConfig();c.dispatcher={routes:[{id:'R-SCH-1',name:'Ruta de prova',blockIds:['B1','B2'],turnoutRequirements:[]}]};c.traffic={locomotives:[{id:'L-SCH-1',name:'Locomotora de prova',wiThrottleId:'S3'}]};window.JMRI_TC_DISPATCHER.refresh();});
 const create=async(name,time)=>{await page.locator('#scheduleName').fill(name);await page.locator('#scheduleRoute').selectOption('R-SCH-1');await page.locator('#scheduleLoco').selectOption('L-SCH-1');await page.locator('#scheduleTime').fill(time);await page.locator('#scheduleSave').click();};
 await create('Tren matí','08:30');await page.waitForFunction(()=>window.JMRI_TC_DISPATCHER.getConfig().schedules?.schedules?.length===1);
 await create('Tren tarda','15:30');await page.waitForFunction(()=>window.JMRI_TC_DISPATCHER.getConfig().schedules.schedules.length===2);
