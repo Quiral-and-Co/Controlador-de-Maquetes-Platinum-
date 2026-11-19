@@ -249,11 +249,11 @@ body[data-ui-theme="windows-dark"] .workspace-pref-grid section,body[data-ui-the
 body[data-ui-theme="windows-dark"] .workspace-pref-field,body[data-ui-theme="graphite"] .workspace-pref-field{border-color:#43576b}
 @media(max-width:680px){.workspace-pref-grid{grid-template-columns:1fr}.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{align-items:flex-start;flex-wrap:wrap}}
 .desktop-window.auto-hide-window{transition:transform .18s ease,opacity .18s ease}
-.desktop-window.auto-hide-window:not(:hover):not(:focus-within){opacity:.18;transform:translateX(-92%);pointer-events:none}
+.desktop-window.auto-hide-window:not(:hover){opacity:.18;transform:translateX(-92%);pointer-events:none}
 /* A narrow, interactive reveal strip keeps collapsed panels discoverable without letting
    their full invisible content layer intercept clicks intended for other windows. */
-.desktop-window.auto-hide-window:not(:hover):not(:focus-within)::after{content:"";position:absolute;top:0;bottom:0;right:0;width:18px;pointer-events:auto}
-.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within)::after{right:auto;left:0}
+.desktop-window.auto-hide-window:not(:hover)::after{content:"";position:absolute;top:0;bottom:0;right:0;width:18px;pointer-events:auto}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover)::after{right:auto;left:0}
 body.mode-modern .desktop-window.is-floating{box-shadow:0 14px 36px #15283c55;border:1px solid #6d91b6}
 .dmi-gauge{background:var(--dmi-panel-bg,#101b29);border-radius:10px;cursor:default}
 body.dmi-touch-gauge .dmi-gauge{cursor:crosshair}
@@ -286,7 +286,7 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .dispatcher-block.hide-dispatcher-status .dispatcher-state{display:none}
 .dispatcher-reservation{color:var(--reserved-route-color,#cce5ff)}
 .dmi-functions{grid-template-columns:repeat(auto-fit,minmax(var(--dmi-function-button-size,42px),1fr))}
-.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within){transform:translateX(92%)}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover){transform:translateX(92%)}
 
 /* Selector de mode compacte amb icones i etiquetes accessibles. */
 .top-actions{gap:6px}
