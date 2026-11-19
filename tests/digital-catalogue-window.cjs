@@ -13,6 +13,7 @@ assert.doesNotMatch(index, /1\.2\s*alpha/i, 'No ha de quedar cap etiqueta 1.2 Al
 assert.match(manager, /registerPanel\(node, title/, 'El gestor ha de permetre registrar panells dinàmics');
 assert.match(manager, /digital-catalogue/, 'La base de dades digital ha de tenir posició inicial pròpia');
 assert.match(manager, /function bringToFront\(win\)/, 'en activar una finestra ha de passar per davant de les altres');
+assert.doesNotMatch(styles, /body\.mode-modern \.desktop-window\s*\{[^}]*z-index\s*:\s*auto\s*!important/i, 'El CSS no pot anul·lar la prioritat de les finestres');
 assert.match(digitalUi, /JMRI_TC_DESKTOP\?\.registerPanel/, 'La UI digital ha de registrar-se al gestor de finestres');
 
 assert.match(manager, /18 \+ offset \* 24/, 'Els panells no poden quedar aparcats sota la zona visible');
