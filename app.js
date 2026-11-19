@@ -479,6 +479,12 @@
     else if(command==='windowMinimizeAll')window.JMRI_TC_DESKTOP?.minimizeAll?.();
     else if(command==='windowCascade')window.JMRI_TC_DESKTOP?.cascade?.();
     else if(command==='windowTile')window.JMRI_TC_DESKTOP?.tile?.();
+    else if(command==='windowTileTwoColumns')window.JMRI_TC_DESKTOP?.tilePreset?.('two-columns');
+    else if(command==='windowTileColumns')window.JMRI_TC_DESKTOP?.tilePreset?.('columns');
+    else if(command==='windowDockLeft')window.JMRI_TC_DESKTOP?.dock?.('left');
+    else if(command==='windowDockRight')window.JMRI_TC_DESKTOP?.dock?.('right');
+    else if(command==='windowDockTop')window.JMRI_TC_DESKTOP?.dock?.('top');
+    else if(command==='windowDockBottom')window.JMRI_TC_DESKTOP?.dock?.('bottom');
     else if(command==='windowRestoreLayout'){if(window.JMRI_TC_DESKTOP?.getWindows?.().length)window.JMRI_TC_DESKTOP.restoreLayout();else window.scrollTo({top:0,behavior:'smooth'});}
     else if(command==='windowShowEditor'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Tauler de disseny'))$('currentLevelTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowDispatcher'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Despatxador'))$('dispatcherTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
