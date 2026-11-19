@@ -303,3 +303,5 @@ body.native-panel-window{overflow:auto!important;background:#101b28}
 .native-panel-window .editor-shell{display:block!important;width:100%!important;height:100%!important;min-height:0!important}
 .native-panel-window .editor-sidebar.native-panel-root,.native-panel-window .properties-panel.native-panel-root{width:100%!important;max-width:none!important}
 .native-panel-window .track-area.native-panel-root{display:flex!important;flex-direction:column!important;min-height:calc(100vh - 24px)!important}
+
+html[data-native-panel-loading='true'] body{visibility:hidden!important}
