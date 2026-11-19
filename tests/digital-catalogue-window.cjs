@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const index = fs.readFileSync('index.html', 'utf8');
 const manager = fs.readFileSync('desktop-window-manager.js', 'utf8');
 const digitalUi = fs.readFileSync('protocol-catalogue-ui.js', 'utf8');
+const styles = fs.readFileSync('styles.css', 'utf8');
 const catalogue = JSON.parse(fs.readFileSync('catalogue-marklin-c.json', 'utf8'));
 
 assert.match(index, /versió 1\.4\.0/i, 'La capçalera ha de mostrar la versió del paquet');
