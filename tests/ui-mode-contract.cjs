@@ -5,7 +5,13 @@ const app = fs.readFileSync('app.js', 'utf8');
 const main = fs.readFileSync('electron/main.cjs', 'utf8');
 const preload = fs.readFileSync('electron/preload.cjs', 'utf8');
 
-assert.match(app, /mode:'modern'/, 'modern interface must be the default');
+assert.match(app, /function readPreferredInterfaceMode\(\)/, 'startup interface mode must be loaded from saved preferences');
+assert.match(app, /return saved\.interfaceMode==='classic'\?'classic':'modern'/, 'modern interface must be the default when no classic preference exists');
+assert.match(app, /saved\.interfaceMode=next/, 'manual mode changes must persist as the next startup mode');
+const personalization = fs.readFileSync('workspace-personalization.js', 'utf8');
+assert.match(personalization, /interfaceMode:'modern'/, 'fresh installations must default to modern mode');
+assert.match(personalization, /Mode d’inici del programa/, 'startup mode must be configurable in Personalització');
+assert.match(personalization, /\['modern','Modern · cinta d’opcions'\].*\['classic','Clàssic · menús i barres'\]/, 'Personalització must offer modern and classic startup modes');
 const modeStart = app.indexOf('function setMode(');
 const modeEnd = app.indexOf('window.JMRI_TC_DISPATCHER =', modeStart);
 assert.ok(modeStart >= 0 && modeEnd > modeStart, 'mode switch implementation must exist');
