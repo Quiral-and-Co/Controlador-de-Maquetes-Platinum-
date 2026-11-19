@@ -11,7 +11,7 @@ assert.deepEqual(clampBounds({ x: 9000, y: -20, width: 5000, height: 3000 }, dis
 assert.deepEqual(clampBounds({ x: 2200, y: 200, width: 1000, height: 700 }, display), {
   x: 2200, y: 200, width: 1000, height: 700
 });
-assert.equal(Object.keys(WINDOW_TYPES).length, 21);
+assert.equal(Object.keys(WINDOW_TYPES).length, 22);
 for (const type of ['switchboard','keyboard','trainWindow','trainDetector','levels', 'catalogue', 'properties', 'routes', 'commandStation', 'locomotiveDmi', 'trainProtection', 'trainGround', 'spielewelt', 'signalling', 'validation']) assert.ok(Object.hasOwn(WINDOW_TYPES, type), `Falta la finestra ${type}`);
 assert.equal(WINDOW_TYPES.trainDetector, 'Detecció d’ocupació (Train Detector)');
 assert.equal(WINDOW_TYPES.dispatcher, 'Despatxador');
@@ -56,7 +56,7 @@ assert.throws(() => setAlwaysOnTop({ isDestroyed: () => true }), /no està dispo
     isAlwaysOnTop() { return this.pinned; }
     show() {}
     focus() {}
-    async loadURL() { this.emit('ready-to-show'); }
+    async loadURL(url) { this.loadedUrl = url; this.emit('ready-to-show'); }
     close() { this.destroyed = true; this.emit('closed'); }
   }
   const main = new MockWindow({ width: 1500, height: 950 });
@@ -69,6 +69,17 @@ assert.throws(() => setAlwaysOnTop({ isDestroyed: () => true }), /no està dispo
   assert.equal(handlers.get('native-window:toggle-always-on-top')({ sender: child.webContents }), true);
   assert.equal(child.isAlwaysOnTop(), true);
   assert.equal(handlers.get('native-window:is-always-on-top')({ sender: child.webContents }), true);
+  const detached = await handlers.get('native-window:open')({ sender: main.webContents }, { type: 'desktopPanel', panelKey: 'track-area', title: 'Tauler de disseny' });
+  assert.equal(detached.id, 'desktop-panel-track-area');
+  const detachedWindow = instances[2];
+  assert.equal(detachedWindow.options.title, 'Tauler de disseny');
+  const detachedUrl = new URL(detachedWindow.loadedUrl);
+  assert.equal(detachedUrl.searchParams.get('nativePanel'), 'track-area');
+  assert.equal(detachedUrl.searchParams.get('nativeWindowId'), 'desktop-panel-track-area');
+  await assert.rejects(() => handlers.get('native-window:open')({ sender: main.webContents }, { type: 'desktopPanel', panelKey: '../app.js' }), /Identificador de panell no vàlid/);
+  const sharedState = { kind: 'app-state', sourceId: 'main', config: { levels: [] } };
+  assert.equal(handlers.get('native-window:publish-state')({ sender: main.webContents }, sharedState), true);
+  assert.deepEqual(handlers.get('native-window:get-state')({ sender: detachedWindow.webContents }), sharedState);
   const unauthorized = { isDestroyed: () => false, webContents: { isDestroyed: () => false } };
   assert.throws(() => handlers.get('native-window:toggle-always-on-top')({ sender: unauthorized.webContents }), /no autoritzat/);
   console.log('PASS: native windows retain Windows Snap-compatible frames, resize/minimize/maximize, and per-window always-on-top is sender-authorized.');
