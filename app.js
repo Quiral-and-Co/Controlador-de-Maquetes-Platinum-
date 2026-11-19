@@ -2,7 +2,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const GRID = 10, CONNECT_TOLERANCE = 20, BOARD = Object.freeze({width:3000,height:1800});
-  function readPreferredInterfaceMode(){try{const saved=JSON.parse(localStorage.getItem('quiral.workspace.preferences.v1')||'{}');return saved.interfaceMode==='classic'?'classic':'modern';}catch(_){return 'modern';}}
+  function readPreferredInterfaceMode(){try{if(/[?&]nativePanel=/.test(window.location.search||''))return 'modern';const saved=JSON.parse(localStorage.getItem('quiral.workspace.preferences.v1')||'{}');return saved.interfaceMode==='classic'?'classic':'modern';}catch(_){return 'modern';}}
   const state = {
     config: {schemaVersion:3,name:'Maqueta Märklin H0 · 5 nivells',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,
       levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]},
