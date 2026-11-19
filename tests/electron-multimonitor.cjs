@@ -11,8 +11,9 @@ assert.deepEqual(clampBounds({ x: 9000, y: -20, width: 5000, height: 3000 }, dis
 assert.deepEqual(clampBounds({ x: 2200, y: 200, width: 1000, height: 700 }, display), {
   x: 2200, y: 200, width: 1000, height: 700
 });
-assert.equal(Object.keys(WINDOW_TYPES).length, 20);
-for (const type of ['switchboard','keyboard','trainWindow','levels', 'catalogue', 'properties', 'routes', 'commandStation', 'locomotiveDmi', 'trainProtection', 'trainGround', 'spielewelt', 'signalling', 'validation']) assert.ok(Object.hasOwn(WINDOW_TYPES, type), `Falta la finestra ${type}`);
+assert.equal(Object.keys(WINDOW_TYPES).length, 21);
+for (const type of ['switchboard','keyboard','trainWindow','trainDetector','levels', 'catalogue', 'properties', 'routes', 'commandStation', 'locomotiveDmi', 'trainProtection', 'trainGround', 'spielewelt', 'signalling', 'validation']) assert.ok(Object.hasOwn(WINDOW_TYPES, type), `Falta la finestra ${type}`);
+assert.equal(WINDOW_TYPES.trainDetector, 'Detecció d’ocupació (Train Detector)');
 assert.equal(WINDOW_TYPES.dispatcher, 'Despatxador');
 assert.equal(WINDOW_TYPES.diagnostics, 'Metge Quiral');
 
