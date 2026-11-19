@@ -22,8 +22,8 @@ async function persistTransaction(snapshot,mutate){
  return root.navigator.locks.request('jmri-tc-vmr:'+snapshot.storageKey,{mode:'exclusive'},async()=>{
   const latest=core.load(root.localStorage,snapshot.storageKey);
   const s=core.createState(latest.projectId===snapshot.s.projectId?latest:snapshot.s);s.projectId=snapshot.s.projectId;
-  core.reconcile(s,snapshot.c);core.updateValidation(s,snapshot.c,physical);
   const before=core.serialize(s);
+  core.reconcile(s,snapshot.c);core.updateValidation(s,snapshot.c,physical);
   const result=mutate(s);
   if(result?.ok===false)return result;
   if(core.serialize(s)!==before){
