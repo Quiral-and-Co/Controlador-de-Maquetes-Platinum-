@@ -69,8 +69,8 @@ jobs:
             throw 'The NSIS installer is empty.'
           }
           $cataloniaTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'Romance Standard Time')
-          $timestamp = $cataloniaTime.ToString('HHmmss-ddMMyyyy', [Globalization.CultureInfo]::InvariantCulture)
-          $timestampedName = [System.IO.Path]::GetFileNameWithoutExtension($installer.Name) + "-$timestamp" + $installer.Extension
+          $timestamp = $cataloniaTime.ToString('HHmmddMMyy', [Globalization.CultureInfo]::InvariantCulture)
+          $timestampedName = "CMBYQC$timestamp.EXE"
           $timestampedPath = Join-Path $installer.DirectoryName $timestampedName
           if (Test-Path -LiteralPath $timestampedPath) {
             throw "Timestamped installer already exists: $timestampedName"
