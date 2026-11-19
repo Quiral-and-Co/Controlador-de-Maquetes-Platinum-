@@ -77,9 +77,23 @@ assert.throws(() => setAlwaysOnTop({ isDestroyed: () => true }), /no està dispo
   assert.equal(detachedUrl.searchParams.get('nativePanel'), 'track-area');
   assert.equal(detachedUrl.searchParams.get('nativeWindowId'), 'desktop-panel-track-area');
   await assert.rejects(() => handlers.get('native-window:open')({ sender: main.webContents }, { type: 'desktopPanel', panelKey: '../app.js' }), /Identificador de panell no vàlid/);
-  const sharedState = { kind: 'app-state', sourceId: 'main', config: { levels: [] } };
-  assert.equal(handlers.get('native-window:publish-state')({ sender: main.webContents }, sharedState), true);
-  assert.deepEqual(handlers.get('native-window:get-state')({ sender: detachedWindow.webContents }), sharedState);
+  const sharedState = { kind: 'app-state', sourceId: 'main', baseRevision: 0, config: { levels: [] } };
+  assert.deepEqual(handlers.get('native-window:publish-state')({ sender: main.webContents }, sharedState), { ok: true, revision: 1 });
+  const snapshot = handlers.get('native-window:get-state')({ sender: detachedWindow.webContents });
+  assert.deepEqual(snapshot, { state: { ...sharedState, revision: 1 }, revision: 1 });
+  const staleWrite = handlers.get('native-window:publish-state')({ sender: detachedWindow.webContents }, {
+    kind: 'app-state', sourceId: 'desktop-panel-track-area', baseRevision: 0, config: { levels: [{ id: 99 }] }
+  });
+  assert.equal(staleWrite.ok, false);
+  assert.equal(staleWrite.conflict, true);
+  assert.equal(staleWrite.revision, 1);
+  assert.deepEqual(staleWrite.state.config, { levels: [] });
+  assert.throws(() => handlers.get('native-window:publish-state')({ sender: detachedWindow.webContents }, {
+    kind: 'app-state', sourceId: 'main', baseRevision: 1, config: { levels: [] }
+  }), /en nom d’un altre emissor/);
+  assert.deepEqual(handlers.get('native-window:publish-state')({ sender: detachedWindow.webContents }, {
+    kind: 'app-state', sourceId: 'desktop-panel-track-area', baseRevision: 1, config: { levels: [{ id: 2 }] }
+  }), { ok: true, revision: 2 });
   const unauthorized = { isDestroyed: () => false, webContents: { isDestroyed: () => false } };
   assert.throws(() => handlers.get('native-window:toggle-always-on-top')({ sender: unauthorized.webContents }), /no autoritzat/);
   console.log('PASS: native windows retain Windows Snap-compatible frames, resize/minimize/maximize, and per-window always-on-top is sender-authorized.');
