@@ -460,7 +460,12 @@
   $('helpDialog')?.querySelectorAll?.('[data-help-topic]')?.forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
   $('helpDialogClose')?.addEventListener('click',()=> $('helpDialog')?.close());
   function handleAppCommand(command){
-    if(command==='new')newProject();
+    if(command==='workspacePreferences')window.JMRI_TC_WORKSPACE_PREFS?.open?.();
+    else if(command==='toggleToolbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('toolbar',!(p.get('toolbar')!==false));}
+    else if(command==='toggleTaskbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('taskbar',!(p.get('taskbar')!==false));}
+    else if(command==='toggleStatusbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('statusbar',!(p.get('statusbar')!==false));}
+    else if(command==='toggleRibbon'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('ribbonCollapsed',!p.get('ribbonCollapsed'));}
+    else if(command==='new')newProject();
     else if(command==='open')openNativeProject(false);
     else if(command==='save')saveNativeProject(false);
     else if(command==='saveAs')saveNativeProject(true);
@@ -504,6 +509,7 @@
     else if(command==='copy')copySelectedPieces();
     else if(command==='paste')pastePieces();
     else if(command==='delete')deleteSelectedPieces();
+    else if(command==='duplicate')$('duplicateBtn')?.click?.();
     else if(command==='selectAll')selectAllPieces();
     else if(command==='zoomIn')zoomViewport(0.8,viewportCenter());
     else if(command==='zoomOut')zoomViewport(1.25,viewportCenter());

@@ -115,6 +115,13 @@ function init(){
  $('dmiBrakeSlider').oninput=e=>setBrake(e.target.value);
  $('dmiEmergency').onclick=()=>{const api=traffic();if(api?.emergencyStop?.())setStatus('EMERGÈNCIA sol·licitada. Comprova físicament que el tren s’ha aturat.');else setStatus('No s’ha pogut enviar l’ordre d’emergència. Actua sobre la parada física independent.');};
  $('dmiDirection').onclick=()=>{direction=direction===1?0:1;const api=traffic();const ok=api?.setDirection?.(direction);if(ok){$('dmiDirection').textContent=direction===1?'▶ ENDAVANT':'◀ ENRERE';setStatus('Canvi de sentit sol·licitat.');}};
+ $('dmiGauge')?.addEventListener('pointerdown',e=>{
+   if(!window.JMRI_TC_WORKSPACE_PREFS?.get?.('dmiGaugeTouch'))return;
+   if(!isDmiSafe()){setStatus('Velocímetre tàctil bloquejat: cal conducció manual supervisada i totes les proteccions actives.');return;}
+   const rect=$('dmiGauge').getBoundingClientRect(),x=e.clientX-(rect.left+rect.width/2),y=e.clientY-(rect.top+rect.height*0.73);
+   let angle=Math.atan2(y,x)*180/Math.PI+90;if(angle<0)angle+=360;
+   setTarget(core.clamp(angle,0,270)/270*maxKmh);
+ });
  $('dmiSetpointDial').addEventListener('pointerdown',e=>{if($('dmiSetpointDial').getAttribute('aria-disabled')==='true')return;dragging=true;$('dmiSetpointDial').setPointerCapture?.(e.pointerId);setTarget(dialValue(e));});
  $('dmiSetpointDial').addEventListener('pointermove',e=>{if(dragging)setTarget(dialValue(e));});
  $('dmiSetpointDial').addEventListener('pointerup',()=>{dragging=false;});
