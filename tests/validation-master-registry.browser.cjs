@@ -81,6 +81,12 @@ function samePersistedFields(actual, expected, label) {
     const projectA = await importProject(fixtureA, 'project-A.json');
     assert.ok(projectA.records.every(r => r.sourceId.endsWith('-A')));
 
+    // Floating panels can overlap by design. Activate the VMR taskbar entry
+    // before interacting so the Märklin catalogue window cannot intercept clicks.
+    const registryTask = page.locator('.desktop-task').filter({ hasText:'Registre mestre de validació' });
+    assert.equal(await registryTask.count(), 1, 'the validation registry must have a taskbar window entry');
+    await registryTask.click();
+
     const noteInput = page.locator('#validationMasterRegistry input[placeholder="Nota de revisió / incidència"]');
     await noteInput.fill('Anotació exclusiva del projecte A');
     await page.getByRole('button', { name:'Afegir nota' }).click();
