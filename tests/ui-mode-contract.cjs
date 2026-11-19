@@ -68,3 +68,14 @@ assert.match(app, /data-ribbon-command/);
 assert.match(app, /function handleAppCommand\(command\)/, 'ribbon actions must share the real command dispatcher');
 assert.match(app, /addEventListener\('click',\(\)=>handleAppCommand\(button\.dataset\.ribbonCommand\)\)/);
 console.log('PASS modern ribbon tabs and functional command routing');
+
+const workflowHtml=fs.readFileSync('index.html','utf8');
+assert.match(workflowHtml,/id="modeEditing"/,'dedicated edit-mode icon must be present');
+assert.match(workflowHtml,/id="modeOperation"/,'dedicated operation-mode icon must be present');
+assert.match(app,/function setEditingMode\(enabled\)/,'edit mode must have an independent state transition');
+assert.match(app,/function setOperationMode\(enabled\)/,'operation mode must have an independent state transition');
+assert.match(app,/if\(!editingMode\)\{selectPiece\(id,e\);return;\}/,'track dragging must be disabled outside edit mode while selection remains available');
+assert.match(app,/if\(!editingMode\|\|!state\.portMode\)return/,'track connections must be blocked outside edit mode');
+assert.match(app,/quiral\.workflow\.modes\.v1/,'workflow modes must persist independently');
+assert.match(css,/\.workflow-mode-btn\.active[^}]*background:#23864b/s,'active workflow icons must have a green background');
+console.log('PASS independent edit/operation modes, green active indicators and edit guards');
