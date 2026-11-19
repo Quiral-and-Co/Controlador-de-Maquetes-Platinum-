@@ -90,7 +90,14 @@ function samePersistedFields(actual, expected, label) {
       const windows = [...document.querySelectorAll('.desktop-window')];
       const registry = windows.find(node => node.getAttribute('aria-label') === 'Registre mestre de validació');
       const catalogue = windows.find(node => node.getAttribute('aria-label') === 'Base de dades digital · Märklin CS2 60215');
-      return registry && catalogue && Number(registry.style.zIndex) > Number(catalogue.style.zIndex);
+      if (!registry || !catalogue) return false;
+      const registryZ = Number.parseInt(getComputedStyle(registry).zIndex, 10);
+      const catalogueZ = Number.parseInt(getComputedStyle(catalogue).zIndex, 10);
+      const addNote = [...registry.querySelectorAll('button')].find(button => button.textContent.trim() === 'Afegir nota');
+      if (!(registryZ > catalogueZ) || !addNote) return false;
+      const rect = addNote.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return !!hit && (hit === addNote || addNote.contains(hit));
     }, null, { timeout:5000 });
 
     const noteInput = page.locator('#validationMasterRegistry input[placeholder="Nota de revisió / incidència"]');
