@@ -255,3 +255,17 @@ body.dmi-touch-gauge .dmi-gauge{cursor:crosshair}
 .dmi-functions button{background:color-mix(in srgb,var(--dmi-accent,#e0b64d) 18%,#26394e)}
 .dmi-functions button.active{background:var(--dmi-accent,#e0b64d);color:#101820}
 .canvas-wrap{background-color:var(--board-background,#f5f7fa)}
+
+/* Switchboard: quadrícula, escala de símbols i paleta de vies configurables */
+body.mode-modern .canvas-wrap{background-image:linear-gradient(to right,#8b9aab22 1px,transparent 1px),linear-gradient(to bottom,#8b9aab22 1px,transparent 1px);background-size:var(--board-grid-size,24px) var(--board-grid-size,24px)}
+.track-piece .rail{stroke:var(--track-color,#d4dce5);stroke-width:calc(8px * var(--track-symbol-scale,1))}
+.track-piece .sleeper{stroke-width:calc(5px * var(--track-symbol-scale,1))}
+.block-shape{stroke-width:calc(4px * var(--track-symbol-scale,1))}
+.dispatcher-block.hide-dispatcher-meta .dispatcher-meta{display:none}
+body[data-ui-theme="windows-dark"] .canvas-wrap,body[data-ui-theme="graphite"] .canvas-wrap{border-color:#465a70}
+.desktop-window-tabs{display:flex;gap:4px;min-height:30px;padding:3px 6px;background:#e4eaf2;border-bottom:1px solid #bdc9d6;overflow-x:auto}
+.desktop-window-tabs button{padding:4px 9px!important;font-size:11px;white-space:nowrap}
+.desktop-window-tabs button.active{background:#cfe3f7!important;border-color:#4c91cb!important}
+.desktop-window-dock-menu{max-width:105px;height:24px;min-width:85px;padding:2px;font-size:10px;background:#f8fafc;color:#283747;border:1px solid #c0c9d4;border-radius:3px}
+body[data-ui-theme="windows-dark"] .desktop-window-tabs,body[data-ui-theme="graphite"] .desktop-window-tabs{background:#1b2937;border-color:#4c6075}
+body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-ui-theme="graphite"] .desktop-window-tabs button.active{background:#31516e!important;color:#fff!important}
