@@ -2,7 +2,7 @@
 'use strict';
 const core=window.JMRI_TC_VIRTUAL_CONTACT_CORE;if(!core)return;
 const $=id=>document.getElementById(id);
-const positionEstimates=new Map(),states=new Map();
+const positionEstimates=new Map(),lastStates=new Map();
 function config(){return window.JMRI_TC_DISPATCHER?.getConfig?.();}
 function selectedLevel(){const c=config(),id=window.JMRI_TC_BOARD?.getSelectedLevel?.();return(c?.levels||[]).find(l=>String(l.id)===String(id));}
 function blocks(){return selectedLevel()?.blocks||[];}
@@ -20,7 +20,7 @@ function render(){
   const row=document.createElement('div');row.className='virtual-contact-row';
   const main=document.createElement('div'),name=document.createElement('strong'),meta=document.createElement('small'),status=document.createElement('span');
   name.textContent=item.name;meta.textContent='Bloc '+item.blockId+' · '+({DISTANCE:'Distància',TIME:'Temps',LOGIC:'Lògica'}[item.trigger?.type]||'Disparador')+' · sense adreça digital';
-  status.className='virtual-contact-state '+result.state.toLowerCase();status.textContent=({ACTIVE:'Actiu',INACTIVE:'Inactiu',UNKNOWN:'Sense dades'}[result.state]||result.state)+' — '+result.reason;
+  status.className='virtual-contact-state '+result.state.toLowerCase();const previous=lastStates.get(item.id);if(result.state==='ACTIVE'&&previous!=='ACTIVE'){window.dispatchEvent(new CustomEvent('virtualcontacttrigger',{detail:{id:item.id,blockId:item.blockId,name:item.name,action:item.action,kind:'VIRTUAL'}}));}lastStates.set(item.id,result.state);status.textContent=({ACTIVE:'Actiu',INACTIVE:'Inactiu',UNKNOWN:'Sense dades'}[result.state]||result.state)+' — '+result.reason;
   main.append(name,meta,status);const remove=document.createElement('button');remove.type='button';remove.textContent='Eliminar';remove.addEventListener('click',()=>{window.JMRI_TC_DISPATCHER?.checkpoint?.();level.virtualContacts=items.filter(x=>x.id!==item.id);announce('Contacte virtual eliminat.');render();});
   row.append(main,remove);host.append(row);
  }
