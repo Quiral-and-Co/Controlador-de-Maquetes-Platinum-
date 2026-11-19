@@ -75,6 +75,10 @@
     close.type = 'button'; close.textContent = '×';
     close.title = 'Amagar finestra';
     close.setAttribute('aria-label', 'Amagar ' + title);
+    const resizeHandle = document.createElement('button');
+    resizeHandle.type = 'button'; resizeHandle.className = 'desktop-window-resize';
+    resizeHandle.textContent = '◢'; resizeHandle.title = 'Arrossega per redimensionar';
+    resizeHandle.setAttribute('aria-label', 'Redimensionar ' + title);
     const dockMenu=document.createElement('select');dockMenu.className='desktop-window-dock-menu';dockMenu.title='Opcions d’acoblament i finestra flotant';dockMenu.setAttribute('aria-label','Opcions de finestra');
     [['','Finestra'],['left','Acoblar esquerra'],['right','Acoblar dreta'],['top','Acoblar dalt'],['bottom','Acoblar baix'],['float','Finestra flotant']].forEach(([v,label])=>{const option=document.createElement('option');option.value=v;option.textContent=label;dockMenu.append(option);});
     dockMenu.addEventListener('change',()=>{if(dockMenu.value==='float'){win.classList.remove('is-docked');win.classList.add('is-floating');win.style.left=Math.max(12,win.offsetLeft+24)+'px';win.style.top=Math.max(12,win.offsetTop+24)+'px';}else if(dockMenu.value){dockWindow(dockMenu.value);win.classList.remove('is-floating');}dockMenu.value='';});
@@ -83,7 +87,7 @@
     const content = document.createElement('div');
     content.className = 'desktop-window-content';
     content.append(node);
-    win.append(bar, content);
+    win.append(bar, content, resizeHandle);
     workspace.append(win);
 
     const task = document.createElement('button');
@@ -122,6 +126,27 @@
     original.addEventListener('click', restoreOriginal);
     dock.addEventListener('click', () => { const side=win.dataset.dockSide==='left'?'right':'left'; win.dataset.dockSide=side; dockWindow(side); win.classList.remove('is-floating'); });
     close.addEventListener('click', hide);
+    resizeHandle.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || win.classList.contains('is-maximized') || win.classList.contains('is-docked')) return;
+      event.preventDefault(); event.stopPropagation();
+      const startX = event.clientX, startY = event.clientY;
+      const startWidth = win.getBoundingClientRect().width, startHeight = win.getBoundingClientRect().height;
+      resizeHandle.setPointerCapture?.(event.pointerId);
+      const move = e => {
+        const maxWidth = Math.max(260, workspace.clientWidth - win.offsetLeft);
+        const maxHeight = Math.max(180, workspace.scrollHeight - win.offsetTop);
+        win.style.width = Math.max(260, Math.min(maxWidth, startWidth + e.clientX - startX)) + 'px';
+        win.style.height = Math.max(180, Math.min(maxHeight, startHeight + e.clientY - startY)) + 'px';
+      };
+      const end = () => {
+        resizeHandle.removeEventListener('pointermove', move);
+        resizeHandle.removeEventListener('pointerup', end);
+        resizeHandle.removeEventListener('pointercancel', end);
+      };
+      resizeHandle.addEventListener('pointermove', move);
+      resizeHandle.addEventListener('pointerup', end);
+      resizeHandle.addEventListener('pointercancel', end);
+    });
     bar.addEventListener('pointerdown', event => {
       if (event.target.closest('button')) return;
       if (event.button !== 0) return;
