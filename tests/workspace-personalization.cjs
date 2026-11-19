@@ -13,7 +13,7 @@ for(const key of ['theme','interfaceMode','toolbar','taskbar','statusbar','ribbo
 for(const token of ['groupInto','activateGroupTab','desktop-window-dock-menu','is-floating','Acoblar esquerra','Finestra flotant'])assert.ok(desktop.includes(token),'Gestió de finestres absent: '+token);
 for(const command of ['workspacePreferences','toggleToolbar','toggleTaskbar','toggleStatusbar','toggleRibbon'])assert.ok(app.includes(command),'Ordre d’interfície absent: '+command);
 assert.ok(html.includes('workspace-personalization.js'),'No es carrega el mòdul de personalització');
-assert.ok(html.includes('id="dmiGauge"'),'No s'ha identificat el velocímetre tàctil');
+assert.ok(html.includes('id="dmiGauge"'),"No s'ha identificat el velocímetre tàctil");
 assert.ok(prefs.includes('contextmenu'),'No hi ha commutació de cinta amb clic dret');
 assert.ok(dmi.includes('dmiGaugeTouch')&&dmi.includes('isDmiSafe'),'El velocímetre tàctil no comprova la porta de seguretat');
 assert.ok(dispatcher.includes('dispatcherSort')&&dispatcher.includes('dispatcherMeta'),'No s'apliquen preferències del despatxador');
