@@ -22,5 +22,7 @@ const config={levels:[{id:1,name:'Nivell 1',sensors,blocks:[block,{id:'B2',name:
 const rows=core.inspect(config,telemetry,now);
 assert.equal(rows.length,2);
 assert.equal(rows[0].state,'FREE');
+assert.equal(rows[0].sensorReadings[0].state,'FREE');
 assert.equal(rows[1].state,'UNKNOWN');
+assert.equal(rows[1].sensorReadings[0].state,'FREE','raw sensor feedback remains visible while block verification is pending');
 console.log('PASS: detector occupancy evaluation, freshness, inversion and fail-safe unknown states');
