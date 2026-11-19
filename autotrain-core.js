@@ -12,7 +12,6 @@
     if(!graph.has(b))graph.set(b,[]);
     const requirements=Array.isArray(route.turnoutRequirements)?route.turnoutRequirements.map(x=>({systemName:String(x.systemName||''),requiredState:String(x.requiredState||x.requiredPosition||'').toUpperCase()})):[];
     graph.get(a).push({to:b,requirements,routeId:String(route.id||'')});
-    graph.get(b).push({to:a,requirements,routeId:String(route.id||'')});
    }
   }
   for(const edges of graph.values())edges.sort((a,b)=>a.to.localeCompare(b.to));
@@ -51,6 +50,9 @@
    if(reservations[id])return{ok:false,error:'Bloc '+id+' ja està reservat.'};
   }
   if(input?.locomotiveId===undefined||input?.locomotiveId===null||String(input.locomotiveId)==='')return{ok:false,error:'Selecciona una locomotora registrada.'};
+  if(input?.trainAssigned!==true)return{ok:false,error:'La locomotora no està assignada a cap tren del registre.'};
+  if(input?.speedProfileVerified!==true)return{ok:false,error:'La locomotora no té un perfil de velocitat calibrat i verificat.'};
+  if(input?.sourceConfirmed!==true)return{ok:false,error:'Confirma que la locomotora seleccionada és físicament al bloc d’origen.'};
   return{ok:true,blockIds:path};
  }
  const api={MAX_BLOCKS,buildGraph,shortestPath,validatePlan};
