@@ -1,13 +1,16 @@
 (() => {
 'use strict';
 const KEY='quiral.workspace.preferences.v1';
-const defaults={theme:'windows-light',interfaceMode:'modern',toolbar:true,taskbar:true,statusbar:true,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherStatus:true,dispatcherSort:'name',trafficSort:'recent',dmiButtonSize:42,dmiSliderSize:158,autoHide:[]};
+const defaults={theme:'windows-10',interfaceMode:'modern',toolbar:true,taskbar:true,statusbar:true,autoHideTaskbar:false,autoHideStatusbar:false,ribbonCollapsed:false,iconSize:42,dmiFunctions:true,dmiSliders:true,dmiGaugeTouch:false,dmiBackground:'#101b29',dmiAccent:'#e0b64d',gridSize:24,trackScale:100,boardBackground:'#f5f7fa',trackColor:'#394b5e',reservedColor:'#d18b28',dispatcherMeta:true,dispatcherStatus:true,dispatcherSort:'name',trafficSort:'recent',dmiButtonSize:42,dmiSliderSize:158,autoHide:[]};
 let prefs={...defaults};
 try{prefs={...prefs,...JSON.parse(localStorage.getItem(KEY)||'{}')};}catch{}
+const legacyThemes={'windows-light':'windows-10','windows-dark':'office-black','classic-light':'office-white','graphite':'office-black'};prefs.theme=legacyThemes[prefs.theme]||prefs.theme;
 const $=id=>document.getElementById(id);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(prefs));}catch{};apply();window.dispatchEvent(new CustomEvent('workspace-preferences-changed',{detail:{...prefs}}));};
 function apply(){
  const body=document.body;body.dataset.uiTheme=prefs.theme;
+ body.classList.toggle('auto-hide-taskbar',!!prefs.autoHideTaskbar&&prefs.taskbar);
+ body.classList.toggle('auto-hide-statusbar',!!prefs.autoHideStatusbar&&prefs.statusbar);
  body.classList.toggle('ribbon-collapsed',!!prefs.ribbonCollapsed);
  const toolbar=document.querySelector('body.mode-modern .desktop-commandbar')||document.querySelector('body.mode-classic .toolbar');
  if(toolbar)toolbar.hidden=!prefs.toolbar;
@@ -40,10 +43,12 @@ function open(){
  const view=$('workspacePrefView'),wins=$('workspacePrefWindows'),train=$('workspacePrefTrain'),board=$('workspacePrefBoard'),disp=$('workspacePrefDispatcher');
  [view,wins,train,board,disp].forEach(n=>n.replaceChildren());
  add('workspacePrefView','Interfície',select(prefs.interfaceMode,[['modern','Cinta moderna (Ribbon)'],['classic','Menús clàssics i barres']],v=>{prefs.interfaceMode=v;save();document.getElementById(v==='modern'?'modeModern':'modeClassic')?.click();}));
- add('workspacePrefView','Estil visual',select(prefs.theme,[['windows-light','Windows clar'],['windows-dark','Windows fosc'],['classic-light','Clàssic clar'],['graphite','Grafit fosc']],v=>{prefs.theme=v;save();}));
+ add('workspacePrefView','UI Style · aparença global',select(prefs.theme,[['windows-7','Windows 7'],['windows-10','Windows 8/10'],['windows-native','Natiu del sistema operatiu'],['office-blue','Office blau'],['office-silver','Office platejat'],['office-black','Office negre / fosc'],['office-white','Office blanc']],v=>{prefs.theme=v;save();}));
  add('workspacePrefView','Barra d’eines principal',checkbox(prefs.toolbar,v=>{prefs.toolbar=v;save();}));
  add('workspacePrefView','Barra de finestres',checkbox(prefs.taskbar,v=>{prefs.taskbar=v;save();}));
+ add('workspacePrefView','Auto-ocultar barra de finestres',checkbox(prefs.autoHideTaskbar,v=>{prefs.autoHideTaskbar=v;save();}));
  add('workspacePrefView','Barra d’estat',checkbox(prefs.statusbar,v=>{prefs.statusbar=v;save();}));
+ add('workspacePrefView','Auto-ocultar barra d’estat',checkbox(prefs.autoHideStatusbar,v=>{prefs.autoHideStatusbar=v;save();}));
  add('workspacePrefView','Mida de les icones',select(prefs.iconSize,[['32','Petita'],['38','Mitjana'],['42','Gran'],['50','Molt gran']],v=>{prefs.iconSize=Number(v);save();}));
  add('workspacePrefView','Cinta minimitzada',checkbox(prefs.ribbonCollapsed,v=>{prefs.ribbonCollapsed=v;save();}));
  add('workspacePrefWindows','Ocultació automàtica dels panells laterals',checkbox(prefs.autoHide.includes('nivells'),v=>{prefs.autoHide=v?[...new Set([...prefs.autoHide,'nivells'])]:prefs.autoHide.filter(x=>x!=='nivells');save();}));
