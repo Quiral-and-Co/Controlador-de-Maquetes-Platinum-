@@ -57,5 +57,8 @@
       "shortcutName": "Controlador de Maquetes by Quiral & Co. Platinum",
       "deleteAppDataOnUninstall": false
     }
+  },
+  "overrides": {
+    "node-abi": "4.40.0"
   }
 }
