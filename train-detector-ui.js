@@ -56,10 +56,10 @@ function renderChoices(){
  if(!selected){host.textContent='No hi ha cap bloc disponible.';return;}
  for(const sensor of selected.level.sensors||[]){
   const row=document.createElement('label');row.className='td-sensor';
-  const cb=document.createElement('input');cb.type='checkbox';cb.value=sensor.id;cb.checked=(selected.block.sensorIds||[]).includes(sensor.id);
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='td-map-sensor';cb.value=sensor.id;cb.checked=(selected.block.sensorIds||[]).includes(sensor.id);
   const name=document.createElement('span');name.textContent=(sensor.userName||sensor.systemName)+' · '+sensor.systemName+(sensor.verified?' · verificat':' · pendent de verificació');
   const invert=document.createElement('input');invert.type='checkbox';invert.checked=sensor.invert===true;invert.title='Invertir lògica del detector';invert.setAttribute('aria-label','Invertir '+sensor.systemName);
-  invert.addEventListener('change',()=>{sensor.invert=invert.checked;window.JMRI_TC_DISPATCHER?.checkpoint?.();window.JMRI_TC_DISPATCHER?.refresh?.();});
+  invert.className='td-invert-sensor';invert.dataset.sensorId=sensor.id;
   row.append(cb,name,document.createTextNode(' Invertir '),invert);host.append(row);
  }
 }
@@ -81,9 +81,11 @@ $('tdAddSensor').onclick=()=>{
 };
 $('tdSaveMapping').onclick=()=>{
  const selected=selectedBlock();if(!selected)return;
- const checked=[...$('tdSensorChoices').querySelectorAll('input[type=checkbox]')].filter(x=>x.checked).map(x=>x.value);
+ const choices=[...$('tdSensorChoices').querySelectorAll('.td-sensor')];
+ const checked=choices.filter(row=>row.querySelector('.td-map-sensor').checked).map(row=>row.querySelector('.td-map-sensor').value);
  window.JMRI_TC_DISPATCHER?.checkpoint?.();
  selected.block.sensorIds=checked;
+ for(const row of choices){const id=row.querySelector('.td-map-sensor').value;const sensor=(selected.level.sensors||[]).find(s=>s.id===id);if(sensor)sensor.invert=row.querySelector('.td-invert-sensor').checked;}
  window.JMRI_TC_DISPATCHER?.refresh?.();$('tdConfigMessage').textContent='Assignació desada al projecte. El bloc continua pendent de verificació física.';refresh();
 };
 if(window.JMRI_TC_BOARD?.requestSensorReading){
