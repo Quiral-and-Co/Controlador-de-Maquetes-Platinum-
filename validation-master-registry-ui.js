@@ -14,7 +14,7 @@ function state(){
   saved=legacy.projectId===projectId?legacy:(embedded?.projectId===projectId?embedded:{projectId});
  } else if(embedded?.projectId===projectId&&String(embedded.updatedAt||'')>String(saved.updatedAt||'')) saved=embedded;
  const s=core.createState(saved);s.projectId=projectId;core.reconcile(s,c);core.updateValidation(s,c,physical);c.validationMasterRegistry=s;
- const persistence={ok:!!root.navigator?.locks?.request,error:root.navigator?.locks?.request?'':'El navegador no ofereix bloqueig transaccional; escriptures desactivades.'};
+ const persistence={ok:!!root.navigator?.locks?.request,saved:lastPersistence.ok,error:root.navigator?.locks?.request?'':(lastPersistence.error||'El navegador no ofereix bloqueig transaccional; escriptures desactivades.')};
  return{c,s,persistence,storageKey};
 }
 async function persistTransaction(snapshot,mutate){
@@ -33,7 +33,7 @@ async function persistTransaction(snapshot,mutate){
 }
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function render(){const host=$('validationMasterRegistry');if(!host)return;const {c,s,persistence,storageKey}=state();host.replaceChildren();
- const summary=document.createElement('p');summary.textContent='Registres: '+s.records.filter(r=>r.present!==false).length+' · esdeveniments: '+s.audit.length+' · projecte JSON: actualitzat en memòria · navegador: '+(persistence.ok?'desat':'ERROR: '+persistence.error);host.append(summary);
+ const summary=document.createElement('p');summary.textContent='Registres: '+s.records.filter(r=>r.present!==false).length+' · esdeveniments: '+s.audit.length+' · projecte JSON: actualitzat en memòria · navegador: '+(persistence.saved?'últim canvi desat amb bloqueig exclusiu':persistence.ok?'desament transaccional disponible':'BLOQUEJAT: '+persistence.error);host.append(summary);
  const table=document.createElement('div');table.className='validation-registry-list';
  s.records.filter(r=>r.present!==false).forEach(r=>{const row=document.createElement('article');row.className='validation-entry '+String(r.status).toLowerCase().replaceAll('_','-');const title=document.createElement('strong');title.textContent=r.registryId+' · '+r.name+' · '+r.status;row.append(title);const meta=document.createElement('p');meta.textContent=r.type+' · ID font: '+r.sourceId+(r.levelName?' · '+r.levelName:'');row.append(meta);table.append(row);});host.append(table);
  const controls=document.createElement('div');controls.className='signal-controls';
