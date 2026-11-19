@@ -109,6 +109,7 @@
     task.textContent = title;
     task.title = 'Mostrar ' + title;
     task.addEventListener('click', () => {
+      if(record.detachedId){ window.jmriDesktop?.openNativePanel?.({panelKey, title}).catch(() => {}); return; }
       if(record.groupHost){activateGroupTab(record.groupHost,record);task.classList.add('is-open');return;}
       win.hidden = false; win.style.zIndex = String(++zIndex); task.classList.add('is-open');
     });
