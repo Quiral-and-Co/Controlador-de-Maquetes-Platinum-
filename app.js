@@ -596,8 +596,8 @@
   function setMode(m){const next=m==='classic'?'classic':'modern';const changed=state.mode!==next;state.mode=next;document.body?.classList?.toggle('mode-modern',next==='modern');try{if(window.JMRI_TC_WORKSPACE_PREFS?.set)window.JMRI_TC_WORKSPACE_PREFS.set('interfaceMode',next);else{const key='quiral.workspace.preferences.v1';const saved=JSON.parse(localStorage.getItem(key)||'{}');saved.interfaceMode=next;localStorage.setItem(key,JSON.stringify(saved));}}catch(_){}const ribbon=$('modernRibbon');if(ribbon)ribbon.hidden=next!=='modern';window.JMRI_TC_DESKTOP?.setMode?.(next);$('modeClassic')?.classList?.toggle('active',next==='classic');$('modeModern')?.classList?.toggle('active',next==='modern');$('modeClassic')?.setAttribute('aria-pressed',String(next==='classic'));$('modeModern')?.setAttribute('aria-pressed',String(next==='modern'));$('modernPanel')?.classList?.add('hidden');window.jmriDesktop?.setUiMode?.(next);if(changed)log(next==='modern'?'Escriptori modern amb cinta d’opcions i finestres flotants activat.':'Interfície clàssica restaurada.');} $('modeClassic').onclick=()=>setMode('classic');$('modeModern').onclick=()=>setMode('modern');
   let editingMode=true, operationMode=false;
   function syncWorkflowModes(){
-    document.body.classList.toggle('workflow-editing',editingMode);
-    document.body.classList.toggle('workflow-operation',operationMode);
+    document.body?.classList?.toggle('workflow-editing',editingMode);
+    document.body?.classList?.toggle('workflow-operation',operationMode);
     const edit=$('modeEditing'),operation=$('modeOperation');
     if(edit){edit.classList.toggle('active',editingMode);edit.setAttribute('aria-pressed',String(editingMode));}
     if(operation){operation.classList.toggle('active',operationMode);operation.setAttribute('aria-pressed',String(operationMode));}
