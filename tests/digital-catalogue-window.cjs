@@ -14,10 +14,10 @@ assert.match(manager, /registerPanel\(node, title/, 'El gestor ha de permetre re
 assert.match(manager, /digital-catalogue/, 'La base de dades digital ha de tenir posició inicial pròpia');
 assert.match(digitalUi, /JMRI_TC_DESKTOP\?\.registerPanel/, 'La UI digital ha de registrar-se al gestor de finestres');
 
-assert.match(manager, /18 \\+ offset \\* 24/, 'Els panells no poden quedar aparcats sota la zona visible');
-assert.doesNotMatch(manager, /680 \\+ Math\\.floor\\(index \/ 2\\) \\* 540/, 'No s’han de crear panells a centenars de píxels sota la vista');
-assert.match(styles, /body\\.mode-modern\\{height:100dvh;min-height:0;overflow:hidden/, 'El mode modern ha de bloquejar el scroll del document');
-assert.match(styles, /body\\.mode-modern \\.desktop-workspace\\{flex:1 1 auto;height:auto;min-height:220px/, 'El scroll principal ha de quedar dins l’espai de treball');
+assert.match(manager, /18 \+ offset \* 24/, 'Els panells no poden quedar aparcats sota la zona visible');
+assert.doesNotMatch(manager, /680 \+ Math\.floor\(index \/ 2\) \* 540/, 'No s’han de crear panells a centenars de píxels sota la vista');
+assert.match(styles, /body\.mode-modern\{height:100dvh;min-height:0;overflow:hidden/, 'El mode modern ha de bloquejar el scroll del document');
+assert.match(styles, /body\.mode-modern \.desktop-workspace\{flex:1 1 auto;height:auto;min-height:220px/, 'El scroll principal ha de quedar dins l’espai de treball');
 
 assert.equal(catalogue.items.length, 68, 'La biblioteca Märklin C ha de tenir les 68 referències declarades');
 const refs = catalogue.items.map(item => item.ref);
