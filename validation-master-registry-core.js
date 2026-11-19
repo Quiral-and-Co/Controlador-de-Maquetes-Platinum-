@@ -39,28 +39,31 @@
   state.updatedAt=nowIso(now);
  }
  function reconcile(state,config,now) {
-  const seen=new Set(),added=[];
+  const seen=new Set(),added=[];let changed=false;
   for(const e of entitySource(config)) {
    const key=e.type+':'+e.sourceId;seen.add(key);
    let r=state.records.find(x=>x.identityKey===key);
-   if(!r){r={registryId:nextId(state,e.type),identityKey:key,type:e.type,sourceId:e.sourceId,createdAt:nowIso(now),status:'PENDING',checks:[],notes:[]};state.records.push(r);added.push(r);addAudit(state,'REGISTERED',r,{name:e.name},now);}
-   Object.assign(r,{name:e.name,levelId:e.levelId??null,levelName:e.levelName??null,systemName:e.systemName||'',trackId:e.trackId||null,present:true});
+   if(!r){r={registryId:nextId(state,e.type),identityKey:key,type:e.type,sourceId:e.sourceId,createdAt:nowIso(now),status:'PENDING',checks:[],notes:[]};state.records.push(r);added.push(r);addAudit(state,'REGISTERED',r,{name:e.name},now);changed=true;}
+   const fields={name:e.name,levelId:e.levelId??null,levelName:e.levelName??null,systemName:e.systemName||'',trackId:e.trackId||null,present:true};
+   if(Object.entries(fields).some(([key,value])=>r[key]!==value)){Object.assign(r,fields);changed=true;}
   }
-  state.records.forEach(r=>{if(!seen.has(r.identityKey)&&r.present!==false){r.present=false;addAudit(state,'SOURCE_REMOVED',r,{},now);}});
-  state.updatedAt=nowIso(now);return added;
+  state.records.forEach(r=>{if(!seen.has(r.identityKey)&&r.present!==false){r.present=false;addAudit(state,'SOURCE_REMOVED',r,{},now);changed=true;}});
+  if(changed)state.updatedAt=nowIso(now);return added;
  }
  function updateValidation(state,config,physicalCore,now) {
   const snapshot=physicalCore?physicalCore.inspect(config):{entries:[]};
-  const byKey=new Map(snapshot.entries.map(e=>[e.type+':'+e.id,e]));
+  const byKey=new Map(snapshot.entries.map(e=>[e.type+':'+e.id,e]));let changed=false;
   for(const r of state.records) {
    const e=byKey.get(r.identityKey);if(!e)continue;
-   const previous=r.status;
-   r.status=e.status;r.failureReason=e.failureReason||'';
-   r.validation={missing:[...(e.missing||[])],missingSoftware:[...(e.missingSoftware||[])],missingPhysical:[...(e.missingPhysical||[])],checks:(e.checks||[]).map(c=>({id:c.id,kind:c.kind,checked:c.checked}))};
-   r.reviewedAt=nowIso(now);
-   if(previous!==r.status)addAudit(state,'STATUS_CHANGED',r,{from:previous,to:r.status},now);
+   const previous=r.status,validation={missing:[...(e.missing||[])],missingSoftware:[...(e.missingSoftware||[])],missingPhysical:[...(e.missingPhysical||[])],checks:(e.checks||[]).map(c=>({id:c.id,kind:c.kind,checked:c.checked}))};
+   const nextStatus=e.status,nextFailure=e.failureReason||'';
+   const validationChanged=JSON.stringify(r.validation||null)!==JSON.stringify(validation);
+   if(previous!==nextStatus||r.failureReason!==nextFailure||validationChanged){
+    r.status=nextStatus;r.failureReason=nextFailure;r.validation=validation;r.reviewedAt=nowIso(now);changed=true;
+    if(previous!==r.status)addAudit(state,'STATUS_CHANGED',r,{from:previous,to:r.status},now);
+   }
   }
-  state.updatedAt=nowIso(now);return state;
+  if(changed)state.updatedAt=nowIso(now);return state;
  }
  function appendNote(state,registryId,note,author='operator',now) {
   const r=state.records.find(x=>x.registryId===registryId);if(!r)return{ok:false,error:'Identificador VMR inexistent.'};
