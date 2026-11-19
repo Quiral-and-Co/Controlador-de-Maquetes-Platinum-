@@ -3,7 +3,7 @@ name: Windows 11 NSIS installer
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'feature/**', 'branding/**']
+    branches: [main, 'feature/**', 'branding/**', 'release/**']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -18,7 +18,7 @@ on:
       - '**.cjs'
       - 'tests/**'
   pull_request:
-    branches: [main, 'feature/**']
+    branches: [main, 'feature/**', 'release/**']
     paths:
       - 'package.json'
       - 'package-lock.json'
