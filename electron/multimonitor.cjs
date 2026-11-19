@@ -53,6 +53,8 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const statePath = path.join(app.getPath('userData'), 'native-window-layout.json');
   let saved = {};
   let state = null;
+  let stateRevision = 0;
+  let persistQueue = Promise.resolve();
   const layoutReady = fs.readFile(statePath, 'utf8').then(content => {
     const parsed = JSON.parse(content);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed;
@@ -64,23 +66,30 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const broadcast = (channel, payload) => allWindows().forEach(win => {
     if (!win.webContents.isDestroyed()) win.webContents.send(channel, payload);
   });
-  const persist = async () => {
-    await layoutReady;
-    const layout = {};
-    const main = getMainWindow();
-    if (main && !main.isDestroyed()) {
-      const bounds = main.getBounds();
-      const display = screen.getDisplayMatching ? screen.getDisplayMatching(bounds) : screen.getPrimaryDisplay();
-      layout[MAIN_WINDOW_KEY] = { bounds, displayId: main.__displayId || String(display.id), type: 'main' };
-    }
-    for (const [id, win] of windows) {
-      if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
-    }
-    saved = { ...saved, ...layout };
-    await fs.mkdir(path.dirname(statePath), { recursive: true });
-    const temp = statePath + '.tmp';
-    await fs.writeFile(temp, JSON.stringify(saved, null, 2), 'utf8');
-    await fs.rename(temp, statePath);
+  const persist = () => {
+    const operation = persistQueue.then(async () => {
+      await layoutReady;
+      const layout = {};
+      const main = getMainWindow();
+      if (main && !main.isDestroyed()) {
+        const bounds = main.getBounds();
+        const display = screen.getDisplayMatching ? screen.getDisplayMatching(bounds) : screen.getPrimaryDisplay();
+        layout[MAIN_WINDOW_KEY] = { bounds, displayId: main.__displayId || String(display.id), type: 'main' };
+      }
+      for (const [id, win] of windows) {
+        if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
+      }
+      const nextSaved = { ...saved, ...layout };
+      await fs.mkdir(path.dirname(statePath), { recursive: true });
+      const temp = statePath + '.' + randomUUID() + '.tmp';
+      await fs.writeFile(temp, JSON.stringify(nextSaved, null, 2), { encoding: 'utf8', flag: 'wx' });
+      await fs.rename(temp, statePath);
+      saved = nextSaved;
+    });
+    persistQueue = operation.catch(error => {
+      console.error('[Finestres natives] No s’ha pogut desar la disposició:', error);
+    });
+    return operation;
   };
   const safePersist = () => { persist().catch(error => console.error('[Finestres natives] No s’ha pogut desar la disposició:', error)); };
   const mainAtInstall = getMainWindow();
@@ -205,21 +214,33 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     windows.forEach(win => { if (!win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); } });
     return windows.size;
   });
+  const authorizedWindowId = sender => {
+    if (sender === getMainWindow()) return 'main';
+    for (const [id, win] of windows) if (win === sender) return id;
+    return null;
+  };
   ipcMain.handle('native-window:get-state', event => {
     const sender = BrowserWindow.fromWebContents(event.sender);
     if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
-    return state;
+    return { state, revision: stateRevision };
   });
   ipcMain.handle('native-window:publish-state', (event, payload) => {
     const sender = BrowserWindow.fromWebContents(event.sender);
-    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    const senderId = sender && authorizedWindowId(sender);
+    if (!sender || !senderId) throw new Error('Emissor de finestra no autoritzat.');
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('L’estat compartit ha de ser un objecte JSON.');
+    if (payload.sourceId !== senderId) throw new Error('La finestra no pot publicar en nom d’un altre emissor.');
+    if (!Number.isSafeInteger(payload.baseRevision) || payload.baseRevision < 0) throw new TypeError('Falta una revisió base vàlida de l’estat compartit.');
     const serialized = JSON.stringify(payload);
     if (typeof serialized !== 'string') throw new TypeError('L’estat compartit no és serialitzable.');
     if (Buffer.byteLength(serialized, 'utf8') > MAX_STATE_BYTES) throw new Error('L’estat compartit supera els 2 MB.');
-    state = payload;
-    broadcast('workspace:state', payload);
-    return true;
+    if (payload.baseRevision !== stateRevision) {
+      return { ok: false, conflict: true, revision: stateRevision, state };
+    }
+    stateRevision += 1;
+    state = { ...payload, revision: stateRevision };
+    broadcast('workspace:state', state);
+    return { ok: true, revision: stateRevision };
   });
 
   screen.on('display-removed', () => {
