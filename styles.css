@@ -374,3 +374,59 @@ body.mode-modern .ribbon-group > div {
 body.mode-modern .ribbon-group button.ribbon-icon-button {
   flex: 0 0 42px;
 }
+
+/* Final scroll ownership contract for the modern floating desktop.
+   The workspace is only a viewport/canvas: it must never become a second
+   vertical scroll container. Each floating panel owns exactly one scroller. */
+body.mode-modern .desktop-workspace {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+body.mode-modern .desktop-window-content {
+  min-height: 0;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+body.mode-modern .desktop-window-content > .editor-sidebar,
+body.mode-modern .desktop-window-content > .properties-panel {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+body.mode-modern .desktop-window-content > .track-area {
+  min-height: 0;
+  overflow: hidden !important;
+}
+body.mode-modern .desktop-window-content > .track-area .canvas-wrap {
+  min-height: 0;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+body.mode-modern .desktop-window-content > :not(.editor-sidebar):not(.properties-panel):not(.track-area) {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+/* Keep this invariant on narrow windows too: no document-level scroll bar. */
+html:has(body.mode-modern),
+body.mode-modern {
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+body.mode-modern main {
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+body.mode-modern .desktop-workspace {
+  flex: 1 1 auto;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
