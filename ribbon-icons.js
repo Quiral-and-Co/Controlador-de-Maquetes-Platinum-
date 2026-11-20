@@ -37,7 +37,8 @@
     traffic: ['#2878d0','M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 4h12v6H6zm2 12-2 3m10-3 2 3'],
     calendar: ['#b47b32','M4 5h16v16H4zM8 3v4m8-4v4M4 9h16M8 13h3m2 0h3m-8 4h3'],
     operation: ['#8b67c7','M4 5h6v6H4zM14 13h6v6h-6zM10 8h4v8m-2-2 2 2 2-2'],
-    health: ['#c05b76','M3 12h4l2-5 4 10 2-5h6']
+    health: ['#c05b76','M3 12h4l2-5 4 10 2-5h6'],
+    default: ['#64748b','M4 4h16v16H4zM8 8h8v8H8z']
   };
   const windowCommandIcons = {
     windowShowAll: 'eye',
