@@ -33,12 +33,14 @@ function samePersistedFields(actual, expected, label) {
   const port = server.address().port;
   let browser;
   let context;
+  const browserErrors = [];
+  const monitorPage = page => page.on('pageerror', error => browserErrors.push(error.stack || error.message));
   try {
     // A regular isolated context surfaces Blob downloads reliably in headless CI.
     browser = await chromium.launch({ headless:true, args:['--no-sandbox'] });
     context = await browser.newContext({ acceptDownloads:true });
     let page = await context.newPage();
-    page.on('pageerror', error => console.error('Browser page error:', error.stack || error.message));
+    monitorPage(page);
     page.on('console', message => { if (message.type() === 'error') console.error('Browser console error:', message.text()); });
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
@@ -191,11 +193,13 @@ function samePersistedFields(actual, expected, label) {
     await context.close();
     context = await browser.newContext();
     page = await context.newPage();
+    monitorPage(page);
     await page.goto('http://127.0.0.1:' + port + '/index.html');
     await page.waitForFunction(() => window.JMRI_TC_DISPATCHER && window.JMRI_TC_VALIDATION_MASTER_REGISTRY_UI);
     const afterRestart = await importProject(exportedProject, 'project-A-after-browser-restart.json');
     samePersistedFields(afterRestart, exportedA, 'project A after browser restart and import');
 
+    assert.deepEqual(browserErrors, [], 'Uncaught browser page errors must fail CI:\n' + browserErrors.join('\n'));
     console.log('PASS: Chromium UI project isolation, project JSON download/import, browser close/reopen, VMR IDs/status/notes/audit persistence, and unique consecutive validation acts');
   } finally {
     if (context) await context.close().catch(() => {});
