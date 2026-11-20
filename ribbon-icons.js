@@ -20,9 +20,45 @@
     paste: ['#c18a36','M9 4h6l1 2h3v15H5V6h3zm0 0a3 3 0 0 1 6 0'],
     route: ['#279b88','M5 5h.01M19 19h.01M5 5c0 8 14 3 14 14M5 5l3 3m11 11-3-3'],
     measure: ['#ba803c','M3 17 17 3l4 4L7 21H3zm5-1 2 2m1-5 2 2m1-5 2 2'],
-    default: ['#647b96','M5 5h14v14H5zM9 9h6v6H9z']
+    eye: ['#238bba','M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6zm9.5-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
+    minimize: ['#64748b','M4 12h16'],
+    cascade: ['#9a6ac7','M5 5h12v12H5zM8 8h12v12H8'],
+    grid: ['#269b78','M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z'],
+    columns: ['#2b83b8','M4 4h7v16H4zM13 4h7v16h-7zM7.5 7v10m9-10v10'],
+    columnsWide: ['#3977a8','M3 4h5v16H3zM9.5 4h5v16h-5zM16 4h5v16h-5z'],
+    dockLeft: ['#2878d0','M4 3h16v18H4zM9 3v18M12 8h5m-5 4h5m-5 4h5'],
+    dockRight: ['#2878d0','M4 3h16v18H4zM15 3v18M7 8h5M7 12h5m-5 4h5'],
+    dockTop: ['#269b78','M4 4h16v16H4zM4 9h16M8 6.5h8'],
+    dockBottom: ['#269b78','M4 4h16v16H4zM4 15h16M8 18h8'],
+    restore: ['#b47b32','M5 8V4h15v12h-4M4 12h12v8H4zM7 16h6'],
+    editor: ['#2b83b8','M3 4h8v7H3zM13 4h8v4h-8zM13 10h8v10h-8zM3 13h8v7H3z'],
+    dispatcher: ['#268b62','M3 18h18M5 15V8l7-4 7 4v7M8 15v-3h8v3M10 8h4'],
+    traffic: ['#2878d0','M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 4h12v6H6zm2 12-2 3m10-3 2 3'],
+    calendar: ['#b47b32','M4 5h16v16H4zM8 3v4m8-4v4M4 9h16M8 13h3m2 0h3m-8 4h3'],
+    operation: ['#8b67c7','M4 5h6v6H4zM14 13h6v6h-6zM10 8h4v8m-2-2 2 2 2-2'],
+    health: ['#c05b76','M3 12h4l2-5 4 10 2-5h6']
+  };
+  const windowCommandIcons = {
+    windowShowAll: 'eye',
+    windowMinimizeAll: 'minimize',
+    windowCascade: 'cascade',
+    windowTile: 'grid',
+    windowTileTwoColumns: 'columns',
+    windowTileColumns: 'columnsWide',
+    windowDockLeft: 'dockLeft',
+    windowDockRight: 'dockRight',
+    windowDockTop: 'dockTop',
+    windowDockBottom: 'dockBottom',
+    windowRestoreLayout: 'restore',
+    windowShowEditor: 'editor',
+    windowShowDispatcher: 'dispatcher',
+    windowShowTraffic: 'traffic',
+    windowShowSchedules: 'calendar',
+    windowShowOperation: 'operation',
+    windowShowMetgeQuiral: 'health'
   };
   const commandIcon = command => {
+    if (windowCommandIcons[command]) return windowCommandIcons[command];
     if (/^(new|open|save|saveAs)$/.test(command)) return command === 'new' ? 'folder' : command === 'open' ? 'folder' : 'save';
     if (/undo|redo|cut|copy|paste|delete/.test(command)) return /undo|redo/.test(command) ? 'edit' : command;
     if (/connect|disconnect/.test(command)) return 'connect';
