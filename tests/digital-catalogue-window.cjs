@@ -15,6 +15,7 @@ assert.match(manager, /digital-catalogue/, 'La base de dades digital ha de tenir
 assert.match(manager, /function bringToFront\(win\)/, 'en activar una finestra ha de passar per davant de les altres');
 assert.doesNotMatch(styles, /body\.mode-modern \.desktop-window\s*\{[^}]*z-index\s*:\s*auto\s*!important/i, 'El CSS no pot anul·lar la prioritat de les finestres');
 assert.match(digitalUi, /JMRI_TC_DESKTOP\?\.registerPanel/, 'La UI digital ha de registrar-se al gestor de finestres');
+assert.match(digitalUi, /\.digital-list\{overflow:visible\}/, 'Les taules del catàleg no poden crear un segon scroll vertical');
 
 assert.match(manager, /18 \+ offset \* 24/, 'Els panells no poden quedar aparcats sota la zona visible');
 assert.doesNotMatch(manager, /680 \+ Math\.floor\(index \/ 2\) \* 540/, 'No s’han de crear panells a centenars de píxels sota la vista');
