@@ -25,10 +25,19 @@ const WINDOW_TYPES = Object.freeze({
   spielewelt: 'Món de Jocs',
   signalling: 'Senyalització',
   validation: 'Validació i seguretat',
-  diagnostics: 'Metge Quiral'
+  diagnostics: 'Metge Quiral',
+  desktopPanel: 'Panell desacoblat'
 });
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
 const DEFAULT_BOUNDS = Object.freeze({ width: 1100, height: 760 });
+const MAIN_WINDOW_KEY = '__main__';
+
+function setAlwaysOnTop(sender, enabled) {
+  if (!sender || sender.isDestroyed?.()) throw new Error('La finestra activa no està disponible.');
+  const next = typeof enabled === 'boolean' ? enabled : !sender.isAlwaysOnTop();
+  sender.setAlwaysOnTop(next);
+  return sender.isAlwaysOnTop();
+}
 
 function clampBounds(bounds, display) {
   const area = display.workArea || display.bounds;
@@ -44,6 +53,8 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const statePath = path.join(app.getPath('userData'), 'native-window-layout.json');
   let saved = {};
   let state = null;
+  let stateRevision = 0;
+  let persistQueue = Promise.resolve();
   const layoutReady = fs.readFile(statePath, 'utf8').then(content => {
     const parsed = JSON.parse(content);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed;
@@ -55,25 +66,64 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
   const broadcast = (channel, payload) => allWindows().forEach(win => {
     if (!win.webContents.isDestroyed()) win.webContents.send(channel, payload);
   });
-  const persist = async () => {
-    const layout = {};
-    for (const [id, win] of windows) {
-      if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
-    }
-    saved = { ...saved, ...layout };
-    await fs.mkdir(path.dirname(statePath), { recursive: true });
-    const temp = statePath + '.tmp';
-    await fs.writeFile(temp, JSON.stringify(saved, null, 2), 'utf8');
-    await fs.rename(temp, statePath);
+  const persist = () => {
+    const operation = persistQueue.then(async () => {
+      await layoutReady;
+      const layout = {};
+      const main = getMainWindow();
+      if (main && !main.isDestroyed()) {
+        const bounds = main.getBounds();
+        const display = screen.getDisplayMatching ? screen.getDisplayMatching(bounds) : screen.getPrimaryDisplay();
+        layout[MAIN_WINDOW_KEY] = { bounds, displayId: main.__displayId || String(display.id), type: 'main' };
+      }
+      for (const [id, win] of windows) {
+        if (!win.isDestroyed()) layout[id] = { bounds: win.getBounds(), displayId: win.__displayId, type: win.__windowType };
+      }
+      const nextSaved = { ...saved, ...layout };
+      await fs.mkdir(path.dirname(statePath), { recursive: true });
+      const temp = statePath + '.' + randomUUID() + '.tmp';
+      await fs.writeFile(temp, JSON.stringify(nextSaved, null, 2), { encoding: 'utf8', flag: 'wx' });
+      await fs.rename(temp, statePath);
+      saved = nextSaved;
+    });
+    persistQueue = operation.catch(error => {
+      console.error('[Finestres natives] No s’ha pogut desar la disposició:', error);
+    });
+    return operation;
   };
   const safePersist = () => { persist().catch(error => console.error('[Finestres natives] No s’ha pogut desar la disposició:', error)); };
+  const mainAtInstall = getMainWindow();
+  if (mainAtInstall) {
+    const initialDisplay = screen.getDisplayMatching ? screen.getDisplayMatching(mainAtInstall.getBounds()) : screen.getPrimaryDisplay();
+    mainAtInstall.__displayId = String(initialDisplay.id);
+    const trackMainBounds = () => {
+      const matching = screen.getDisplayMatching ? screen.getDisplayMatching(mainAtInstall.getBounds()) : screen.getPrimaryDisplay();
+      mainAtInstall.__displayId = String(matching.id);
+      safePersist();
+    };
+    mainAtInstall.on('move', trackMainBounds);
+    mainAtInstall.on('resize', trackMainBounds);
+  }
+
+  async function restoreMainWindow() {
+    await layoutReady;
+    const main = getMainWindow();
+    const mainState = saved[MAIN_WINDOW_KEY];
+    if (!main || main.isDestroyed() || !mainState?.bounds) return false;
+    const target = displayFor(mainState.displayId);
+    main.setBounds(clampBounds(mainState.bounds, target));
+    main.__displayId = String(target.id);
+    return true;
+  }
 
   async function openWindow(options = {}) {
     await layoutReady;
     const type = typeof options.type === 'string' ? options.type : '';
     if (!Object.hasOwn(WINDOW_TYPES, type)) throw new TypeError('Tipus de finestra no permès.');
+    const panelKey = type === 'desktopPanel' ? String(options.panelKey || '') : '';
+    if (type === 'desktopPanel' && !/^[a-z0-9_-]{1,80}$/.test(panelKey)) throw new TypeError('Identificador de panell no vàlid.');
     const duplicate = options.duplicate === true;
-    const id = duplicate ? `${type}-${randomUUID()}` : type;
+    const id = type === 'desktopPanel' ? `desktop-panel-${panelKey}` : duplicate ? `${type}-${randomUUID()}` : type;
     const existing = windows.get(id);
     if (existing && !existing.isDestroyed()) {
       if (existing.isMinimized()) existing.restore();
@@ -88,8 +138,16 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     const bounds = clampBounds(candidate, target);
     const win = new BrowserWindow({
       ...bounds,
+      minWidth: 640,
+      minHeight: 480,
       show: false,
-      title: WINDOW_TYPES[type],
+      autoHideMenuBar: true,
+      frame: true,
+      resizable: true,
+      minimizable: true,
+      maximizable: true,
+      fullscreenable: true,
+      title: type === 'desktopPanel' && typeof options.title === 'string' ? options.title.slice(0, 80) || WINDOW_TYPES[type] : WINDOW_TYPES[type],
       backgroundColor: '#101b28',
       webPreferences: {
         contextIsolation: true,
@@ -104,15 +162,26 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     win.once('ready-to-show', () => { if (!win.isDestroyed()) win.show(); });
     win.on('move', safePersist);
     win.on('resize', safePersist);
-    win.on('closed', () => { windows.delete(id); safePersist(); });
+    win.on('closed', () => { windows.delete(id); broadcast('workspace:window-closed', { id, type, panelKey }); safePersist(); });
     const url = new URL(`http://127.0.0.1:${getPort()}/`);
     url.searchParams.set('nativeWindow', type);
     url.searchParams.set('nativeWindowId', id);
+    if (type === 'desktopPanel') url.searchParams.set('nativePanel', panelKey);
     await win.loadURL(url.toString());
     broadcast('workspace:window-opened', { id, type, title: WINDOW_TYPES[type], displayId: String(target.id) });
     return { id, reused: false, displayId: String(target.id) };
   }
 
+  ipcMain.handle('native-window:toggle-always-on-top', (event, enabled) => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return setAlwaysOnTop(sender, enabled);
+  });
+  ipcMain.handle('native-window:is-always-on-top', event => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return sender.isAlwaysOnTop();
+  });
   ipcMain.handle('native-window:list', () => [...windows.entries()].filter(([, win]) => !win.isDestroyed()).map(([id, win]) => ({
     id, type: win.__windowType, title: WINDOW_TYPES[win.__windowType], bounds: win.getBounds(),
     displayId: win.__displayId, visible: win.isVisible()
@@ -145,21 +214,47 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
     windows.forEach(win => { if (!win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); } });
     return windows.size;
   });
-  ipcMain.handle('native-window:publish-state', (event, payload) => {
+  const authorizedWindowId = sender => {
+    if (sender === getMainWindow()) return 'main';
+    for (const [id, win] of windows) if (win === sender) return id;
+    return null;
+  };
+  ipcMain.handle('native-window:get-state', event => {
     const sender = BrowserWindow.fromWebContents(event.sender);
     if (!sender || !allWindows().includes(sender)) throw new Error('Emissor de finestra no autoritzat.');
+    return { state, revision: stateRevision };
+  });
+  ipcMain.handle('native-window:publish-state', (event, payload) => {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+    const senderId = sender && authorizedWindowId(sender);
+    if (!sender || !senderId) throw new Error('Emissor de finestra no autoritzat.');
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('L’estat compartit ha de ser un objecte JSON.');
+    if (payload.sourceId !== senderId) throw new Error('La finestra no pot publicar en nom d’un altre emissor.');
+    if (!Number.isSafeInteger(payload.baseRevision) || payload.baseRevision < 0) throw new TypeError('Falta una revisió base vàlida de l’estat compartit.');
     const serialized = JSON.stringify(payload);
     if (typeof serialized !== 'string') throw new TypeError('L’estat compartit no és serialitzable.');
     if (Buffer.byteLength(serialized, 'utf8') > MAX_STATE_BYTES) throw new Error('L’estat compartit supera els 2 MB.');
-    state = payload;
-    broadcast('workspace:state', payload);
-    return true;
+    if (payload.baseRevision !== stateRevision) {
+      return { ok: false, conflict: true, revision: stateRevision, state };
+    }
+    stateRevision += 1;
+    state = { ...payload, revision: stateRevision };
+    broadcast('workspace:state', state);
+    return { ok: true, revision: stateRevision };
   });
 
   screen.on('display-removed', () => {
     const available = displays();
     if (!available.length) return;
+    const main = getMainWindow();
+    if (main && !main.isDestroyed()) {
+      const mainBounds = main.getBounds();
+      if (!available.some(display => String(display.id) === String(main.__displayId))) {
+        const target = screen.getPrimaryDisplay();
+        main.setBounds(clampBounds(mainBounds, target));
+        main.__displayId = String(target.id);
+      }
+    }
     for (const win of windows.values()) {
       if (win.isDestroyed()) continue;
       if (!available.some(display => String(display.id) === win.__displayId)) {
@@ -177,9 +272,11 @@ function installMultiMonitor({ app, BrowserWindow, screen, ipcMain, getMainWindo
 
   return Object.freeze({
     openWindow,
+    restoreMainWindow,
+    persist,
     getState: () => state,
     getWindowTypes: () => ({ ...WINDOW_TYPES })
   });
 }
 
-module.exports = { installMultiMonitor, clampBounds, WINDOW_TYPES };
+module.exports = { installMultiMonitor, clampBounds, setAlwaysOnTop, WINDOW_TYPES };

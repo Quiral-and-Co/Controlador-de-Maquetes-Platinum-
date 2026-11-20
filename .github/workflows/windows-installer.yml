@@ -3,7 +3,7 @@ name: Windows 11 NSIS installer
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'feature/**', 'branding/**']
+    branches: [main, 'feature/**', 'branding/**', 'release/**']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -17,21 +17,9 @@ on:
       - '**.css'
       - '**.cjs'
       - 'tests/**'
+  # Validate every PR regardless of its target branch or changed-file filter.
+  # This prevents release/maintenance PRs from silently skipping the Windows gate.
   pull_request:
-    branches: [main, 'feature/**']
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'README.md'
-      - 'docs/**'
-      - 'traffic-bridge.js'
-      - 'electron/**'
-      - '.github/workflows/windows-installer.yml'
-      - '**.js'
-      - '**.html'
-      - '**.css'
-      - '**.cjs'
-      - 'tests/**'
 
 permissions:
   contents: read
@@ -81,8 +69,8 @@ jobs:
             throw 'The NSIS installer is empty.'
           }
           $cataloniaTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'Romance Standard Time')
-          $timestamp = $cataloniaTime.ToString('HHmmss-ddMMyyyy', [Globalization.CultureInfo]::InvariantCulture)
-          $timestampedName = [System.IO.Path]::GetFileNameWithoutExtension($installer.Name) + "-$timestamp" + $installer.Extension
+          $timestamp = $cataloniaTime.ToString('HHmmddMMyy', [Globalization.CultureInfo]::InvariantCulture)
+          $timestampedName = "CMBYQC$timestamp.EXE"
           $timestampedPath = Join-Path $installer.DirectoryName $timestampedName
           if (Test-Path -LiteralPath $timestampedPath) {
             throw "Timestamped installer already exists: $timestampedName"

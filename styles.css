@@ -111,11 +111,14 @@ body.mode-modern .desktop-commandbar{position:relative;z-index:auto;display:flex
 .desktop-window-controls{display:flex;gap:4px}
 .desktop-window-controls button{width:27px;height:24px;min-width:27px;padding:0;line-height:1;border:1px solid #c0c9d4;border-radius:3px;background:#f8fafc;color:#283747}
 .desktop-window-controls button:last-child:hover{background:#fce7e7;border-color:#d68a8a}
-.desktop-window-content{min-height:0;flex:1;overflow:auto;padding:8px;background:#fdfefe}
-.desktop-window-content>.editor-sidebar,.desktop-window-content>.track-area,.desktop-window-content>.properties-panel{width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
-.desktop-window-content>.track-area{display:flex;flex-direction:column}
-.desktop-window-content>.track-area .canvas-wrap{flex:1;min-height:260px}
-.desktop-window-content>.track-area #trackSvg{width:100%;height:100%;min-height:260px}
+.desktop-window-content{box-sizing:border-box;min-width:0;min-height:0;flex:1;overflow:hidden;padding:8px;background:#fdfefe}
+.desktop-window-resize{position:absolute;right:2px;bottom:2px;z-index:3;width:20px;height:20px;min-width:20px;padding:0!important;border:0!important;border-radius:0 0 5px 0!important;background:linear-gradient(135deg,transparent 48%,#8a9aab 49%,#8a9aab 55%,transparent 56%,transparent 67%,#8a9aab 68%,#8a9aab 74%,transparent 75%)!important;color:transparent!important;cursor:nwse-resize!important;touch-action:none}
+.desktop-window.is-maximized .desktop-window-resize,.desktop-window.is-docked .desktop-window-resize{display:none}
+.desktop-window-content>.editor-sidebar,.desktop-window-content>.properties-panel{box-sizing:border-box;width:100%;height:100%;min-height:0;max-height:none;overflow:auto;margin:0}
+.desktop-window-content>.track-area{box-sizing:border-box;display:flex;flex:1 1 auto;flex-direction:column;width:100%;height:100%;min-width:0;min-height:0;max-height:none;overflow:hidden;margin:0}
+.desktop-window-content>.track-area .section-heading,.desktop-window-content>.track-area .viewport-toolbar,.desktop-window-content>.track-area .canvas-status{flex:0 0 auto}
+.desktop-window-content>.track-area .canvas-wrap{box-sizing:border-box;flex:1 1 auto;width:100%;height:auto;min-width:0;min-height:0;overflow:auto}
+.desktop-window-content>.track-area #trackSvg{display:block;width:100%;height:100%;min-width:620px;min-height:260px}
 .desktop-taskbar{position:relative;z-index:auto;display:flex;gap:6px;align-items:center;min-height:42px;padding:6px;margin-top:8px;background:#e4eaf2;border:1px solid #b9c4d1;border-radius:6px;overflow-x:auto}
 .desktop-task{flex:0 0 auto;max-width:220px;padding:7px 11px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .desktop-task.is-open{background:#d6e8fb!important;border-color:#438acb!important}
@@ -183,7 +186,6 @@ body.mode-modern .desktop-taskbar{position:relative;z-index:0;isolation:isolate}
 /* La cinta ha de romandre sempre per damunt de les finestres flotants, també després de cascada. */
 body.mode-modern .modern-ribbon{position:sticky!important;top:72px!important;z-index:2147483000!important;isolation:isolate!important;}
 body.mode-modern .desktop-workspace{position:relative!important;z-index:0!important;isolation:isolate!important;}
-body.mode-modern .desktop-window{z-index:auto!important;}
 \n
 /* Cinta moderna: icones SVG multicolor i noms accessibles en passar-hi el punter. */
 body.mode-modern .ribbon-group button.ribbon-icon-button{width:58px;min-width:58px;height:58px;min-height:58px;padding:5px 4px!important;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid #d5dce5;border-radius:7px;box-shadow:0 1px 2px #172b4010;position:relative}
@@ -248,7 +250,11 @@ body[data-ui-theme="windows-dark"] .workspace-pref-grid section,body[data-ui-the
 body[data-ui-theme="windows-dark"] .workspace-pref-field,body[data-ui-theme="graphite"] .workspace-pref-field{border-color:#43576b}
 @media(max-width:680px){.workspace-pref-grid{grid-template-columns:1fr}.workspace-preferences-dialog form>header,.workspace-preferences-dialog form>footer{align-items:flex-start;flex-wrap:wrap}}
 .desktop-window.auto-hide-window{transition:transform .18s ease,opacity .18s ease}
-.desktop-window.auto-hide-window:not(:hover):not(:focus-within){opacity:.18;transform:translateX(-92%);pointer-events:auto}
+.desktop-window.auto-hide-window:not(:hover){opacity:.18;transform:translateX(-92%);pointer-events:none}
+/* A narrow, interactive reveal strip keeps collapsed panels discoverable without letting
+   their full invisible content layer intercept clicks intended for other windows. */
+.desktop-window.auto-hide-window:not(:hover)::after{content:"";position:absolute;top:0;bottom:0;right:0;width:18px;pointer-events:auto}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover)::after{right:auto;left:0}
 body.mode-modern .desktop-window.is-floating{box-shadow:0 14px 36px #15283c55;border:1px solid #6d91b6}
 .dmi-gauge{background:var(--dmi-panel-bg,#101b29);border-radius:10px;cursor:default}
 body.dmi-touch-gauge .dmi-gauge{cursor:crosshair}
@@ -281,7 +287,7 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .dispatcher-block.hide-dispatcher-status .dispatcher-state{display:none}
 .dispatcher-reservation{color:var(--reserved-route-color,#cce5ff)}
 .dmi-functions{grid-template-columns:repeat(auto-fit,minmax(var(--dmi-function-button-size,42px),1fr))}
-.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover):not(:focus-within){transform:translateX(92%)}
+.desktop-window.auto-hide-window[data-autohide-side="right"]:not(:hover){transform:translateX(92%)}
 
 /* Selector de mode compacte amb icones i etiquetes accessibles. */
 .top-actions{gap:6px}
@@ -292,3 +298,135 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .mode-btn.mode-icon-btn:hover::after,.mode-btn.mode-icon-btn:focus-visible::after{opacity:1;visibility:visible}
 .mode-btn.mode-icon-btn:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
 @media(max-width:600px){.top-actions{gap:4px}.mode-btn.mode-icon-btn{width:30px;min-width:30px;height:30px;min-height:30px}}
+
+
+/* A detached modern workspace panel fills its own native Windows BrowserWindow. */
+body.native-panel-window{overflow:auto!important;background:#101b28}
+.native-panel-window main{display:block!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:100vh!important;margin:0!important;padding:12px!important;overflow:auto!important}
+.native-panel-window .native-panel-root{display:block!important;position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:auto!important;min-height:calc(100vh - 24px)!important;max-height:none!important;margin:0!important;overflow:auto!important}
+.native-panel-window .editor-shell{display:block!important;width:100%!important;height:100%!important;min-height:0!important}
+.native-panel-window .editor-sidebar.native-panel-root,.native-panel-window .properties-panel.native-panel-root{width:100%!important;max-width:none!important}
+.native-panel-window .track-area.native-panel-root{display:flex!important;flex-direction:column!important;min-height:calc(100vh - 24px)!important}
+
+html[data-native-panel-loading='true'] body{visibility:hidden!important}
+.native-panel-window .topbar{display:none!important}
+
+/* Modes de treball independents: edició i explotació. */
+.workflow-mode-btn{display:inline-flex;align-items:center;gap:5px}
+.workflow-mode-btn svg{width:19px;height:19px;flex:0 0 19px}
+body .workflow-mode-btn.active,body.mode-modern .workflow-mode-btn.active{background:#23864b!important;border-color:#176b39!important;color:#fff!important;box-shadow:inset 0 0 0 1px #ffffff25,0 1px 3px #0002}
+.workflow-mode-btn:not(.active){background:transparent}
+body:not(.workflow-editing) .editor-sidebar input:not([type=search]),body:not(.workflow-editing) .editor-sidebar select,body:not(.workflow-editing) .editor-sidebar textarea,body:not(.workflow-editing) .properties-panel input,body:not(.workflow-editing) .properties-panel select,body:not(.workflow-editing) .properties-panel textarea{opacity:.68}
+body:not(.workflow-editing) .track-port{pointer-events:none;opacity:.38}
+body.workflow-operation .workflow-mode-btn[aria-pressed=true]{outline:1px solid #176b39}
+
+/* Adaptable content scrolling for the whole workspace and detached panels. */
+html,body{min-height:100%;height:auto;overflow-x:hidden;overflow-y:auto}
+body{overscroll-behavior-y:contain}
+body.mode-modern main{min-height:0;height:auto;overflow:visible}
+body.mode-modern .desktop-workspace{height:auto;min-height:480px;max-height:none;overflow:auto}
+body.mode-modern .desktop-window-content{min-height:0;overflow:auto;overscroll-behavior:contain}
+body.mode-modern .desktop-commandbar,body.mode-modern .ribbon-tabs,body.mode-modern .ribbon-page{overscroll-behavior:contain}
+body.native-panel-window,body.native-panel-window main,body.native-panel-window .native-panel-root{height:auto;min-height:100%;max-height:none;overflow:auto}
+.top-actions{display:flex;align-items:center;gap:7px;min-width:0}
+.top-actions .workflow-mode-btn{flex:0 0 auto}
+.top-actions #connectionBadge{order:3}
+.top-actions #modeClassic,.top-actions #modeModern{order:4}
+@media(max-width:720px){.topbar{align-items:flex-start;flex-wrap:wrap}.top-actions{flex-wrap:wrap;justify-content:flex-start}}
+
+
+/* Modern desktop: keep the application inside the viewport.
+   Scrolling belongs to each panel, not to the document behind the windows. */
+html:has(body.mode-modern),body.mode-modern{height:100%;min-height:0;overflow:hidden}
+body.mode-modern{height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+body.mode-modern main{flex:1 1 auto;min-height:0;height:auto;max-height:none;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box}
+body.mode-modern .desktop-workspace{flex:1 1 auto;height:auto;min-height:220px;max-height:none;overflow:auto;overscroll-behavior:contain}
+body.mode-modern .desktop-window-content{min-height:0;overflow:auto;overscroll-behavior:contain}
+body.mode-modern .desktop-taskbar{flex:0 0 auto}
+@media(max-width:760px){
+  html:has(body.mode-modern),body.mode-modern{height:auto;min-height:100%;overflow-y:auto}
+  body.mode-modern{height:auto;min-height:100dvh}
+  body.mode-modern main{height:auto;min-height:0;overflow:visible}
+  body.mode-modern .desktop-workspace{flex:0 0 auto;height:calc(100dvh - 300px);min-height:300px;overflow:auto}
+}
+
+
+/* Evita que els grups de la cinta es comprimeixin i se superposin.
+   Cada grup conserva l'amplada real dels seus botons; la pàgina gestiona
+   l'excés d'amplada amb desplaçament horitzontal. */
+body.mode-modern .ribbon-page {
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+body.mode-modern .ribbon-group {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+}
+body.mode-modern .ribbon-group > div {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
+  flex-wrap: nowrap;
+}
+body.mode-modern .ribbon-group button.ribbon-icon-button {
+  flex: 0 0 42px;
+}
+
+/* Final scroll ownership contract for the modern floating desktop.
+   The workspace is only a viewport/canvas: it must never become a second
+   vertical scroll container. Each floating panel owns exactly one scroller. */
+body.mode-modern .desktop-workspace {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+body.mode-modern .desktop-window-content {
+  min-height: 0;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+body.mode-modern .desktop-window-content > .editor-sidebar,
+body.mode-modern .desktop-window-content > .properties-panel {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+body.mode-modern .desktop-window-content > .track-area {
+  min-height: 0;
+  overflow: hidden !important;
+}
+body.mode-modern .desktop-window-content > .track-area .canvas-wrap {
+  min-height: 0;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+body.mode-modern .desktop-window-content > :not(.editor-sidebar):not(.properties-panel):not(.track-area) {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+/* Keep this invariant on narrow windows too: no document-level scroll bar. */
+html:has(body.mode-modern),
+body.mode-modern {
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+body.mode-modern main {
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+body.mode-modern .desktop-workspace {
+  flex: 1 1 auto;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}

@@ -2,11 +2,19 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const GRID = 10, CONNECT_TOLERANCE = 20, BOARD = Object.freeze({width:3000,height:1800});
+  function readPreferredInterfaceMode(){try{if(/[?&]nativePanel=/.test(window.location.search||''))return 'modern';const saved=JSON.parse(localStorage.getItem('quiral.workspace.preferences.v1')||'{}');return saved.interfaceMode==='classic'?'classic':'modern';}catch(_){return 'modern';}}
   const state = {
     config: {schemaVersion:3,name:'Maqueta Märklin H0 · 5 nivells',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,
       levels:Array.from({length:5},(_,i)=>({id:i+1,name:`Nivell ${i+1}`,elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]},
-    selectedLevel:1, selectedIds:[], filePath:null, isDirty:false, mode:'modern', drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
+    selectedLevel:1, selectedIds:[], filePath:null, isDirty:false, mode:readPreferredInterfaceMode(), drag:null, ws:null, wsHeartbeat:null, lastWsPong:0, sensors:{}, turnouts:{}, sensorUpdatedAt:{}, turnoutUpdatedAt:{}, powerUpdatedAt:0, jmriPower:'UNKNOWN', history:[], future:[], measuring:false, measureStart:null, portMode:false, pendingPort:null, viewBox:{x:0,y:0,width:3000,height:1800}, pan:null, spaceHeld:false,
   };
+  const nativeSearch = typeof window.location?.search === 'string' ? window.location.search : '';
+  const nativeWindowIdMatch = nativeSearch.match(/[?&]nativeWindowId=([^&]*)/);
+  const nativeWindowId = nativeWindowIdMatch ? decodeURIComponent(nativeWindowIdMatch[1].replace(/\+/g, ' ')) : 'main';
+  let applyingRemoteWorkspaceState = false;
+  let workspaceRevision = 0;
+  let workspacePublishInFlight = false;
+  let workspacePublishPending = false;
   const level = () => state.config.levels.find(x=>x.id===state.selectedLevel);
   const pieces = () => level()?.tracks || [];
   const log = msg => {const li=document.createElement('li');li.textContent=`${new Date().toLocaleTimeString()} · ${msg}`;$('eventLog').prepend(li);while($('eventLog').children.length>35)$('eventLog').lastElementChild.remove();};
@@ -49,6 +57,54 @@
     $('levelList').replaceChildren();state.config.levels.forEach(l=>{const b=document.createElement('button');b.className='level-btn'+(l.id===state.selectedLevel?' selected':'');b.innerHTML=`<span>${esc(l.name)}</span><small>${(l.tracks||[]).length} peces</small>`;b.onclick=()=>{state.selectedLevel=l.id;state.selectedIds=[];render();};$('levelList').append(b);});
     $('currentLevelTitle').textContent=lev.name;$('currentLevelSubtitle').textContent=`Cota ${lev.elevationMm} mm · ${lev.tracks.length} peces · coordenades en mm`;
     renderPieces();renderProperties();renderRegistries();renderModern();renderSensors();updateHistoryButtons();window.JMRI_TC_DISPATCHER_UI?.refresh?.();window.JMRI_TC_TRAFFIC_UI?.refresh?.();window.JMRI_TC_SCHEDULE_UI?.refresh?.();window.JMRI_TC_OPERATION_UI?.refresh?.();window.JMRI_TC_SIGNALLING_UI?.refresh?.();$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;
+    publishWorkspaceState();
+  }
+  async function publishWorkspaceState(){
+    if(applyingRemoteWorkspaceState || !window.jmriDesktop?.publishWorkspaceState) return;
+    if(workspacePublishInFlight){workspacePublishPending=true;return;}
+    workspacePublishInFlight=true;
+    const payload={kind:'app-state',sourceId:nativeWindowId,baseRevision:workspaceRevision,config:clone(state.config),selectedLevel:state.selectedLevel,selectedIds:[...state.selectedIds],viewBox:{...state.viewBox},filePath:state.filePath,isDirty:state.isDirty,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},powerUpdatedAt:state.powerUpdatedAt,jmriPower:state.jmriPower};
+    const sentConfig=JSON.stringify(payload.config);
+    try {
+      const result=await window.jmriDesktop.publishWorkspaceState(payload);
+      if(result?.ok===true){workspaceRevision=result.revision;}
+      else if(result?.conflict===true){
+        if(result.state && JSON.stringify(state.config)===sentConfig && state.selectedLevel===payload.selectedLevel && JSON.stringify(state.selectedIds)===JSON.stringify(payload.selectedIds) && JSON.stringify(state.viewBox)===JSON.stringify(payload.viewBox) && state.filePath===payload.filePath && state.isDirty===payload.isDirty){
+          applyWorkspaceState({...result.state,revision:result.revision});
+          log('S’ha rebut una revisió més recent de l’espai de treball; s’ha aplicat sense sobreescriure dades.');
+        } else {
+          workspacePublishPending=false;
+          log('CONFLICTE DE SINCRONITZACIÓ: hi ha canvis locals i una revisió remota més recent. No s’ha sobreescrit cap dada; cal revisar i tornar a carregar l’estat compartit.');
+          console.warn('[Espai de treball] Conflicte de revisió; publicació bloquejada.',{localRevision:workspaceRevision,remoteRevision:result.revision});
+        }
+      }
+    } catch(error){console.warn('[Espai de treball] No s’ha pogut sincronitzar l’estat:',error);}
+    finally {
+      workspacePublishInFlight=false;
+      if(workspacePublishPending){workspacePublishPending=false;publishWorkspaceState();}
+    }
+  }
+  function applyWorkspaceState(payload){
+    if(!payload || payload.kind!=='app-state' || !payload.config || !Array.isArray(payload.config.levels)) return false;
+    if(Number.isSafeInteger(payload.revision)){if(payload.revision<workspaceRevision)return false;workspaceRevision=payload.revision;}
+    applyingRemoteWorkspaceState=true;
+    try {
+      state.config=clone(payload.config);
+      state.history=[];state.future=[];updateHistoryButtons();
+      state.selectedLevel=state.config.levels.some(item=>item.id===payload.selectedLevel)?payload.selectedLevel:state.config.levels[0]?.id;
+      state.selectedIds=Array.isArray(payload.selectedIds)?payload.selectedIds.filter(id=>state.config.levels.some(item=>(item.tracks||[]).some(piece=>piece.id===id))):[];
+      if(payload.viewBox && ['x','y','width','height'].every(key=>Number.isFinite(payload.viewBox[key]))) state.viewBox={...payload.viewBox};
+      state.filePath=typeof payload.filePath==='string'?payload.filePath:null;
+      state.isDirty=payload.isDirty===true;
+      state.sensors=payload.sensors&&typeof payload.sensors==='object'?{...payload.sensors}:{};
+      state.turnouts=payload.turnouts&&typeof payload.turnouts==='object'?{...payload.turnouts}:{};
+      state.sensorUpdatedAt=payload.sensorUpdatedAt&&typeof payload.sensorUpdatedAt==='object'?{...payload.sensorUpdatedAt}:{};
+      state.turnoutUpdatedAt=payload.turnoutUpdatedAt&&typeof payload.turnoutUpdatedAt==='object'?{...payload.turnoutUpdatedAt}:{};
+      state.powerUpdatedAt=Number(payload.powerUpdatedAt)||0;
+      state.jmriPower=typeof payload.jmriPower==='string'?payload.jmriPower:'UNKNOWN';
+      render();applyViewBox();
+    } finally { applyingRemoteWorkspaceState=false; }
+    return true;
   }
   function sensorStateFor(p,sourceLevel=level()){
     if(!p.sensorName)return {code:'NONE',label:'Sense sensor'};
@@ -87,6 +143,7 @@
   function onPieceDown(e){
     if(e.button!==0||state.spaceHeld||window.JMRI_TC_AUTOTRAIN_UI?.isEnabled?.())return;
     const id=e.currentTarget.dataset.id;
+    if(!editingMode){selectPiece(id,e);return;}
     if(e.ctrlKey||e.metaKey){selectPiece(id,e);return;}
     if(!state.selectedIds.includes(id))selectPiece(id,e);
     const pt=svgPoint(e);
@@ -248,7 +305,7 @@
   function pastePieces(){const result=editCommands.pasteClipboard(state.config,state.selectedLevel,state.editClipboard,{grid:GRID,offset:40,width:BOARD.width,height:BOARD.height});if(!result.changed){log('El porta-retalls és buit o no conté elements compatibles.');return false;}checkpoint();state.config=result.config;state.selectedIds=result.addedIds;syncRelations(level());render();log(result.addedIds.length+' peça/es enganxades al nivell actual; '+result.connectionIds.length+' connexió/ons internes recreades com a no verificades.');return true;}
   function selectAllPieces(){state.selectedIds=editCommands.selectAll(state.config,state.selectedLevel);renderPieces();renderProperties();log(state.selectedIds.length+' peça/es seleccionades al nivell actual.');return state.selectedIds.length>0;}
   function portOccupied(ref){return (state.config.connections||[]).some(c=>(c.from.pieceId===ref.pieceId&&c.from.port===ref.port)||(c.to.pieceId===ref.pieceId&&c.to.port===ref.port));}
-  function onPortClick(e){e.stopPropagation();if(!state.portMode)return;const ref={pieceId:e.currentTarget.dataset.pieceId,port:e.currentTarget.dataset.port};if(!state.pendingPort){if(portOccupied(ref)){log(`El port ${ref.pieceId}:${ref.port} ja està connectat.`);return;}state.pendingPort=ref;$('portStatus').textContent=`Primer port: ${ref.pieceId}:${ref.port}. Ara selecciona el segon port.`;renderPieces();return;}const first=state.pendingPort;state.pendingPort=null;if(first.pieceId===ref.pieceId){$('portStatus').textContent='Selecciona un port d’una altra peça.';renderPieces();return;}if(portOccupied(ref)){log(`El port ${ref.pieceId}:${ref.port} ja està connectat.`);$('portStatus').textContent='El segon port ja està ocupat. Torna a seleccionar el primer port.';renderPieces();return;}const a=pieces().find(p=>p.id===first.pieceId),b=pieces().find(p=>p.id===ref.pieceId);if(!a||!b)return;const pa=worldPorts(a).find(x=>x.port===first.port),pb=worldPorts(b).find(x=>x.port===ref.port),gap=Math.hypot(pa.x-pb.x,pa.y-pb.y);if(gap>1){$('portStatus').textContent=`No connectats: separació ${gap.toFixed(1)} mm (màxim 1 mm). Mou o gira les peces i torna-ho a provar.`;log(`Connexió manual rebutjada: ${gap.toFixed(1)} mm entre ports.`);renderPieces();return;}checkpoint();state.config.connections.push({id:`C-${Date.now()}`,levelId:state.selectedLevel,from:first,to:ref,verified:false,method:'manual'});$('portStatus').textContent=`Connectats ${first.pieceId}:${first.port} ↔ ${ref.pieceId}:${ref.port}. No verificat elèctricament.`;render();log(`Connexió manual exacta creada: ${first.port} ↔ ${ref.port}.`);}
+  function onPortClick(e){e.stopPropagation();if(!editingMode||!state.portMode)return;const ref={pieceId:e.currentTarget.dataset.pieceId,port:e.currentTarget.dataset.port};if(!state.pendingPort){if(portOccupied(ref)){log(`El port ${ref.pieceId}:${ref.port} ja està connectat.`);return;}state.pendingPort=ref;$('portStatus').textContent=`Primer port: ${ref.pieceId}:${ref.port}. Ara selecciona el segon port.`;renderPieces();return;}const first=state.pendingPort;state.pendingPort=null;if(first.pieceId===ref.pieceId){$('portStatus').textContent='Selecciona un port d’una altra peça.';renderPieces();return;}if(portOccupied(ref)){log(`El port ${ref.pieceId}:${ref.port} ja està connectat.`);$('portStatus').textContent='El segon port ja està ocupat. Torna a seleccionar el primer port.';renderPieces();return;}const a=pieces().find(p=>p.id===first.pieceId),b=pieces().find(p=>p.id===ref.pieceId);if(!a||!b)return;const pa=worldPorts(a).find(x=>x.port===first.port),pb=worldPorts(b).find(x=>x.port===ref.port),gap=Math.hypot(pa.x-pb.x,pa.y-pb.y);if(gap>1){$('portStatus').textContent=`No connectats: separació ${gap.toFixed(1)} mm (màxim 1 mm). Mou o gira les peces i torna-ho a provar.`;log(`Connexió manual rebutjada: ${gap.toFixed(1)} mm entre ports.`);renderPieces();return;}checkpoint();state.config.connections.push({id:`C-${Date.now()}`,levelId:state.selectedLevel,from:first,to:ref,verified:false,method:'manual'});$('portStatus').textContent=`Connectats ${first.pieceId}:${first.port} ↔ ${ref.pieceId}:${ref.port}. No verificat elèctricament.`;render();log(`Connexió manual exacta creada: ${first.port} ↔ ${ref.port}.`);}
   $('portModeBtn').onclick=()=>{state.portMode=!state.portMode;state.pendingPort=null;$('portModeBtn').classList.toggle('active',state.portMode);$('portModeBtn').textContent=state.portMode?'Desactivar connexió manual':'Activar connexió manual de ports';$('portStatus').textContent=state.portMode?'Mode actiu: selecciona el primer port al tauler.':'Mode desactivat.';renderPieces();};
   $('connectBtn2').onclick=()=>{if(state.selectedIds.length!==2){log('Selecciona exactament dues peces amb Ctrl/Cmd + clic.');return;}const [a,b]=state.selectedIds.map(id=>pieces().find(p=>p.id===id));let best=null;const preferredA=trackJunction.preferredPort(a),preferredB=trackJunction.preferredPort(b);const portsA=worldPorts(a).filter(p=>!preferredA||p.port===preferredA),portsB=worldPorts(b).filter(p=>!preferredB||p.port===preferredB);for(const pa of portsA)for(const pb of portsB){const d=Math.hypot(pa.x-pb.x,pa.y-pb.y);if(!best||d<best.d)best={pa,pb,d};}if(!best||best.d>CONNECT_TOLERANCE){log(`No connectades: ports separats ${best?best.d.toFixed(1):'—'} mm (màxim ${CONNECT_TOLERANCE} mm).`);return;}const exists=(state.config.connections||[]).some(c=>c.levelId===state.selectedLevel&&((c.from.pieceId===a.id&&c.from.port===best.pa.port&&c.to.pieceId===b.id&&c.to.port===best.pb.port)||(c.from.pieceId===b.id&&c.from.port===best.pb.port&&c.to.pieceId===a.id&&c.to.port===best.pa.port)));if(exists){log('Aquesta connexió ja existeix.');return;}
     checkpoint();
@@ -460,6 +517,8 @@
   $('helpDialog')?.querySelectorAll?.('[data-help-topic]')?.forEach(button=>button.addEventListener('click',()=>showHelp(button.dataset.helpTopic)));
   $('helpDialogClose')?.addEventListener('click',()=> $('helpDialog')?.close());
   function handleAppCommand(command){
+    const editOnlyCommands=new Set(['undo','redo','cut','paste','delete','duplicate','portMode','createParallel','suggestGaps','trainNewEngine','trainNewCar','trainNewTrainSet','trainNewTrain','trainCouple','trainUncouple','trainDelete','operationMacroCreate','operationFlagCreate','operationCounterCreate','operationEventCreate','scheduleCreate']);
+    if(!editingMode&&editOnlyCommands.has(command)){log('Acció bloquejada: activa el Mode edició per modificar o configurar la maqueta.');return;}
     if(command==='workspacePreferences')window.JMRI_TC_WORKSPACE_PREFS?.open?.();
     else if(command==='toggleToolbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('toolbar',!(p.get('toolbar')!==false));}
     else if(command==='toggleTaskbar'){const p=window.JMRI_TC_WORKSPACE_PREFS;p?.set?.('taskbar',!(p.get('taskbar')!==false));}
@@ -559,8 +618,37 @@
   function renderSensors(){const rows=state.config.levels.flatMap(l=>[...(l.tracks||[]).filter(p=>p.sensorName).map(p=>`${p.sensorName}: ${sensorStateFor(p,l).label}`),...(l.tracks||[]).filter(p=>p.type==='turnout'&&p.turnoutSystemName).map(p=>`${p.turnoutSystemName}: ${turnoutStateFor(p).label}`)]);$('sensorSummary').textContent=rows.length?rows.join(' · '):'Encara no hi ha sensors ni desviaments JMRI assignats a peces.';}
   function connect(){if(state.ws?.readyState===WebSocket.OPEN)return;const host=$('host').value.trim(),port=Number($('port').value);if(!host||!Number.isInteger(port)||port<1||port>65535){log('Servidor o port invàlid.');return;}const url=`ws://${host}:${port}/json/`;$('connectionText').textContent=`Connectant a ${url}`;state.sensors={};state.turnouts={};state.sensorUpdatedAt={};state.turnoutUpdatedAt={};state.powerUpdatedAt=0;render();try{const ws=new WebSocket(url);state.ws=ws;ws.onopen=()=>{$('connectionBadge').textContent='Connectat';$('connectionBadge').className='badge online';$('connectBtn').disabled=true;$('disconnectBtn').disabled=false;$('connectionText').textContent=`WebSocket obert: ${url}`;state.lastWsPong=Date.now();state.jmriPower='UNKNOWN';ws.send(JSON.stringify({list:'sensors'}));ws.send(JSON.stringify({list:'turnouts'}));ws.send(JSON.stringify({type:'power',method:'get'}));const names=[...new Set(state.config.levels.flatMap(l=>[...(l.tracks||[]).map(p=>p.sensorName),...(l.sensors||[]).map(s=>s.systemName)]).filter(Boolean))];names.forEach(name=>ws.send(JSON.stringify({type:'sensor',data:{name}})));const turnoutNames=[...new Set(state.config.levels.flatMap(l=>(l.tracks||[]).map(p=>p.turnoutSystemName)).filter(Boolean))];turnoutNames.forEach(name=>ws.send(JSON.stringify({type:'turnout',data:{name}})));state.wsHeartbeat=setInterval(()=>{if(ws.readyState!==WebSocket.OPEN)return;if(Date.now()-state.lastWsPong>15000){log('JMRI sense resposta al heartbeat; invalidant lectures i tancant la connexió.');ws.close();return;}try{ws.send(JSON.stringify({type:'ping'}));}catch{ws.close();}},5000);log('JMRI connectat en mode només lectura. Esperant lectures actuals dels sensors.');render();};ws.onmessage=e=>{try{const m=JSON.parse(e.data),items=Array.isArray(m)?m:[m];items.forEach(x=>{if(x.type==='pong')state.lastWsPong=Date.now();if(x.type==='power'){state.jmriPower=({2:'ON',4:'OFF',8:'IDLE'})[Number(x.data?.state)]||'UNKNOWN';state.powerUpdatedAt=Date.now();}if(x.type==='sensor'&&x.data?.name){state.sensors[x.data.name]=x.data.state;state.sensorUpdatedAt[x.data.name]=Date.now();}if(x.type==='turnout'&&x.data?.name){state.turnouts[x.data.name]=x.data.state;state.turnoutUpdatedAt[x.data.name]=Date.now();}});render();}catch{log('Missatge JMRI ignorat: JSON no vàlid.');}};ws.onerror=()=>{log('Error WebSocket: revisa el Web Server de JMRI.');};ws.onclose=()=>{clearInterval(state.wsHeartbeat);state.wsHeartbeat=null;state.ws=null;state.sensors={};state.turnouts={};state.sensorUpdatedAt={};state.turnoutUpdatedAt={};state.powerUpdatedAt=0;state.jmriPower='UNKNOWN';$('connectionBadge').textContent='Desconnectat';$('connectionBadge').className='badge offline';$('connectBtn').disabled=false;$('disconnectBtn').disabled=true;$('connectionText').textContent='No hi ha cap sessió activa. Les lectures s’han invalidat.';render();log('Connexió tancada: blocs amb sensors retornats a Desconegut.');};}catch(err){state.sensors={};render();log(err.message);}}
   $('connectBtn').onclick=connect;$('disconnectBtn').onclick=()=>state.ws?.close();$('host').oninput=()=>$('endpointText').textContent=`ws://${$('host').value}:${$('port').value}/json/`;$('port').oninput=$('host').oninput;
-  function setMode(m){const next=m==='classic'?'classic':'modern';const changed=state.mode!==next;state.mode=next;document.body?.classList?.toggle('mode-modern',next==='modern');const ribbon=$('modernRibbon');if(ribbon)ribbon.hidden=next!=='modern';window.JMRI_TC_DESKTOP?.setMode?.(next);$('modeClassic')?.classList?.toggle('active',next==='classic');$('modeModern')?.classList?.toggle('active',next==='modern');$('modeClassic')?.setAttribute('aria-pressed',String(next==='classic'));$('modeModern')?.setAttribute('aria-pressed',String(next==='modern'));$('modernPanel')?.classList?.add('hidden');window.jmriDesktop?.setUiMode?.(next);if(changed)log(next==='modern'?'Escriptori modern amb cinta d’opcions i finestres flotants activat.':'Interfície clàssica restaurada.');} $('modeClassic').onclick=()=>setMode('classic');$('modeModern').onclick=()=>setMode('modern');
+  function setMode(m){const next=m==='classic'?'classic':'modern';const changed=state.mode!==next;state.mode=next;document.body?.classList?.toggle('mode-modern',next==='modern');try{if(window.JMRI_TC_WORKSPACE_PREFS?.set)window.JMRI_TC_WORKSPACE_PREFS.set('interfaceMode',next);else{const key='quiral.workspace.preferences.v1';const saved=JSON.parse(localStorage.getItem(key)||'{}');saved.interfaceMode=next;localStorage.setItem(key,JSON.stringify(saved));}}catch(_){}const ribbon=$('modernRibbon');if(ribbon)ribbon.hidden=next!=='modern';window.JMRI_TC_DESKTOP?.setMode?.(next);$('modeClassic')?.classList?.toggle('active',next==='classic');$('modeModern')?.classList?.toggle('active',next==='modern');$('modeClassic')?.setAttribute('aria-pressed',String(next==='classic'));$('modeModern')?.setAttribute('aria-pressed',String(next==='modern'));$('modernPanel')?.classList?.add('hidden');window.jmriDesktop?.setUiMode?.(next);if(changed)log(next==='modern'?'Escriptori modern amb cinta d’opcions i finestres flotants activat.':'Interfície clàssica restaurada.');} $('modeClassic').onclick=()=>setMode('classic');$('modeModern').onclick=()=>setMode('modern');
+  let editingMode=true, operationMode=false;
+  function syncWorkflowModes(){
+    document.body?.classList?.toggle('workflow-editing',editingMode);
+    document.body?.classList?.toggle('workflow-operation',operationMode);
+    const edit=$('modeEditing'),operation=$('modeOperation');
+    if(edit){edit.classList.toggle('active',editingMode);edit.setAttribute('aria-pressed',String(editingMode));}
+    if(operation){operation.classList.toggle('active',operationMode);operation.setAttribute('aria-pressed',String(operationMode));}
+    const portModeButton=$('portModeBtn');
+    if(portModeButton){
+      if(typeof portModeButton.toggleAttribute==='function')portModeButton.toggleAttribute('disabled',!editingMode);
+      else portModeButton.disabled=!editingMode;
+    }
+    if(!editingMode){state.portMode=false;state.pendingPort=null;const status=$('portStatus');if(status)status.textContent='Mode edició desactivat: connexions protegides.';}
+  }
+  function setEditingMode(enabled){editingMode=Boolean(enabled);try{localStorage.setItem('quiral.workflow.modes.v1',JSON.stringify({editing:editingMode,operation:operationMode}));}catch(_){}syncWorkflowModes();log('Mode edició '+(editingMode?'activat: configuració i modificacions permeses.':'desactivat: maqueta en només lectura.'));}
+  function setOperationMode(enabled){operationMode=Boolean(enabled);try{localStorage.setItem('quiral.workflow.modes.v1',JSON.stringify({editing:editingMode,operation:operationMode}));}catch(_){}syncWorkflowModes();log('Mode explotació '+(operationMode?'activat: entorn operatiu i simulació disponibles.':'desactivat.'));}
+  try{const saved=JSON.parse(localStorage.getItem('quiral.workflow.modes.v1')||'{}');if(typeof saved.editing==='boolean')editingMode=saved.editing;if(typeof saved.operation==='boolean')operationMode=saved.operation;}catch(_){}
+  $('modeEditing')?.addEventListener('click',()=>setEditingMode(!editingMode));
+  $('modeOperation')?.addEventListener('click',()=>setOperationMode(!operationMode));
+  syncWorkflowModes();
   window.JMRI_TC_DISPATCHER = { getConfig:()=>state.config, checkpoint:()=>checkpoint(), checkpointFrom:before=>checkpointFrom(clone(before)), refresh:()=>render(), getSensorStates:()=>{const now=Date.now(),connected=state.ws?.readyState===WebSocket.OPEN&&now-state.lastWsPong<=15000;return connected?Object.fromEntries(Object.entries(state.sensors).filter(([name])=>Number.isFinite(state.sensorUpdatedAt[name])&&now-state.sensorUpdatedAt[name]<=15000)):{};}, getPowerState:()=>state.jmriPower, isConnected:()=>state.ws?.readyState===WebSocket.OPEN, log:message=>log(message) };
   window.JMRI_TC_BOARD={getTrainEditMode:()=>trainEditMode,getSensorState:sensorStateFor,getTurnoutState:turnoutStateFor,applySensorReading,applyTurnoutReading,requestSensorReading:name=>{const systemName=String(name||'').trim();if(!/^[A-Za-z0-9_.:-]{1,80}$/.test(systemName)||state.ws?.readyState!==WebSocket.OPEN)return false;try{state.ws.send(JSON.stringify({type:'sensor',data:{name:systemName}}));return true;}catch{return false;}},getSelectedLevel:()=>state.selectedLevel,getTelemetry:()=>({connected:state.ws?.readyState===WebSocket.OPEN,lastHeartbeatAt:state.lastWsPong,sensors:{...state.sensors},turnouts:{...state.turnouts},sensorUpdatedAt:{...state.sensorUpdatedAt},turnoutUpdatedAt:{...state.turnoutUpdatedAt},power:state.jmriPower,powerUpdatedAt:state.powerUpdatedAt}),refresh:()=>render()};
-  setMode(state.mode);render();applyViewBox();window.JMRI_TC_VIEWPORT_UI={getViewBox:()=>({...state.viewBox}),zoomIn:()=>zoomViewport(0.8,viewportCenter()),zoomOut:()=>zoomViewport(1.25,viewportCenter()),fit:fitViewport};
+  window.JMRI_TC_VIEWPORT_UI={getViewBox:()=>({...state.viewBox}),zoomIn:()=>zoomViewport(0.8,viewportCenter()),zoomOut:()=>zoomViewport(1.25,viewportCenter()),fit:fitViewport};
+  const desktopApi=window.jmriDesktop;
+  desktopApi?.onWorkspaceState?.(payload=>{if(payload?.sourceId!==nativeWindowId)applyWorkspaceState(payload);});
+  (async()=>{
+    if(nativeWindowId!=='main' && desktopApi?.getWorkspaceState){
+      try { const snapshot=await desktopApi.getWorkspaceState(); if(snapshot?.state){workspaceRevision=Number.isSafeInteger(snapshot.revision)?snapshot.revision:0;applyWorkspaceState({...snapshot.state,revision:workspaceRevision});} }
+      catch(error){ console.warn('[Espai de treball] No s’ha pogut recuperar l’estat inicial:',error); }
+    }
+    setMode(state.mode);render();applyViewBox();
+  })();
 })();

@@ -81,6 +81,31 @@ function samePersistedFields(actual, expected, label) {
     const projectA = await importProject(fixtureA, 'project-A.json');
     assert.ok(projectA.records.every(r => r.sourceId.endsWith('-A')));
 
+    // Floating panels can overlap by design. Activate the VMR taskbar entry
+    // before interacting so the Märklin catalogue window cannot intercept clicks.
+    const registryTask = page.locator('.desktop-task').filter({ hasText:'Registre mestre de validació' });
+    assert.equal(await registryTask.count(), 1, 'the validation registry must have a taskbar window entry');
+    await registryTask.click();
+    await page.waitForFunction(() => {
+      const windows = [...document.querySelectorAll('.desktop-window')];
+      const registry = windows.find(node => node.getAttribute('aria-label') === 'Registre mestre de validació');
+      const catalogue = windows.find(node => node.getAttribute('aria-label') === 'Base de dades digital · Märklin CS2 60215');
+      if (!registry || !catalogue) return false;
+      const registryZ = Number.parseInt(getComputedStyle(registry).zIndex, 10);
+      const catalogueZ = Number.parseInt(getComputedStyle(catalogue).zIndex, 10);
+      const addNote = [...registry.querySelectorAll('button')].find(button => button.textContent.trim() === 'Afegir nota');
+      if (!(registryZ > catalogueZ) || !addNote) return false;
+      // The registry can be taller than its floating window. Scroll its own
+      // content area so the real pointer-hit assertion targets a visible button.
+      addNote.scrollIntoView({ block:'center', inline:'nearest' });
+      const rect = addNote.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false;
+      const hit = document.elementFromPoint(x, y);
+      return !!hit && (hit === addNote || addNote.contains(hit));
+    }, null, { timeout:5000 });
+
     const noteInput = page.locator('#validationMasterRegistry input[placeholder="Nota de revisió / incidència"]');
     await noteInput.fill('Anotació exclusiva del projecte A');
     await page.getByRole('button', { name:'Afegir nota' }).click();
