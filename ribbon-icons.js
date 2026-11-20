@@ -8,6 +8,7 @@
     delete: ['#d65353','M4 7h16M9 7V4h6v3m-9 0 1 14h10l1-14M10 11v6m4-6v6'],
     connect: ['#249b9b','M8 8 5 5m14 14-3-3M8 16l-3 3m14-14-3 3M9 12h6'],
     train: ['#2878d0','M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 4h12v6H6zm2 12-2 3m10-3 2 3M8 16h.01M16 16h.01'],
+    steamLocomotive: ['#2878d0','M3 17h18v2H3zM5 17v-5h2V9h5l2 3h3l3 2v3M8 9V6h4v6M14 12V8h2l2 4M7 6V4h2v2M5 5c-1-1 1-2 0-3m3 3c-1-1 1-2 0-3M6 19a2 2 0 1 0 4 0m4 0a2 2 0 1 0 4 0'],
     list: ['#2c9b76','M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01'],
     settings: ['#7b8797','M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4'],
     zoom: ['#2d83c7','M10.5 3a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zM16 16l5 5M10.5 7v7m-3.5-3.5h7'],
@@ -52,7 +53,7 @@
     windowRestoreLayout: 'restore',
     windowShowEditor: 'editor',
     windowShowDispatcher: 'dispatcher',
-    windowShowTraffic: 'traffic',
+    windowShowTraffic: 'steamLocomotive',
     windowShowSchedules: 'calendar',
     windowShowOperation: 'operation',
     windowShowMetgeQuiral: 'health'
