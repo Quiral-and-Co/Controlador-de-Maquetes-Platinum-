@@ -30,10 +30,10 @@ for (const item of catalogue.items) {
 
 const scrollContract = styles.slice(styles.lastIndexOf('/* Final scroll ownership contract'));
 assert.ok(scrollContract.length > 0, 'Cal un contracte final explícit de propietat del scroll');
-assert.match(scrollContract, /body\\.mode-modern \\.desktop-workspace\\s*\\{[^}]*overflow:\\s*hidden\\s*!important/s, 'L’escriptori no pot tenir un segon scroll');
-assert.match(scrollContract, /body\\.mode-modern \\.desktop-window-content\\s*\\{[^}]*overflow:\\s*hidden\\s*!important/s, 'El contenidor de finestra no pot afegir un segon scroll');
-assert.match(scrollContract, /desktop-window-content > \\.editor-sidebar[\\s\\S]*?overflow:\\s*auto\\s*!important/, 'El panell lateral ha de conservar el seu scroll intern únic');
-assert.match(scrollContract, /desktop-window-content > \\.track-area \\.canvas-wrap[\\s\\S]*?overflow:\\s*auto\\s*!important/, 'El tauler ha de conservar el scroll intern del llenç');
-assert.match(scrollContract, /body\\.mode-modern\\s*\\{[^}]*overflow:\\s*hidden\\s*!important/s, 'El document no pot desplaçar-se en mode modern, tampoc en pantalles estretes');
+assert.match(scrollContract, /body\.mode-modern \.desktop-workspace\s*\{[^}]*overflow:\s*hidden\s*!important/s, 'L’escriptori no pot tenir un segon scroll');
+assert.match(scrollContract, /body\.mode-modern \.desktop-window-content\s*\{[^}]*overflow:\s*hidden\s*!important/s, 'El contenidor de finestra no pot afegir un segon scroll');
+assert.match(scrollContract, /desktop-window-content > \.editor-sidebar[\s\S]*?overflow:\s*auto\s*!important/, 'El panell lateral ha de conservar el seu scroll intern únic');
+assert.match(scrollContract, /desktop-window-content > \.track-area \.canvas-wrap[\s\S]*?overflow:\s*auto\s*!important/, 'El tauler ha de conservar el scroll intern del llenç');
+assert.match(scrollContract, /body\.mode-modern\s*\{[^}]*overflow:\s*hidden\s*!important/s, 'El document no pot desplaçar-se en mode modern, tampoc en pantalles estretes');
 
 console.log('Digital catalogue window and Märklin C catalogue contract: OK');
