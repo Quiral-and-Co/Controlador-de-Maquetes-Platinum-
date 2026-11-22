@@ -37,7 +37,8 @@ function init(){
  $('spieleweltProfile').onchange=()=>{if(!session)return;const loco=selectedLoco();session=game.createSession(loco,{profile:$('spieleweltProfile').value,mode:$('spieleweltMode').value});render();};
  $('spieleweltThrottle').oninput=e=>{if(!session)return;session=game.setThrottle(session,e.target.value);render();};
  $('spieleweltAdvance').onclick=()=>{const result=game.advance(session,10);if(result.ok){session=result.session;render();}else status(result.error);};
- $('spieleweltRefill').onclick=()=>{const result=game.refill(session,{atDepot:window.confirm('Confirma que la locomotora és al dipòsit de màquines? Aquesta acció només modifica la simulació local.')});if(result.ok){session=result.session;render();}else status(result.error);};
+ $('spieleweltRefill').onclick=()=>{const depotType=$('spieleweltDepot').value;
+  const result=game.refill(session,{atDepot:window.confirm('Confirma que el vehicle és al punt de recàrrega seleccionat? Només modifica la simulació local.'),depotType});if(result.ok){session=result.session;render();}else status(result.error);};
  const observer=()=>{renderLocomotives();if(session){const current=locomotives().find(l=>String(l.id)===session.locomotiveId);if(current){session.capabilities=game.capabilities(current);render();}}};
  window.addEventListener('jmri-tc-traffic-updated',observer);
 }
