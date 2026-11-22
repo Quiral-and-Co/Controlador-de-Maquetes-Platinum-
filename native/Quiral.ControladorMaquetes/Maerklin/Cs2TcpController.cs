@@ -44,6 +44,8 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         ArgumentException.ThrowIfNullOrWhiteSpace(host);
         if(port is <1 or >65535) throw new ArgumentOutOfRangeException(nameof(port));
         if(State==Cs2ConnectionState.Connected) throw new InvalidOperationException("La CS2 ja està connectada.");
+        if(State is Cs2ConnectionState.Faulted or Cs2ConnectionState.Connecting)
+            await DisconnectAsync().ConfigureAwait(false);
         State=Cs2ConnectionState.Connecting; Host=host; Port=port;
         var client=new TcpClient { NoDelay=true };
         try
