@@ -30,7 +30,7 @@ async function importZ21Archive(bytes){
       return{id:'Z21-'+String(vehicle.id),name:String(vehicle.name||vehicle.full_name||('Vehicle '+vehicle.id)),kind,manufacturer:'ROCO/FLEISCHMANN',model:String(vehicle.full_name||''),article:'',protocol:'DCC',address:String(vehicle.address??''),addressType:'auto',decoder:'',maxKmh:Number(vehicle.max_speed)||null,image,drawing:'',functions:mappedFunctions,cv:{},source:'ROCO_Z21_EXPORT',sourceId:String(vehicle.id),identity:'Z21:'+String(vehicle.address??vehicle.id),metadata:{imageName:String(vehicle.image_name||''),railway:String(vehicle.railway||''),description:String(vehicle.description||''),speedDisplay:Number(vehicle.speed_display)||128,regulationStep:Number(vehicle.speed_display)||128,tractionDirection:Number(vehicle.traction_direction)||0,dummy:Number(vehicle.dummy)||0,active:Number(vehicle.active)||0,position:Number(vehicle.position)||0}};
     });
     if(imageBytes>25*1024*1024)throw new Error('Les imatges de l’exportació superen el límit de 25 MB.');
-    return{ok:true,source:'ROCO_Z21_EXPORT',vehicles,counts:{vehicles:vehicles.length,functions:vehicles.reduce((sum,v)=>sum+v.functions.length,0),images:vehicles.filter(v=>v.image).length}};
+    return{ok:true,source:'ROCO_Z21_EXPORT',vehicles:result,counts:{vehicles:result.length,functions:result.reduce((sum,v)=>sum+v.functions.length,0),images:result.filter(v=>v.image).length}};
   }finally{database.close();}
 }
 module.exports={importZ21Archive};
