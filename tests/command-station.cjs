@@ -42,7 +42,7 @@ console.log('Command station configuration tests passed.');
 const marklinCases=[
   {model:'Central Station 1 (60212)',protocol:'Märklin CS1',interface:'TCP',connection:{host:'192.168.1.61',port:15731},manufacturer:'Märklin'},
   {model:'Interface 6051',protocol:'Märklin 6050/6051',interface:'Serial',connection:{serialPort:'COM7',baudRate:2400},manufacturer:'Märklin'},
-  {model:'Central Station 1 Reloaded by ESU',protocol:'ECoS',interface:'TCP',connection:{host:'192.168.1.62',port:15471},manufacturer:'Märklin'}
+  {model:'Central Station 1 Reloaded by ESU',protocol:'ECoS',interface:'TCP',connection:{host:'192.168.1.62',port:15471},manufacturer:'ESU'}
 ];
 for(const item of marklinCases){
   assert.equal(c.validateStation({...base,id:'MK-'+item.model,name:item.model,...item}).ok,true,item.model+' supported');
