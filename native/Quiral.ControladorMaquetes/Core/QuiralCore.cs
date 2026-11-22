@@ -69,8 +69,8 @@ public sealed class QuiralCore : IAsyncDisposable
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 Diagnostics.Record(DiagnosticSeverity.Information, "QuiralCore", $"Iniciant mòdul: {module.Name}.");
-                await module.StartAsync(this, cancellationToken).ConfigureAwait(false);
                 _startedModules.Add(module);
+                await module.StartAsync(this, cancellationToken).ConfigureAwait(false);
             }
 
             StateOfCore = QuiralCoreState.Ready;
