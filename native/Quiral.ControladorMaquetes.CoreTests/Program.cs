@@ -229,8 +229,13 @@ static async Task TestGeometryProjectScope()
         var second=await projects.CreateAsync("Projecte B",2000,1000);
         var secondSegment=await geometry.AddSegmentAsync(new Point3(0,0,0),new Point3(200,0,0));
         Assert(geometry.Segments.Count==1 && geometry.Segments[0].Id==secondSegment.Id,"La geometria no s'ha filtrat pel projecte actiu.");
+        var crossProjectDeleteBlocked=false;
+        try { await geometry.RemoveSegmentAsync(firstSegment.Id); } catch(InvalidOperationException) { crossProjectDeleteBlocked=true; }
+        Assert(crossProjectDeleteBlocked,"S'ha permès eliminar geometria d'un altre projecte.");
         await projects.OpenAsync(first.Id);
         Assert(geometry.Segments.Count==1 && geometry.Segments[0].Id==firstSegment.Id,"La geometria del projecte A no s'ha recuperat.");
+        Assert(await geometry.RemoveSegmentAsync(firstSegment.Id),"No s'ha pogut eliminar el tram del projecte actiu.");
+        Assert(geometry.Segments.Count==0,"El tram eliminat continua visible.");
         await core.DisposeAsync();
     }
     finally { Delete(root); }
