@@ -11,6 +11,7 @@ try {
     $backup = [IO.Path]::GetFullPath($BackupFile)
     if ($Action -eq 'Backup') {
         if (-not (Test-Path -LiteralPath $data -PathType Container)) { exit 0 }
+        if (-not (Get-ChildItem -LiteralPath $data -Force | Select-Object -First 1)) { exit 0 }
         if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }
         [IO.Compression.ZipFile]::CreateFromDirectory($data, $backup, [IO.Compression.CompressionLevel]::Optimal, $true)
         if (-not (Test-Path -LiteralPath $backup -PathType Leaf) -or (Get-Item -LiteralPath $backup).Length -le 0) {
