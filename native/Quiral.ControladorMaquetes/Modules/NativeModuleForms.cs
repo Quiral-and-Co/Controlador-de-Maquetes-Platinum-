@@ -44,7 +44,7 @@ public sealed class ProjectManagerForm : Form
         buttons.Controls.AddRange(new Control[]{create,open,refresh});
         root.Controls.Add(buttons,0,5); root.SetColumnSpan(buttons,2);
         root.Controls.Add(_projects,0,6); root.SetColumnSpan(_projects,2);
-        root.Controls.Add(_status,0,7); root.SetColumnSpan(_status,2);
+        root.Controls.Add(_status,0,8); root.SetColumnSpan(_status,2);
         Controls.Add(root); Shown+=async (_,_)=>await RefreshAsync();
     }
     private async Task CreateProjectAsync()
@@ -146,6 +146,8 @@ public sealed class RollingStockForm : Form
 public sealed class Cs2ConnectionForm : Form
 {
     private readonly Cs2TcpController _controller;
+    private readonly Cs2ConnectionSettingsStore _settings;
+    private readonly CheckBox _dhcp = new() { Text = "La CS2 rep la IP automàticament (DHCP del router)", AutoSize = true };
     private readonly TextBox _host=new() { Width=180 };
     private readonly NumericUpDown _port=FormLayout.Number(15731,1,65535,0);
     private readonly NumericUpDown _device=FormLayout.Number(1,1,65535,0);
@@ -153,32 +155,49 @@ public sealed class Cs2ConnectionForm : Form
     private readonly NumericUpDown _module=FormLayout.Number(1,1,255,0);
     private readonly ListBox _log=new() { Dock=DockStyle.Fill };
     private readonly Label _status=new() { AutoSize=true,Text="Desconnectada" };
-    public Cs2ConnectionForm(Cs2TcpController controller)
+    public Cs2ConnectionForm(Cs2TcpController controller, Cs2ConnectionSettingsStore settings)
     {
-        _controller=controller; Text="Märklin CS2 60215 · mCAN / S88"; Width=760; Height=540; StartPosition=FormStartPosition.CenterParent;
+        _controller=controller; _settings=settings ?? throw new ArgumentNullException(nameof(settings)); Text="Märklin CS2 60215 · mCAN / S88"; Width=760; Height=540; StartPosition=FormStartPosition.CenterParent;
         _controller.S88ContactChanged+=OnContact; _controller.S88ModuleRead+=OnModule; _controller.Diagnostic+=OnDiagnostic; _controller.ParticipantDiscovered+=OnParticipant;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=9 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=10 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Adreça IP / host",_host,0); FormLayout.AddRow(root,"Port TCP",_port,1);
+        root.Controls.Add(_dhcp,0,2); root.SetColumnSpan(_dhcp,2);
         var connect=new Button { Text="Connectar",AutoSize=true }; connect.Click+=async (_,_)=>await ConnectAsync();
         var disconnect=new Button { Text="Desconnectar",AutoSize=true }; disconnect.Click+=async (_,_)=>await _controller.DisconnectAsync();
         var buttons=new FlowLayoutPanel { AutoSize=true }; buttons.Controls.AddRange(new Control[]{connect,disconnect});
-        root.Controls.Add(buttons,0,2); root.SetColumnSpan(buttons,2);
-        FormLayout.AddRow(root,"Identificador del dispositiu S88",_device,3);
-        FormLayout.AddRow(root,"Número de contacte S88",_contact,4);
+        root.Controls.Add(buttons,0,3); root.SetColumnSpan(buttons,2);
+        FormLayout.AddRow(root,"Identificador del dispositiu S88",_device,4);
+        FormLayout.AddRow(root,"Número de contacte S88",_contact,5);
         var subscribe=new Button { Text="Subscriure contacte",AutoSize=true }; subscribe.Click+=async (_,_)=>await SubscribeAsync();
         var poll=new Button { Text="Consultar mòdul (legacy)",AutoSize=true }; poll.Click+=async (_,_)=>await PollAsync();
         var feedbackButtons=new FlowLayoutPanel { AutoSize=true }; feedbackButtons.Controls.AddRange(new Control[]{subscribe,poll});
-        root.Controls.Add(feedbackButtons,0,5); root.SetColumnSpan(feedbackButtons,2);
-        FormLayout.AddRow(root,"Mòdul S88",_module,6);
+        root.Controls.Add(feedbackButtons,0,6); root.SetColumnSpan(feedbackButtons,2);
+        FormLayout.AddRow(root,"Mòdul S88",_module,7);
         root.Controls.Add(_status,0,7); root.SetColumnSpan(_status,2);
-        root.Controls.Add(_log,0,8); root.SetColumnSpan(_log,2);
+        root.Controls.Add(_log,0,9); root.SetColumnSpan(_log,2);
         Controls.Add(root);
-        FormClosed+=async (_,_)=>{ _controller.S88ContactChanged-=OnContact; _controller.S88ModuleRead-=OnModule; _controller.Diagnostic-=OnDiagnostic; _controller.ParticipantDiscovered-=OnParticipant; await _controller.DisconnectAsync(); };
+        Shown += async (_, _) => await LoadSettingsAsync();
+        FormClosed += (_, _) => { _controller.S88ContactChanged-=OnContact; _controller.S88ModuleRead-=OnModule; _controller.Diagnostic-=OnDiagnostic; _controller.ParticipantDiscovered-=OnParticipant; };
+    }
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            var saved = await _settings.LoadAsync();
+            _host.Text = saved.Host; _port.Value = saved.Port; _dhcp.Checked = saved.DhcpEnabled;
+            _status.Text = saved.DhcpEnabled ? "Mode DHCP: introdueix la IP que el router ha assignat a la CS2." : "Configuració IP manual.";
+        }
+        catch (Exception ex) { Log("No s'han pogut carregar les preferències: " + ex.Message); }
     }
     private async Task ConnectAsync()
     {
-        try { await _controller.ConnectAsync(_host.Text,(int)_port.Value); _status.Text="TCP connectada · esperant identificació de la CS2"; }
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_host.Text)) throw new InvalidOperationException("Indica la IP actual de la CS2 o el seu nom de xarxa.");
+            await _settings.SaveAsync(new Cs2ConnectionSettings(_host.Text.Trim(), (int)_port.Value, _dhcp.Checked));
+            await _controller.ConnectAsync(_host.Text.Trim(),(int)_port.Value); _status.Text="TCP connectada · esperant identificació de la CS2";
+        }
         catch(Exception ex) { _status.Text="Error de connexió"; Log(ex.Message); }
     }
     private async Task SubscribeAsync()

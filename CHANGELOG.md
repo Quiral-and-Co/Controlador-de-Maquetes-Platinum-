@@ -1,5 +1,13 @@
 # Canvis
 
+## 1.4.3 — Migració a C# / .NET 10 (en curs)
+- La distribució nativa Windows passa a identificar-se com a versió 1.4.3.
+- Projecte natiu WinForms actualitzat a AssemblyVersion/ProductVersion 1.4.3 i instal·lador NSIS alineat.
+- L’aplicació Electron queda conservada com a referència funcional i banc de regressió durant la migració.
+- Aquesta versió no declara paritat funcional completa: consulta `docs/migration-parity-1.4.3.md` per veure què s’ha portat i què continua pendent.
+
+
+
 ## 1.0 alpha — Dispatcher / despatxador
 - Afegit panell de supervisió de blocs amb estats simulats desconegut, lliure i ocupat.
 - Afegida definició d'itineraris per seqüències de blocs, reserves i alliberaments.

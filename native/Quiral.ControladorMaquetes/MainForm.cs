@@ -6,6 +6,8 @@ using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
 using Quiral.ControladorMaquetes.Maerklin;
 using Quiral.ControladorMaquetes.Modules;
+using Quiral.ControladorMaquetes.Accessories;
+using Quiral.ControladorMaquetes.Decoders;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -20,12 +22,17 @@ public sealed class MainForm : Form
     private readonly RailwayGeometryModule _geometry;
     private readonly RollingStockModule _rollingStock;
     private readonly Cs2TcpController _cs2;
+    private readonly AccessoryModule _accessories;
+    private readonly Cs2ConnectionSettingsStore _connectionSettings;
+    private readonly DecoderConfigurationModule _decoders;
+    private readonly IDccCvProgrammer _cvProgrammer;
 
-    public MainForm(QuiralCore core, ProjectModule projects, RailwayGeometryModule geometry, RollingStockModule rollingStock, Cs2TcpController cs2)
+    public MainForm(QuiralCore core, ProjectModule projects, RailwayGeometryModule geometry,
+        RollingStockModule rollingStock, Cs2TcpController cs2, AccessoryModule accessories, Cs2ConnectionSettingsStore connectionSettings, DecoderConfigurationModule decoders, IDccCvProgrammer cvProgrammer)
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
-        _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2;
-        Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.0";
+        _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2; _accessories=accessories; _connectionSettings=connectionSettings; _decoders=decoders; _cvProgrammer=cvProgrammer;
+        Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.3";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1050, 700);
         Size = new Size(1280, 820);
@@ -44,7 +51,9 @@ public sealed class MainForm : Form
         layoutMenu.DropDownItems.Add(new ToolStripMenuItem("Gestió de circulacions") { Enabled=false });
         menu.Items.Add(layoutMenu);
         var railwayMenu=new ToolStripMenuItem("Ferrocarril");
-        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Märklin CS2 60215 · mCAN / S88…",null,(_,_)=>new Cs2ConnectionForm(_cs2).Show(this)));
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Märklin CS2 60215 · mCAN / S88…",null,(_,_)=>new Cs2ConnectionForm(_cs2, _connectionSettings).Show(this)));
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Desviaments i accessoris…",null,(_,_)=>new AccessoryManagementForm(_accessories).Show(this)));
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Descodificadors i CV…",null,(_,_)=>new DecoderManagementForm(_decoders, _cvProgrammer).Show(this)));
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Control de locomotores") { Enabled=false });
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Panells de cabina") { Enabled=false });
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Seguretat del tren") { Enabled=false });
@@ -53,6 +62,7 @@ public sealed class MainForm : Form
         toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Validació del sistema") { Enabled=false });
         toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Diagnòstic") { Enabled=false });
         toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Preferències") { Enabled=false });
+        toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Comprovar actualitzacions…", null, async (_, _) => await CheckUpdatesAsync()));
         menu.Items.Add(toolsMenu);
 
         var statusStrip = new StatusStrip();
@@ -65,36 +75,26 @@ public sealed class MainForm : Form
 
         var heading = new Label
         {
-            Dock = DockStyle.Top,
-            Height = 74,
-            Text = "CONTROLADOR DE MAQUETES  |  PLATINUM",
-            Font = new Font("Segoe UI", 19, FontStyle.Bold),
-            TextAlign = ContentAlignment.MiddleLeft,
+            Dock = DockStyle.Top, Height = 74, Text = "CONTROLADOR DE MAQUETES  |  PLATINUM",
+            Font = new Font("Segoe UI", 19, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft,
             Padding = new Padding(22, 0, 0, 0)
         };
         var subtitle = new Label
         {
-            Dock = DockStyle.Top,
-            Height = 38,
+            Dock = DockStyle.Top, Height = 38,
             Text = "Quiral & Co. · Aplicació nativa Windows · Arquitectura local independent",
-            Font = new Font("Segoe UI", 10),
-            ForeColor = Color.DimGray,
-            Padding = new Padding(24, 4, 0, 0)
+            Font = new Font("Segoe UI", 10), ForeColor = Color.DimGray, Padding = new Padding(24, 4, 0, 0)
         };
 
         var dashboard = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 4,
-            Padding = new Padding(28),
-            BackColor = SystemColors.Control
+            Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4,
+            Padding = new Padding(28), BackColor = SystemColors.Control
         };
         dashboard.RowStyles.Add(new RowStyle(SizeType.Absolute, 62));
         dashboard.RowStyles.Add(new RowStyle(SizeType.Absolute, 62));
         dashboard.RowStyles.Add(new RowStyle(SizeType.Absolute, 62));
         dashboard.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
         dashboard.Controls.Add(CreateMetric("ESTAT DEL NUCLI", _core.StateOfCore.ToString()), 0, 0);
         _devicesValue.Text = $"Dispositius registrats: {_core.Devices.Snapshot().Count}";
         dashboard.Controls.Add(CreateMetric("REGISTRE DE DISPOSITIUS", _devicesValue.Text), 0, 1);
@@ -103,10 +103,8 @@ public sealed class MainForm : Form
 
         var details = new GroupBox
         {
-            Dock = DockStyle.Fill,
-            Text = "Quiral Control · Informació del sistema",
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
-            Padding = new Padding(16)
+            Dock = DockStyle.Fill, Text = "Quiral Control · Informació del sistema",
+            Font = new Font("Segoe UI", 10, FontStyle.Bold), Padding = new Padding(16)
         };
         _dataPathValue.Dock = DockStyle.Fill;
         _dataPathValue.Font = new Font("Segoe UI", 9);
@@ -115,39 +113,37 @@ public sealed class MainForm : Form
             "Sense servidor web, navegador incrustat ni dependència de serveis externs." + Environment.NewLine +
             "Controlador Märklin CS2 60215 registrat (connexió manual)." + Environment.NewLine +
             "Feedback S88 integrat al registre central de sensors i a la persistència local." + Environment.NewLine +
+            "Gestió local de desviaments i accessoris; l'accionament físic continua bloquejat." + Environment.NewLine +
             "Les ordres que requereixen sortides físiques són rebutjades pel gestor de seguretat.";
         details.Controls.Add(_dataPathValue);
         dashboard.Controls.Add(details, 0, 3);
 
-        Controls.Add(dashboard);
-        Controls.Add(subtitle);
-        Controls.Add(heading);
-        Controls.Add(statusStrip);
-        Controls.Add(menu);
-        MainMenuStrip = menu;
-        statusStrip.Dock = DockStyle.Bottom;
-        menu.Dock = DockStyle.Top;
+        Controls.Add(dashboard); Controls.Add(subtitle); Controls.Add(heading);
+        Controls.Add(statusStrip); Controls.Add(menu);
+        MainMenuStrip = menu; statusStrip.Dock = DockStyle.Bottom; menu.Dock = DockStyle.Top;
     }
 
+    private async Task CheckUpdatesAsync()
+    {
+        try
+        {
+            var release = await QuiralUpdateChecker.CheckLatestAsync();
+            if (release is null) { MessageBox.Show(this, "Encara no hi ha cap publicació a GitHub.", "Actualitzacions"); return; }
+            var current = typeof(MainForm).Assembly.GetName().Version ?? new Version(1, 4, 2);
+            if (Version.TryParse(release.Version, out var latest) && latest <= current)
+            { MessageBox.Show(this, $"Ja tens la versió {current}. Última publicació: {release.TagName}.", "Actualitzacions"); return; }
+            if (MessageBox.Show(this, $"Hi ha una publicació {release.TagName}. Vols obrir GitHub per descarregar l'instal·lador oficial?", "Actualització disponible", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                QuiralUpdateChecker.OpenReleasePage(release.ReleaseUrl);
+        }
+        catch (Exception ex) { MessageBox.Show(this, "No s'ha pogut consultar GitHub: " + ex.Message, "Actualitzacions", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+    }
     private static Control CreateMetric(string title, string value)
     {
         var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8, 4, 8, 4) };
-        panel.Controls.Add(new Label
-        {
-            Dock = DockStyle.Left,
-            Width = 260,
-            Text = title,
-            Font = new Font("Segoe UI", 9, FontStyle.Bold),
-            TextAlign = ContentAlignment.MiddleLeft
-        });
-        panel.Controls.Add(new Label
-        {
-            Dock = DockStyle.Fill,
-            Text = value,
-            Font = new Font("Segoe UI", 10),
-            TextAlign = ContentAlignment.MiddleLeft
-        });
+        panel.Controls.Add(new Label { Dock = DockStyle.Left, Width = 260, Text = title,
+            Font = new Font("Segoe UI", 9, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft });
+        panel.Controls.Add(new Label { Dock = DockStyle.Fill, Text = value,
+            Font = new Font("Segoe UI", 10), TextAlign = ContentAlignment.MiddleLeft });
         return panel;
     }
-
 }

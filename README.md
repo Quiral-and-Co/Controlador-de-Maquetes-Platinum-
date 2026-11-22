@@ -1,6 +1,8 @@
-# Controlador de Maquetes by Quiral & Co. Platinum — 1.4.0
+# Controlador de Maquetes by Quiral & Co. Platinum — 1.4.3 (migració nativa en curs)
 
 Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb serveis externs de control i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
+
+> **Línia nativa 1.4.3:** la migració C# / .NET 10 / WinForms està en curs. L'aplicació Electron es conserva com a referència i banc de regressió; encara no hi ha paritat funcional completa. Consulta [la matriu de migració](docs/migration-parity-1.4.3.md) abans de considerar aquesta versió un substitut complet.
 
 ## Funcions disponibles
 
@@ -129,7 +131,7 @@ El motor `automation-core.js` valida horaris, dies, finestres d’inici i veloci
 Proves: `node tests/automation.cjs` i `npm test`.
 
 
-## Diagnòstic de senyals i matriu de validació física (1.4.0)
+## Diagnòstic de senyals i matriu de validació física (1.4.2)
 
 La selecció d'una senyal al registre ressalta al tauler les peces de via relacionades amb el bloc protegit i l'itinerari complet. El diagnòstic resumeix incidències per nivell. La matriu individual manté comprovacions separades per senyal, bloc, sensor i desviament, distingint revisió de programari i inspecció física. Les anotacions s'exporten amb el projecte JSON a `validationMatrix`.
 
