@@ -6,7 +6,7 @@
   function ensureDatabase(value){const db=value&&typeof value==='object'&&!Array.isArray(value)?value:{};db.schemaVersion=1;db.vehicles=Array.isArray(db.vehicles)?db.vehicles:[];return db;}
   function normalizeFunctions(value){
     const rows=Array.isArray(value)?value:[];
-    return rows.slice(0,69).map((fn,index)=>({number:Number.isInteger(Number(fn?.number))?Number(fn.number):index,label:String(fn?.label||('F'+index)).slice(0,80),icon:String(fn?.icon||'circle').slice(0,80),momentary:!!fn?.momentary,description:String(fn?.description||'').slice(0,240),enabled:fn?.enabled!==false}));
+    return rows.slice(0,69).map((fn,index)=>({number:Number.isInteger(Number(fn?.number))?Number(fn.number):index,label:String(fn?.label||('F'+index)).slice(0,80),icon:String(fn?.icon||'circle').slice(0,4*1024*1024),momentary:!!fn?.momentary,buttonType:Number.isInteger(Number(fn?.buttonType))?Number(fn.buttonType):null,durationMs:Number(fn?.durationMs)||0,position:Number(fn?.position)||0,showNumber:!!fn?.showNumber,description:String(fn?.description||'').slice(0,240),enabled:fn?.enabled!==false}));
   }
   function validateVehicle(input){
     if(!input||typeof input!=='object'||Array.isArray(input))return{ok:false,error:'Fitxa de vehicle invàlida.'};

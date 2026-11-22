@@ -25,7 +25,7 @@
     if(selectedIndex>=items.length)selectedIndex=items.length-1;
     items.forEach((item,index)=>{
       const row=document.createElement('button');row.type='button';row.className='rolling-stock-item';row.draggable=!!item.draggable&&item.kind!=='car';row.dataset.vehicleId=item.id;row.dataset.vehicleKind=item.kind;row.setAttribute('role','listitem');row.setAttribute('aria-selected',String(item.id===selectedId));row.classList.toggle('selected',item.id===selectedId);
-      const icon=document.createElement('span');icon.className='rolling-stock-icon';icon.textContent=item.drawing&&item.drawing.length<8?item.drawing:(item.kind==='locomotive'?'🚂':'🚃');
+      const icon=document.createElement('span');icon.className='rolling-stock-icon';const media=item.image||(/^https?:|^data:image\\//i.test(item.drawing||'')?item.drawing:'');if(media){const image=document.createElement('img');image.src=media;image.alt='';image.loading='lazy';icon.append(image);}else icon.textContent=item.drawing&&item.drawing.length<8?item.drawing:(item.kind==='locomotive'?'🚂':'🚃');
       const details=document.createElement('span');details.className='rolling-stock-details';const name=document.createElement('strong');name.textContent=item.name;const meta=document.createElement('small');meta.textContent=[item.kind==='locomotive'?'Locomotora':item.kind==='multiple-unit'?'Automotor':'Vehicle',item.protocol||'',item.address?'Adreça '+item.address:'',item.manufacturer||''].filter(Boolean).join(' · ');details.append(name,meta);
       const hint=document.createElement('span');hint.className='rolling-stock-drag-hint';hint.textContent=item.kind==='car'?'Vehicle':(item.controlReady===false?'No assignada al control':(item.image?'📷':'Arrossega al DMI'));row.append(icon,details,hint);
       row.addEventListener('click',()=>{selectedId=item.id;selectedIndex=index;render();setStatus('Seleccionat: '+item.name+'. Doble clic o prem Intro per configurar.');});
@@ -43,7 +43,7 @@
   }
   $('rollingStockAdd').addEventListener('click',()=>openEditor(null));
   $('rollingStockRegister').addEventListener('click',()=>{
-    const vehicle=db().vehicles.find(v=>v.id===selectedId);
+    const selected=source().find(v=>v.id===selectedId);const vehicle=db().vehicles.find(v=>v.id===selectedId)||db().vehicles.find(v=>selected&&v.address&&String(v.address)===String(selected.address));
     if(!vehicle){setStatus('Selecciona primer una locomotora importada.');return;}
     if(String(vehicle.protocol||'').toUpperCase()!=='DCC'){setStatus('El registre directe al control WiThrottle només admet DCC. MFX, M4 i MM2 requereixen l’adaptador específic de la central.');return;}
     const address=Number(vehicle.address);
