@@ -32,15 +32,20 @@ public sealed class RailwayGeometryModule : IQuiralModule
         if(_projects is not null && _projects.ActiveProject is null)
             throw new InvalidOperationException("Obre o crea un projecte abans d'editar-ne la geometria.");
         var segment=AddSegment(start,end,gaugeMm);
-        await PersistAsync(cancellationToken).ConfigureAwait(false);
-        return segment;
+        try { await PersistAsync(cancellationToken).ConfigureAwait(false); return segment; }
+        catch { _segments.Remove(segment.Id); throw; }
     }
 
     public async Task<bool> RemoveSegmentAsync(string id,CancellationToken cancellationToken=default)
     {
-        var removed=_segments.Remove(id);
-        if(removed) await PersistAsync(cancellationToken).ConfigureAwait(false);
-        return removed;
+        if(_projects is not null && _projects.ActiveProject is null)
+            throw new InvalidOperationException("Obre un projecte abans de modificar-ne la geometria.");
+        if(!_segments.TryGetValue(id,out var existing)) return false;
+        if(_projects is not null && !string.Equals(existing.ProjectId,_projects.ActiveProject!.Id,StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("No es pot eliminar un tram que pertany a un altre projecte.");
+        _segments.Remove(id);
+        try { await PersistAsync(cancellationToken).ConfigureAwait(false); return true; }
+        catch { _segments[id]=existing; throw; }
     }
 
     private Task PersistAsync(CancellationToken cancellationToken) =>
