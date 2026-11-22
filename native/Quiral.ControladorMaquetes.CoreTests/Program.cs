@@ -7,7 +7,8 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Device registry upsert and snapshot", TestDeviceRegistry),
     ("Local state round-trip and path traversal rejection", TestLocalState),
     ("Physical commands blocked before driver execution", TestSafetyGate),
-    ("Core lifecycle and audit log", TestCoreLifecycle)
+    ("Core lifecycle and audit log", TestCoreLifecycle),
+    ("Module startup and reverse shutdown order", TestModuleLifecycle)
 };
 
 var failed = 0;
@@ -104,6 +105,27 @@ static async Task TestCoreLifecycle()
     }
 }
 
+
+static async Task TestModuleLifecycle()
+{
+    var root = Path.Combine(Path.GetTempPath(), "QuiralCoreModules", Guid.NewGuid().ToString("N"));
+    var events = new List<string>();
+    try
+    {
+        var core = new QuiralCore(root);
+        core.RegisterModule(new TrackingModule("A", events));
+        core.RegisterModule(new TrackingModule("B", events));
+        await core.InitializeAsync();
+        await core.DisposeAsync();
+        var expected = new[] { "start:A", "start:B", "stop:B", "stop:A" };
+        Assert(events.SequenceEqual(expected), "L'ordre d'inici/aturada dels mòduls no és correcte.");
+    }
+    finally
+    {
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+    }
+}
+
 static void Assert(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
@@ -119,5 +141,20 @@ sealed class CountingHandler : IRailwayCommandHandler
     {
         Calls++;
         return Task.FromResult(new CommandDispatchResult(true, "OK", "Executed"));
+    }
+}
+
+sealed class TrackingModule(string name, List<string> events) : IQuiralModule
+{
+    public string Name => name;
+    public Task StartAsync(QuiralCore core, CancellationToken cancellationToken)
+    {
+        events.Add($"start:{name}");
+        return Task.CompletedTask;
+    }
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        events.Add($"stop:{name}");
+        return Task.CompletedTask;
     }
 }
