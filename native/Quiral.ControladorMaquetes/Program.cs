@@ -15,14 +15,18 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
         var core = new QuiralCore();
-        core.RegisterModule(new ProjectModule());
-        core.RegisterModule(new RailwayGeometryModule());
-        core.RegisterModule(new RollingStockModule());
-        core.RegisterModule(new Cs2TcpController());
+        var projects = new ProjectModule();
+        var geometry = new RailwayGeometryModule();
+        var rollingStock = new RollingStockModule();
+        var cs2 = new Cs2TcpController();
+        core.RegisterModule(projects);
+        core.RegisterModule(geometry);
+        core.RegisterModule(rollingStock);
+        core.RegisterModule(cs2);
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
-            Application.Run(new MainForm(core));
+            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2));
         }
         catch (Exception exception)
         {
