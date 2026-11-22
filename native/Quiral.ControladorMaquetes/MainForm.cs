@@ -9,7 +9,7 @@ public sealed class MainForm : Form
     private readonly PhysicalOutputGate _outputGate = new();
     private readonly ToolStripStatusLabel _status = new()
     {
-        Text = "SORTIDES FÍSIQUES BLOQUEJADES",
+        Text = _outputGate.PhysicalOutputsEnabled ? "SORTIDES FÍSIQUES HABILITADES" : "SORTIDES FÍSIQUES BLOQUEJADES",
         ForeColor = Color.DarkRed,
         Font = new Font(SystemFonts.StatusFont, FontStyle.Bold)
     };
