@@ -7,6 +7,7 @@ using Quiral.ControladorMaquetes.RollingStock;
 using Quiral.ControladorMaquetes.Maerklin;
 using Quiral.ControladorMaquetes.Modules;
 using Quiral.ControladorMaquetes.Accessories;
+using Quiral.ControladorMaquetes.Decoders;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -23,12 +24,14 @@ public sealed class MainForm : Form
     private readonly Cs2TcpController _cs2;
     private readonly AccessoryModule _accessories;
     private readonly Cs2ConnectionSettingsStore _connectionSettings;
+    private readonly DecoderConfigurationModule _decoders;
+    private readonly IDccCvProgrammer _cvProgrammer;
 
     public MainForm(QuiralCore core, ProjectModule projects, RailwayGeometryModule geometry,
-        RollingStockModule rollingStock, Cs2TcpController cs2, AccessoryModule accessories, Cs2ConnectionSettingsStore connectionSettings)
+        RollingStockModule rollingStock, Cs2TcpController cs2, AccessoryModule accessories, Cs2ConnectionSettingsStore connectionSettings, DecoderConfigurationModule decoders, IDccCvProgrammer cvProgrammer)
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
-        _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2; _accessories=accessories; _connectionSettings=connectionSettings;
+        _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2; _accessories=accessories; _connectionSettings=connectionSettings; _decoders=decoders; _cvProgrammer=cvProgrammer;
         Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.2";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1050, 700);
@@ -50,6 +53,7 @@ public sealed class MainForm : Form
         var railwayMenu=new ToolStripMenuItem("Ferrocarril");
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Märklin CS2 60215 · mCAN / S88…",null,(_,_)=>new Cs2ConnectionForm(_cs2, _connectionSettings).Show(this)));
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Desviaments i accessoris…",null,(_,_)=>new AccessoryManagementForm(_accessories).Show(this)));
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Descodificadors i CV…",null,(_,_)=>new DecoderManagementForm(_decoders, _cvProgrammer).Show(this)));
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Control de locomotores") { Enabled=false });
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Panells de cabina") { Enabled=false });
         railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Seguretat del tren") { Enabled=false });
