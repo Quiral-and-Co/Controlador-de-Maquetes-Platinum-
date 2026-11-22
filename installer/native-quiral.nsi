@@ -4,6 +4,9 @@ RequestExecutionLevel admin
 !ifndef VERSION
   !define VERSION "1.4.0"
 !endif
+!ifndef PUBLISH_DIR
+  !define PUBLISH_DIR "publish"
+!endif
 
 Name "Controlador de Maquetes by Quiral & Co. Platinum"
 Caption "Instal·lador de Quiral & Co. Platinum"
