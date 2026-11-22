@@ -1,6 +1,9 @@
 using System;
 using System.Windows.Forms;
 using Quiral.ControladorMaquetes.Core;
+using Quiral.ControladorMaquetes.Projects;
+using Quiral.ControladorMaquetes.Geometry;
+using Quiral.ControladorMaquetes.RollingStock;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -11,6 +14,9 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
         var core = new QuiralCore();
+        core.RegisterModule(new ProjectModule());
+        core.RegisterModule(new RailwayGeometryModule());
+        core.RegisterModule(new RollingStockModule());
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
@@ -19,7 +25,7 @@ internal static class Program
         catch (Exception exception)
         {
             MessageBox.Show(
-                $"No s'ha pogut iniciar Quiral Control.\\r\\n\\r\\n{exception.Message}",
+                $"No s'ha pogut iniciar Quiral Control.\r\n\r\n{exception.Message}",
                 "Quiral & Co. Platinum",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
