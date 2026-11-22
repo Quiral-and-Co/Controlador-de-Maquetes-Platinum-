@@ -173,21 +173,21 @@ sealed class TrackingModule(string name,List<string> events) : IQuiralModule
 
 static Task TestMcanS88()
 {
-    var data=new byte[]{0x00,0x07,0x00,0x01,0x00,0x2A,0x00,0x00};
+    var data=new byte[]{0x12,0x34,0x00,0x07,0x00,0x01,0x00,0x2A};
     var original=new McanFrame(0,S88Feedback.EventCommand,true,S88Feedback.BroadcastHash,data);
     var encoded=original.Encode();
     Assert(encoded.Length==13,"Longitud de trama mCAN incorrecta.");
     var decoded=McanFrame.Decode(encoded);
     Assert(decoded.Command==0x11 && decoded.IsResponse && decoded.Priority==0 && decoded.Hash==S88Feedback.BroadcastHash && decoded.Dlc==8,"mCAN frame no preservat.");
     var evt=S88Feedback.TryParseEvent(decoded);
-    Assert(evt is { ContactId:7, PreviousOccupied:false, IsOccupied:true, Timestamp10Ms:42 },"Esdeveniment S88 incorrecte.");
-    var pollData=new byte[]{0x00,0x00,0x00,0x00,0x01,0x80,0x01};
+    Assert(evt is { DeviceId:0x1234, ContactNumber:7, PreviousOccupied:false, IsOccupied:true, Timestamp10Ms:42 },"Esdeveniment S88 incorrecte.");
+    var pollData=new byte[]{0x00,0x00,0x12,0x34,0x01,0x80,0x01};
     var poll=S88Feedback.TryParsePollReply(new McanFrame(0,S88Feedback.PollCommand,true,S88Feedback.BroadcastHash,pollData));
     Assert(poll is { ModuleNumber:1 } && poll.IsOccupied(1) && poll.IsOccupied(16),"Resposta de consulta S88 incorrecta.");
     var pollRequest=S88Feedback.BuildPoll(2,0x12345678);
     Assert(pollRequest.Priority==0 && pollRequest.Hash==S88Feedback.BroadcastHash && pollRequest.Data.SequenceEqual(new byte[]{0x12,0x34,0x56,0x78,2}),"Consulta S88 incorrecta.");
-    var subscription=S88Feedback.BuildSubscribe(7);
-    Assert(subscription.Command==0x11 && subscription.Dlc==5 && subscription.Priority==0 && subscription.Hash==S88Feedback.BroadcastHash && subscription.Data.SequenceEqual(new byte[]{0,7,0,0,0}),"Registre de contacte S88 incorrecte.");
+    var subscription=S88Feedback.BuildSubscribe(0x1234,7);
+    Assert(subscription.Command==0x11 && subscription.Dlc==5 && subscription.Priority==0 && subscription.Hash==S88Feedback.BroadcastHash && subscription.Data.SequenceEqual(new byte[]{0x12,0x34,0,7,0}),"Registre de contacte S88 incorrecte.");
     var broadcast=S88Feedback.TryParseBroadcast(new McanFrame(0,S88Feedback.BroadcastCommand,false,S88Feedback.BroadcastHash,new byte[]{2,0x80,0x01}));
     Assert(broadcast is { ModuleNumber:2 } && broadcast.IsOccupied(1) && broadcast.IsOccupied(16),"Broadcast S88 incorrecte.");
     return Task.CompletedTask;
@@ -251,10 +251,10 @@ static async Task TestCs2TcpFeedback()
         var ping=McanFrame.Decode(pingBytes);
         Assert(ping.Command==0x18 && ping.Dlc==0,"La primera trama de la CS2 no és el PING esperat.");
         var eventFrame=new McanFrame(0,S88Feedback.EventCommand,false,S88Feedback.BroadcastHash,
-            new byte[]{0x00,0x2A,0x00,0x01,0x00,0x64,0x00,0x00});
+            new byte[]{0x12,0x34,0x00,0x2A,0x00,0x01,0x00,0x64});
         await stream.WriteAsync(eventFrame.Encode(),timeout.Token);
         var contact=await received.Task.WaitAsync(timeout.Token);
-        Assert(contact.ContactId==42 && contact.IsOccupied && contact.Timestamp10Ms==100,"El feedback S88 TCP no s'ha rebut correctament.");
+        Assert(contact.DeviceId==0x1234 && contact.ContactNumber==42 && contact.IsOccupied && contact.Timestamp10Ms==100,"El feedback S88 TCP no s'ha rebut correctament.");
         await controller.DisconnectAsync();
     }
     finally
