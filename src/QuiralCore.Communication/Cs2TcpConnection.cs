@@ -15,8 +15,8 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
     private CancellationTokenSource? _lifetime;
     private Task? _reader;
 
-    public event EventHandler<McanFrame>? FrameReceived;
-    public event EventHandler<Exception>? ConnectionFaulted;
+    public event Action<McanFrame>? FrameReceived;
+    public event Action<Exception>? ConnectionFaulted;
 
     public bool IsConnected => _client?.Connected == true;
 
@@ -48,13 +48,13 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
             {
                 await stream.ReadExactlyAsync(frameBytes, cancellationToken).ConfigureAwait(false);
                 var frame = McanFrame.Decode(frameBytes);
-                FrameReceived?.Invoke(this, frame);
+                FrameReceived?.Invoke(frame);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            ConnectionFaulted?.Invoke(this, ex);
+            ConnectionFaulted?.Invoke(ex);
             _lifetime?.Cancel();
         }
     }
