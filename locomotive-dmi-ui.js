@@ -10,6 +10,7 @@ const ASPECTS=window.JMRI_TC_SignallingCore?.ASPECTS||{};
 function traffic(){return window.JMRI_TC_TRAFFIC_CONTROL;}
 function routeFor(snapshot){return snapshot?.activeRun?((snapshot.config?.dispatcher?.routes||[]).find(r=>r.id===snapshot.activeRun.routeId)||null):null;}
 function activeLoco(snapshot){return snapshot?.locomotives?.find(l=>l.id===snapshot.activeRun?.locomotiveId)||snapshot?.locomotives?.find(l=>l.id===$('dmiLocomotive')?.value)||null;}
+function selectLocomotive(id){const snapshot=traffic()?.getSnapshot?.();const loco=snapshot?.locomotives?.find(item=>item.id===String(id));if(!loco){setStatus('Locomotora no trobada al registre actual.');return false;}if(snapshot?.activeRun&&snapshot.activeRun.locomotiveId!==loco.id){setStatus('Selecció rebutjada: hi ha una circulació activa amb una altra locomotora.');return false;}const select=$('dmiLocomotive');select.value=loco.id;if(select.value!==loco.id){setStatus('No s’ha pogut seleccionar la locomotora al DMI.');return false;}const source=$('trafficLoco');if(source)source.value=loco.id;refresh();setStatus('Locomotora seleccionada: '+loco.name+'. El control físic continua bloquejat fins a superar les proteccions.');return true;}
 function loadKeyBindings(){try{return {...defaultBindings,...JSON.parse(localStorage.getItem(KEY_STORAGE)||'{}')};}catch{return {...defaultBindings};}}
 function keyLabel(code){return core.keyboardLabel(code);}
 function isEditableTarget(target){return !!target?.closest?.('input,textarea,select,[contenteditable="true"]');}
@@ -129,8 +130,11 @@ function init(){
  $('dmiSetpointDial').addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();setTarget(setpoint+1);}else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();setTarget(setpoint-1);}else if(e.key==='Home'){e.preventDefault();setTarget(0);}});
  $('dmiFunctionButtons').addEventListener('click',e=>{const button=e.target.closest('button[data-function]');if(button)toggleFunction(Number(button.dataset.function));});
  $('dmiLocomotive').onchange=()=>{const source=$('trafficLoco');if(source)source.value=$('dmiLocomotive').value;};
+ const panel=$('locomotiveDmiPanel');
+ panel?.addEventListener('dragover',event=>{if(Array.from(event.dataTransfer?.types||[]).includes('application/x-quiral-rolling-stock')){event.preventDefault();event.dataTransfer.dropEffect='copy';}});
+ panel?.addEventListener('drop',event=>{event.preventDefault();let raw='';try{raw=event.dataTransfer?.getData('application/x-quiral-rolling-stock')||event.dataTransfer?.getData('text/plain')||'';}catch{}const result=window.JMRI_TC_RollingStockCore?.resolveDrop(raw,traffic()?.getSnapshot?.()?.locomotives||[]);if(!result?.ok){setStatus(result?.error||'No s’ha pogut llegir el vehicle arrossegat.');return;}selectLocomotive(result.locomotive.id);});
  renderSpeed();refresh();setInterval(refresh,1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.JMRI_TC_LOCOMOTIVE_DMI={refresh,setTarget,getCalibration:()=>({maxKmh}),getKeyBindings:()=>({...keyBindings})};
+window.JMRI_TC_LOCOMOTIVE_DMI={refresh,setTarget,selectLocomotive,getCalibration:()=>({maxKmh}),getKeyBindings:()=>({...keyBindings})};
 })();

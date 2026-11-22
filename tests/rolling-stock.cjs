@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict');
+const core=require('../rolling-stock-core');
+const locos=[{id:'L-01',name:'BR 89',wiThrottleId:'3'},{id:'L-02',name:'V 100',wiThrottleId:'4'}];
+const roster={cars:[{id:'CAR-0001',name:'Cotxe 1',type:'PASSENGER'},{id:'CAR-0002',name:'Vagó 2',type:'FREIGHT',trainId:'T-1'}]};
+const inventory=core.buildInventory(locos,roster);
+assert.equal(inventory.length,4);
+assert.equal(inventory[0].kind,'locomotive');
+assert.equal(inventory[2].kind,'car');
+const locoPayload=core.createDragPayload(inventory[0]);
+assert.deepEqual(core.resolveDrop(locoPayload,locos),{ok:true,locomotive:locos[0]});
+assert.equal(core.resolveDrop(core.createDragPayload(inventory[2]),locos).ok,false,'cars cannot be assigned as locomotives');
+assert.equal(core.resolveDrop(core.createDragPayload({...inventory[0],id:'missing'}),locos).ok,false,'stale locomotive IDs are rejected');
+assert.equal(core.resolveDrop('{bad json',locos).ok,false);
+assert.equal(core.resolveDrop('',locos).ok,false);
+assert.equal(core.createDragPayload({kind:'other',id:'x'}),'');
+assert.equal(core.buildInventory(null,null).length,0);
+console.log('PASS rolling stock: inventory mapping, locomotive drag payload validation, stale IDs and car rejection');

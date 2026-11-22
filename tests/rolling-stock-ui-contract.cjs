@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),multi=fs.readFileSync('electron/multimonitor.cjs','utf8'),native=fs.readFileSync('native-window-controls.js','utf8'),dmi=fs.readFileSync('locomotive-dmi-ui.js','utf8');
+assert.match(html,/id="rollingStockPanel"/);
+assert.match(html,/data-ribbon-command="windowShowRollingStock"/);
+assert.match(html,/data-ribbon-command="windowShowLocomotiveDmi"/);
+assert.match(html,/<script src="rolling-stock-core\.js"><\/script>/);
+assert.match(html,/<script src="rolling-stock-ui\.js"><\/script>/);
+assert.match(app,/type:'rollingStock',duplicate:true/);
+assert.match(app,/type:'locomotiveDmi',duplicate:true/);
+assert.match(multi,/rollingStock: 'Material mòbil ferroviari'/);
+assert.match(native,/rollingStockPanel/);
+assert.match(native,/nativeWindow/);
+assert.match(dmi,/addEventListener\('drop'/);
+assert.match(dmi,/selectLocomotive/);
+console.log('PASS rolling stock UI contract: dedicated native panels, per-click DMI instances, and drag/drop wiring');

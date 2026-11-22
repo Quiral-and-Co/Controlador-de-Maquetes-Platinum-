@@ -8,11 +8,35 @@
     ['trainWindow','Finestra del tren (Train Window)','🚂'],['trainDetector','Detecció d’ocupació (Train Detector)','📍'],['editor','Editor de maqueta','🛤️'],['levels','Nivells','▤'],['catalogue','Catàleg de vies','🧩'],
     ['properties','Propietats i geometria XYZ','📐'],['dispatcher','Despatxador','🚦'],
     ['traffic','Trànsit i circulacions','🚆'],['operation','Operació','⚙️'],
-    ['commandStation','Central digital','🎛️'],['locomotiveDmi','DMI de locomotora','🚄'],['trainProtection','Protecció del tren','🛡️'],
+    ['commandStation','Central digital','🎛️'],['locomotiveDmi','DMI de locomotora','🚄'],['rollingStock','Material mòbil ferroviari','🚃'],['trainProtection','Protecció del tren','🛡️'],
     ['trainGround','Terminal tren-terra','📡'],['spielewelt','Món de Jocs','🎮'],['signalling','Senyalització','🚥'],
     ['validation','Validació i seguretat','✓'],['diagnostics','Metge Quiral','🩺']
   ];
   const byType = new Map(definitions.map(item => [item[0], item]));
+  const nativeType = new URLSearchParams(location.search).get('nativeWindow');
+  const nativePanelId = ({ rollingStock: 'rollingStockPanel', locomotiveDmi: 'locomotiveDmiPanel' })[nativeType];
+  if (nativePanelId) {
+    const target = document.getElementById(nativePanelId);
+    if (target) {
+      const shell = target.closest('.desktop-window') || target;
+      document.querySelectorAll('main > *').forEach(node => { node.hidden = node !== shell && !node.contains(shell); });
+      document.querySelectorAll('.desktop-window').forEach(node => { node.hidden = node !== shell; });
+      document.querySelector('.topbar')?.setAttribute('hidden', '');
+      document.querySelector('footer')?.setAttribute('hidden', '');
+      shell.hidden = false;
+      shell.classList.add('native-panel-shell');
+      shell.style.position = 'fixed';
+      shell.style.left = '8px';
+      shell.style.top = '8px';
+      shell.style.width = 'calc(100vw - 16px)';
+      shell.style.height = 'calc(100vh - 16px)';
+      shell.style.maxWidth = 'none';
+      shell.style.maxHeight = 'none';
+      target.hidden = false;
+      document.body.classList.add('native-panel-window');
+      return;
+    }
+  }
   const storageKey = 'quiral.nativeWindowDock.v1';
   const defaults = { side: 'right', collapsed: true, favourites: ['editor','dispatcher','traffic','schedules','diagnostics'] };
   let preferences = { ...defaults };

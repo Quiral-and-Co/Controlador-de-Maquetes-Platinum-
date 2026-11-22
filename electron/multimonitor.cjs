@@ -20,6 +20,7 @@ const WINDOW_TYPES = Object.freeze({
   operation: 'Operació',
   commandStation: 'Central digital',
   locomotiveDmi: 'DMI de locomotora',
+  rollingStock: 'Material mòbil ferroviari',
   trainProtection: 'Protecció del tren',
   trainGround: 'Terminal tren-terra',
   spielewelt: 'Món de Jocs',
