@@ -52,6 +52,12 @@ public sealed class S88FeedbackModule : IQuiralModule
 
     private void OnContactChanged(S88ContactEvent value)
     {
+        if (!_controller.IdentityVerified)
+        {
+            _core?.Diagnostics.Record(DiagnosticSeverity.Warning, Name,
+                "S'ha descartat un esdeveniment S88 rebut abans d'identificar la CS2.");
+            return;
+        }
         var state = new S88ContactState(value.ContactUid, value.DeviceId, value.ContactNumber,
             value.IsOccupied, value.ReceivedAt, value.Timestamp10Ms);
         lock (_sync) _contacts[value.ContactUid] = state;
