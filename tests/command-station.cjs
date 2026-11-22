@@ -38,3 +38,17 @@ assert.equal(c.validateStation({...base,manufacturer:'YaMoRC',model:'YaMoRC (mod
 assert.equal(c.validateStation({...base,manufacturer:'YaMoRC',model:'YaMoRC (model segons unitat)',protocol:'LocoNet',interface:'Wi-Fi',connection:{host:'192.168.1.90',port:1234}}).ok,false,'YaMoRC LocoNet serial mode must reject Wi-Fi');
 
 console.log('Command station configuration tests passed.');
+
+const marklinCases=[
+  {model:'Central Station 1 (60212)',protocol:'Märklin CS1',interface:'TCP',connection:{host:'192.168.1.61',port:15731},manufacturer:'Märklin'},
+  {model:'Interface 6051',protocol:'Märklin 6050/6051',interface:'Serial',connection:{serialPort:'COM7',baudRate:2400},manufacturer:'Märklin'},
+  {model:'Central Station 1 Reloaded by ESU',protocol:'ECoS',interface:'TCP',connection:{host:'192.168.1.62',port:15471},manufacturer:'Märklin'}
+];
+for(const item of marklinCases){
+  assert.equal(c.validateStation({...base,id:'MK-'+item.model,name:item.model,...item}).ok,true,item.model+' supported');
+}
+const lenzModels=['LZ100','LZV100','LZV200','LH200','Compact'];
+for(const model of lenzModels){
+  assert.equal(c.validateStation({...base,id:'LENZ-'+model,name:'Lenz '+model,manufacturer:'Lenz',model,protocol:'XpressNet',interface:'Serial',connection:{serialPort:'COM8',baudRate:9600}}).ok,true,model+' supported');
+}
+assert.equal(c.validateStation({...base,manufacturer:'Märklin',model:'Interface 6051',protocol:'Märklin 6050/6051',interface:'TCP',connection:{host:'192.168.1.63',port:2400}}).ok,false,'6051 must require serial interface');
