@@ -1,4 +1,4 @@
-# JMRI TC Gold Custom — 1.3.0
+# JMRI TC Gold Custom — 1.4.0
 
 Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb JMRI i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
 

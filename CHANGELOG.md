@@ -1,5 +1,12 @@
 # Canvis
 
+## 1.4.0 — editor de maquetes i contracte JSON v3
+- Reforçada la validació d'importació: objecte arrel, metadades H0/Märklin C, superfície, cotes dels cinc nivells, identificadors i referències.
+- Les connexions JSON només poden referenciar ports existents de les peces; les assignacions v2 continuen migrant-se com a registres provisionals no verificats.
+- Alineat l'esquema JSON Schema v3 amb les metadades de connexió generades per l'editor (method) i els ports A/B/C.
+- Afegides proves de regressió per preservar metadades de connexió, rebutjar ports inexistents i impedir dimensions de maqueta incompatibles.
+- Preparada la compilació Windows NSIS versionada 1.4.0; el fitxer executable es publicarà com a artefacte després de superar CI.
+
 ## 1.0 alpha — Dispatcher / despatxador
 - Afegit panell de supervisió de blocs amb estats simulats desconegut, lliure i ocupat.
 - Afegida definició d'itineraris per seqüències de blocs, reserves i alliberaments.
