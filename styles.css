@@ -306,5 +306,7 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .tp-ack-green{background:#168044!important;color:#fff!important}.tp-ack-yellow{background:#e0b323!important;color:#17202a!important}.tp-ack-green-yellow{background:linear-gradient(135deg,#168044 0 50%,#e0b323 50% 100%)!important;color:#fff!important}
 .tg-15seg-panel{margin:12px 0 18px;padding:14px 18px;background:#101b1b;border:2px solid #45605a;border-radius:8px;box-shadow:inset 0 0 18px #071010}
 .tg-15seg-label,.tg-15seg-mode{display:block;color:#8da9a0;font-size:.72rem;letter-spacing:.16em}
-.tg-15seg-display{display:block;margin:7px auto;padding:8px 14px;text-align:center;background:#07120e;color:#8effad;border:1px solid #416a4b;border-radius:5px;font:700 clamp(2rem,5vw,3.4rem)/1.1 "DSEG15 Classic","Segment7",Consolas,monospace;letter-spacing:.22em;text-shadow:0 0 5px #5cff8a,0 0 15px #29d75a;min-height:1.3em}
+.tg-15seg-display{display:flex;justify-content:center;gap:5px;margin:7px auto;padding:8px 14px;text-align:center;background:#07120e;color:#8effad;border:1px solid #416a4b;border-radius:5px;font:700 clamp(2rem,5vw,3.4rem)/1.1 "DSEG15 Classic","Segment7",Consolas,monospace;letter-spacing:.22em;text-shadow:0 0 5px #5cff8a,0 0 15px #29d75a;min-height:1.3em}
 .tg-15seg-mode{text-align:right}
+
+.tg-15seg-display svg{flex:0 0 40px;overflow:visible}.tg-15seg-display line{stroke-width:4;stroke-linecap:round}.tg-15seg-display .segment-on{stroke:#8effad;filter:drop-shadow(0 0 3px #5cff8a)}.tg-15seg-display .segment-off{stroke:#1a3428;opacity:.7}
