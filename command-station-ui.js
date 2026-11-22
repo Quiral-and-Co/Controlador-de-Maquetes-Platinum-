@@ -25,6 +25,7 @@
   function interfaces(){
     const row=core.CATALOGUE.find(x=>x.manufacturer===$('csManufacturer').value&&x.models.includes($('csModel').value));
     $('csInterface').replaceChildren(...(row?.interfaces||[]).map(x=>option(x,x)));
+    if(row?.defaultBaudRate)$('csBaud').value=String(row.defaultBaudRate);
     connectionFields();
   }
   function connectionFields(){
