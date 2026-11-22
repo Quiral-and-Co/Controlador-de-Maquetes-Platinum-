@@ -2,6 +2,8 @@
 
 Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb serveis externs de control i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
 
+> **Línia nativa 1.4.3:** la migració C# / .NET 10 / WinForms està en curs. L'aplicació Electron es conserva com a referència i banc de regressió; encara no hi ha paritat funcional completa. Consulta [la matriu de migració](docs/migration-parity-1.4.3.md) abans de considerar aquesta versió un substitut complet.
+
 ## Funcions disponibles
 
 ### Edició 2D (0.3–0.4)
