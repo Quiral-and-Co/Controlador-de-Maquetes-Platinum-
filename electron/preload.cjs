@@ -2,6 +2,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('jmriDesktop', Object.freeze({
+  startApplication: command => ipcRenderer.invoke('splash:start', command),
+  showAbout: () => ipcRenderer.invoke('splash:about'),
+  showHelp: () => ipcRenderer.invoke('splash:help'),
   openProject: options => ipcRenderer.invoke('project:open', options),
   importZ21Database: bytes => ipcRenderer.invoke('rolling-stock:import-z21', bytes),
   saveProject: options => ipcRenderer.invoke('project:save', options),
