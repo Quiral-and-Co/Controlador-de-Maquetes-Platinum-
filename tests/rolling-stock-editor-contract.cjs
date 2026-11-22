@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const html=fs.readFileSync('index.html','utf8'),ui=fs.readFileSync('rolling-stock-ui.js','utf8'),app=fs.readFileSync('app.js','utf8');
-for(const id of ['rollingStockAdd','rollingStockImport','rollingStockExport','rollingStockEditor','rsFunctions','rsCv','rsSpeedProfile','rsImage','rsDrawing'])assert.match(html,new RegExp('id="'+id+'"'));
+for(const id of ['rollingStockAdd','rollingStockImport','rollingStockExport','rollingStockEditor','rsFunctions','rsCv','rsAddresses','rsSpeedProfile','rsImage','rsDrawing'])assert.match(html,new RegExp('id="'+id+'"'));
 assert.match(html,/<script src="rolling-stock-import-core\.js"><\/script>/);
 assert.match(ui,/dblclick/);
 assert.match(ui,/ArrowDown/);

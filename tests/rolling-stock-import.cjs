@@ -63,6 +63,8 @@ assert.equal(db.vehicles.length,2);
 assert.equal(core.validateVehicle({name:'bad',protocol:'UNKNOWN'}).ok,false);
 assert.equal(core.validateVehicle({name:'BR 89',protocol:'MFX',maxKmh:80,speedProfile:{points:[{step:0,kmh:0},{step:126,kmh:80}]}}).ok,true);
 assert.equal(core.validateVehicle({name:'BR 89',protocol:'DCC',speedProfile:{points:[{step:200,kmh:80}]}}).ok,false);
+assert.equal(core.validateVehicle({name:'BR 89',protocol:'DCC',addresses:[{protocol:'DCC',address:'3'},{protocol:'MFX',address:'0x1234',addressType:'mfx-uid'}]}).ok,true);
+assert.equal(core.validateVehicle({name:'BR 89',protocol:'DCC',addresses:[{protocol:'DCC',address:'3'},{protocol:'DCC',address:'3'}]}).ok,false);
 assert.equal(core.validateVehicle({name:'BR 89',protocol:'MFX',functions:[{number:0},{number:0}]}).ok,false);
 const added=core.upsertVehicle(db,{name:'Cotxe 1',kind:'car',protocol:'DCC',functions:[]});
 assert.equal(added.ok,true);

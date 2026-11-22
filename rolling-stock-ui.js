@@ -14,7 +14,7 @@
     editingId=vehicle?.id||null;
     const v=vehicle||{name:'',kind:'locomotive',protocol:'DCC',addressType:'auto',functions:[{number:0,label:'Llums',icon:'lightbulb',momentary:false}],cv:{}};
     $('rollingStockEditorTitle').textContent=editingId?'Configurar vehicle · '+v.name:'Afegir vehicle al parc';
-    field('rsName',v.name);field('rsKind',v.kind||'locomotive');field('rsManufacturer',v.manufacturer);field('rsModel',v.model);field('rsArticle',v.article);field('rsProtocol',String(v.protocol||'DCC').toUpperCase());field('rsAddress',v.address);field('rsAddressType',v.addressType||'auto');field('rsDecoder',v.decoder);field('rsMaxKmh',v.maxKmh);field('rsImage',v.image);field('rsDrawing',v.drawing);field('rsFunctions',JSON.stringify(v.functions||[],null,2));field('rsCv',JSON.stringify(v.cv||{},null,2));field('rsSpeedProfile',JSON.stringify(v.speedProfile||{maxKmh:v.maxKmh||null,points:[]},null,2));
+    field('rsName',v.name);field('rsKind',v.kind||'locomotive');field('rsManufacturer',v.manufacturer);field('rsModel',v.model);field('rsArticle',v.article);field('rsProtocol',String(v.protocol||'DCC').toUpperCase());field('rsAddress',v.address);field('rsAddressType',v.addressType||'auto');field('rsAddresses',JSON.stringify(v.addresses||((v.address)?[{protocol:v.protocol||'DCC',address:v.address,addressType:v.addressType||'auto'}]:[]),null,2));field('rsDecoder',v.decoder);field('rsMaxKmh',v.maxKmh);field('rsImage',v.image);field('rsDrawing',v.drawing);field('rsFunctions',JSON.stringify(v.functions||[],null,2));field('rsCv',JSON.stringify(v.cv||{},null,2));field('rsSpeedProfile',JSON.stringify(v.speedProfile||{maxKmh:v.maxKmh||null,points:[]},null,2));
     $('rollingStockDelete').hidden=!editingId;
     if(!dialog.open)dialog.showModal();$('rsName').focus();
   }
@@ -37,7 +37,7 @@
   }
   function saveVehicle(event){
     event.preventDefault();try{
-      const value={id:editingId||undefined,name:$('rsName').value,kind:$('rsKind').value,manufacturer:$('rsManufacturer').value,model:$('rsModel').value,article:$('rsArticle').value,protocol:$('rsProtocol').value,address:$('rsAddress').value,addressType:$('rsAddressType').value,decoder:$('rsDecoder').value,maxKmh:$('rsMaxKmh').value||null,image:$('rsImage').value,drawing:$('rsDrawing').value,functions:jsonField('rsFunctions','[]'),cv:jsonField('rsCv','{}'),speedProfile:jsonField('rsSpeedProfile','{\"points\":[]}'),source:editingId?(db().vehicles.find(v=>v.id===editingId)?.source||'MANUAL'):'MANUAL'};
+      const value={id:editingId||undefined,name:$('rsName').value,kind:$('rsKind').value,manufacturer:$('rsManufacturer').value,model:$('rsModel').value,article:$('rsArticle').value,protocol:$('rsProtocol').value,address:$('rsAddress').value,addressType:$('rsAddressType').value,addresses:jsonField('rsAddresses','[]'),decoder:$('rsDecoder').value,maxKmh:$('rsMaxKmh').value||null,image:$('rsImage').value,drawing:$('rsDrawing').value,functions:jsonField('rsFunctions','[]'),cv:jsonField('rsCv','{}'),speedProfile:jsonField('rsSpeedProfile','{\"points\":[]}'),source:editingId?(db().vehicles.find(v=>v.id===editingId)?.source||'MANUAL'):'MANUAL'};
       const result=core.upsertVehicle(db(),value);if(!result.ok)throw new Error(result.error);saveDb(db());closeEditor();selectedId=result.vehicle.id;render();setStatus('Fitxa desada: '+result.vehicle.name+'. Les CV només s’han desat localment; no s’han programat al descodificador.');
     }catch(error){setStatus(error.message);}
   }

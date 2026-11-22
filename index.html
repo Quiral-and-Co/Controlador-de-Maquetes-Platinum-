@@ -307,8 +307,9 @@
       <label>Model / sèrie<input id="rsModel" maxlength="100"></label>
       <label>Referència de fabricant<input id="rsArticle" maxlength="80"></label>
       <label>Protocol<select id="rsProtocol"><option>DCC</option><option>MFX</option><option>M4</option><option>MM2</option><option>Motorola</option><option>RailCom</option><option>RailComPlus</option><option>Other</option></select></label>
-      <label>Adreça digital<input id="rsAddress" maxlength="32"></label>
+      <label>Adreça digital principal<input id="rsAddress" maxlength="32"></label>
       <label>Tipus d'adreça<select id="rsAddressType"><option value="short">Curta</option><option value="long">Llarga</option><option value="mfx-uid">UID mfx</option><option value="auto">Automàtica / no definida</option></select></label>
+      <label class="rs-wide">Adreces digitals addicionals (JSON)<textarea id="rsAddresses" rows="4" spellcheck="false" placeholder='[{"protocol":"MFX","address":"0x12345678","addressType":"mfx-uid"}]'></textarea></label>
       <label>Tipus de descodificador<input id="rsDecoder" maxlength="100" placeholder="Ex. ESU LokPilot 5 M4"></label>
       <label>Velocitat màxima real (km/h)<input id="rsMaxKmh" type="number" min="1" max="500" step="0.1"></label>
       <label>Imatge / fotografia (URL)<input id="rsImage" type="text" maxlength="2048"></label>
