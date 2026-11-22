@@ -28,7 +28,7 @@ public static class S88Feedback
         return new McanFrame(1,EventCommand,false,hash,data);
     }
 
-    public static McanFrame BuildPoll(ushort deviceId, byte moduleNumber, uint senderUid, ushort hash)
+    public static McanFrame BuildPoll(byte moduleNumber, uint senderUid, ushort hash)
     {
         var data=new byte[5];
         System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(data.AsSpan(0,4),senderUid);
