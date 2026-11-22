@@ -13,7 +13,7 @@ public static class QuiralUpdateChecker
     public static async Task<QuiralUpdateInfo?> CheckLatestAsync(CancellationToken ct = default)
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Quiral-Control", "1.4.2"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Quiral-Control", "1.4.3"));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         using var response = await client.GetAsync(Api, ct).ConfigureAwait(false);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
