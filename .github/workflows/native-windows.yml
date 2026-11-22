@@ -12,6 +12,7 @@ on:
     branches:
       - feature/railway-cab-panels-windows
       - feature/native-windows-architecture
+      - feature/native-accessories-dcc-mm2-mfx
       - main
     paths:
       - "native/**"
@@ -68,9 +69,9 @@ jobs:
             throw "Published application was not found: $application"
           }
           New-Item -ItemType Directory -Force -Path $distDir | Out-Null
-          $makensis = Join-Path $env:ProgramFiles 'NSIS\makensis.exe'
+          $makensis = Join-Path $env:ProgramFiles 'NSIS\\makensis.exe'
           if (-not (Test-Path -LiteralPath $makensis)) {
-            $makensis = Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe'
+            $makensis = Join-Path ${env:ProgramFiles(x86)} 'NSIS\\makensis.exe'
           }
           if (-not (Test-Path -LiteralPath $makensis)) {
             throw 'makensis.exe was not found after installing NSIS.'
