@@ -6,12 +6,15 @@
   if(root) root.JMRI_TC_COMMAND_STATION_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   const CATALOGUE=Object.freeze([
+    {id:'marklin-cs1',manufacturer:'Märklin',models:['Central Station 1 (60212)'],protocols:['Märklin CS1'],interfaces:['TCP'],catalogueVerification:'CONDITIONAL',notes:'La connexió d’ordinador depèn de la revisió de maquinari i del firmware; la CS1 original sense modificació pot no disposar de port PC funcional.'},
+    {id:'marklin-6051',manufacturer:'Märklin',models:['Interface 6051'],protocols:['Märklin 6050/6051'],interfaces:['Serial'],catalogueVerification:'DOCUMENTED',defaultBaudRate:2400,notes:'RS-232, 2400 baud, 8 bits de dades, sense paritat i 2 bits de parada.'},
+    {id:'marklin-cs1-reloaded',manufacturer:'Märklin / ESU',models:['Central Station 1 Reloaded by ESU'],protocols:['ECoS'],interfaces:['TCP'],catalogueVerification:'DOCUMENTED',notes:'Perfil ECoS per a CS1 actualitzada/reloaded; confirmar firmware i IP de la unitat.'},
     {id:'marklin-cs2',manufacturer:'Märklin',models:['Central Station 2'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'marklin-cs3',manufacturer:'Märklin',models:['Central Station 3','Central Station 3+'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'esu-ecos',manufacturer:'ESU',models:['ECoS 50200','ECoS 50210'],protocols:['DCC','MM2','MFX'],interfaces:['TCP']},
     {id:'roco-z21',manufacturer:'Roco',models:['Z21','z21','z21 start'],protocols:['DCC','MM2','XpressNet','Z21 LAN'],interfaces:['TCP','Wi-Fi']},
     {id:'digitrax-dcs',manufacturer:'Digitrax',models:['DCS52','DCS100','DCS200','DCS210','DCS240'],protocols:['DCC','LocoNet'],interfaces:['USB','Serial','TCP']},
-    {id:'lenz-lzv',manufacturer:'Lenz',models:['LZV100','LZV200'],protocols:['DCC','XpressNet'],interfaces:['USB','Serial','TCP']},
+    {id:'lenz-digital-plus',manufacturer:'Lenz',models:['LZ100','LZV100','LZV200','LH200','Compact'],protocols:['DCC','XpressNet'],interfaces:['USB','Serial','TCP'],catalogueVerification:'DOCUMENTED',notes:'LZ100/LZV100/LZV200 tenen suport XpressNet; LH200 té funcions limitades i Compact té restriccions pròpies. Interfícies LI100, LI100F, LI101F, LI-USB i LI-USB-Ethernet segons la central.'},
     {id:'nce-powercab',manufacturer:'NCE',models:['PowerCab','Powerhouse Pro'],protocols:['DCC'],interfaces:['USB','Serial','TCP']},
     {id:'hornby-elite',manufacturer:'Hornby',models:['Elite'],protocols:['DCC'],interfaces:['USB','Serial']},
     {id:'piko-smartcontrol',manufacturer:'PIKO',models:['SmartControl','SmartControl WLAN'],protocols:['DCC'],interfaces:['TCP','Wi-Fi']},
@@ -24,7 +27,7 @@
     {id:'digikeijs-adj9000',manufacturer:'Digikeijs',models:['ADJ9000 (referència pendent de confirmar)'],protocols:['LocoNet over TCP'],interfaces:['TCP','USB'],catalogueVerification:'UNCONFIRMED'},
     {id:'yamorc-command-station',manufacturer:'YaMoRC',models:['YaMoRC (model segons unitat)'],protocols:['LocoNet over TCP','LocoNet'],interfaces:['TCP','Wi-Fi','USB','Serial'],modes:[{protocol:'LocoNet over TCP',interfaces:['TCP','Wi-Fi']},{protocol:'LocoNet',interfaces:['USB','Serial']}]}
   ]);
-  const PROTOCOLS=Object.freeze(['DCC','MM2','MFX','LocoNet','XpressNet','Z21 LAN','DCC-EX Native','SRCP','CAN/CBUS','BiDiB']);
+  const PROTOCOLS=Object.freeze(['DCC','MM2','MFX','Märklin CS1','Märklin 6050/6051','ECoS','LocoNet','XpressNet','Z21 LAN','DCC-EX Native','SRCP','CAN/CBUS','BiDiB']);
   const INTERFACES=Object.freeze(['TCP','Wi-Fi','USB','Serial','WebSocket']);
   const DEFAULTS=Object.freeze({schemaVersion:1,stations:[],selectedStationId:null,physicalOutputsEnabled:false});
   const clone=value=>JSON.parse(JSON.stringify(value));
