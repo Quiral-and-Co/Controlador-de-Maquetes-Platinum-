@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using Quiral.ControladorMaquetes.Core;
+using Quiral.ControladorMaquetes.RollingStock;
 
 namespace Quiral.ControladorMaquetes.Maerklin;
 
@@ -31,6 +32,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
     public Task StartAsync(QuiralCore core,CancellationToken cancellationToken)
     {
         _core=core;
+        core.Commands.RegisterHandler(this);
         core.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
             RailwayDeviceKind.CommandStation,RailwayDeviceState.Configured,"Märklin","60215"));
         return Task.CompletedTask;
@@ -63,6 +65,54 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
             _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
                 RailwayDeviceKind.CommandStation,RailwayDeviceState.Faulted,"Märklin","60215",$"{host}:{port}"));
             client.Dispose(); _client=null; _stream=null; throw;
+        }
+    }
+
+
+    public bool CanHandle(RailwayCommand command) =>
+        command.CommandName is "set-speed" or "set-direction" or "set-function";
+
+    async Task<CommandDispatchResult> IRailwayCommandHandler.ExecuteAsync(RailwayCommand command,CancellationToken cancellationToken)
+    {
+        if(_core is null || !_core.SafetyGate.PhysicalOutputsEnabled)
+            return CommandDispatchResult.Blocked("Control de locomotores bloquejat: cal superar totes les validacions de seguretat.");
+        if(command.Parameters is null) return new(false,"INVALID_PARAMETERS","Falten els paràmetres de la comanda.");
+        try
+        {
+            if(!command.Parameters.TryGetValue("protocol",out var protocolText) ||
+                !Enum.TryParse<DigitalProtocol>(protocolText,true,out var protocol) ||
+                !command.Parameters.TryGetValue("address",out var addressText) ||
+                !int.TryParse(addressText,out var address))
+                return new(false,"INVALID_PARAMETERS","Cal indicar protocol i adreça vàlids.");
+
+            McanFrame frame;
+            switch(command.CommandName)
+            {
+                case "set-speed":
+                    if(!command.Parameters.TryGetValue("speed",out var speedText)||!int.TryParse(speedText,out var speed))
+                        return new(false,"INVALID_PARAMETERS","Cal indicar la velocitat.");
+                    frame=McanLocomotiveCommands.BuildSpeed(protocol,address,speed,NextHash());
+                    break;
+                case "set-direction":
+                    if(!command.Parameters.TryGetValue("direction",out var directionText)||!byte.TryParse(directionText,out var direction))
+                        return new(false,"INVALID_PARAMETERS","Cal indicar el sentit (0-3).");
+                    frame=McanLocomotiveCommands.BuildDirection(protocol,address,direction,NextHash());
+                    break;
+                case "set-function":
+                    if(!command.Parameters.TryGetValue("function",out var functionText)||!int.TryParse(functionText,out var function) ||
+                        !command.Parameters.TryGetValue("enabled",out var enabledText)||!bool.TryParse(enabledText,out var enabled))
+                        return new(false,"INVALID_PARAMETERS","Cal indicar funció i estat.");
+                    frame=McanLocomotiveCommands.BuildFunction(protocol,address,function,enabled,NextHash());
+                    break;
+                default:
+                    return new(false,"UNSUPPORTED_COMMAND","Comanda no implementada.");
+            }
+            await SendFrameAsync(frame,cancellationToken).ConfigureAwait(false);
+            return new(true,"SENT","Trama mCAN enviada a la CS2.");
+        }
+        catch(Exception ex)
+        {
+            return new(false,"DRIVER_ERROR",ex.Message);
         }
     }
 
