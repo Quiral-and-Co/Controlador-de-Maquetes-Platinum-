@@ -4,6 +4,7 @@ using Quiral.ControladorMaquetes.Core;
 using Quiral.ControladorMaquetes.Projects;
 using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
+using Quiral.ControladorMaquetes.Maerklin;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -17,6 +18,7 @@ internal static class Program
         core.RegisterModule(new ProjectModule());
         core.RegisterModule(new RailwayGeometryModule());
         core.RegisterModule(new RollingStockModule());
+        core.RegisterModule(new Cs2TcpController());
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
