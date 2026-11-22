@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controlador de Maquetes Platinum</title>
+<link rel="stylesheet" href="splash.css">
+</head>
+<body>
+<main class="splash">
+  <section class="hero" aria-label="Presentació del programari">
+    <div class="photo" role="img" aria-label="Locomotora de vapor BR 24 en primer pla traient fum, amb un tren d'alta velocitat Velaro a la via del fons"></div>
+    <div class="shade"></div>
+    <header class="brand">
+      <div class="brand-title">Controlador de Maquetes <em>Platinum</em></div>
+      <div class="maker">by Quiral &amp; Co.</div>
+      <div class="version">VERSIÓ 1.4.0</div>
+    </header>
+    <nav class="actions" aria-label="Menú d'inici">
+      <button class="primary" data-action="start"><span class="symbol">▶</span><span><b>Iniciar</b><small>Obre el teu entorn de treball</small></span></button>
+      <button data-action="settings"><span class="symbol">⚙</span><span><b>Configuració</b><small>Paràmetres i opcions</small></span></button>
+      <button data-action="help"><span class="symbol">▤</span><span><b>Ajuda</b><small>Manual i assistència</small></span></button>
+      <button data-action="about"><span class="symbol">ⓘ</span><span><b>Quant a...</b><small>Informació del programa</small></span></button>
+      <button data-action="quit"><span class="symbol">↪</span><span><b>Sortir</b><small>Tanca l'aplicació</small></span></button>
+    </nav>
+    <footer><span><b>Fabricat per Quiral &amp; Co.</b><br><i>Edició Platinum</i></span><span class="tagline">Passió pel ferrocarril, tecnologia al teu abast</span></footer>
+  </section>
+</main>
+<script>
+'use strict';
+document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
+  const action = button.dataset.action;
+  if (action === 'start' || action === 'settings') await window.jmriDesktop.startApplication(action);
+  else if (action === 'about') await window.jmriDesktop.showAbout();
+  else if (action === 'help') await window.jmriDesktop.showHelp();
+  else if (action === 'quit') window.close();
+}));
+</script>
+</body></html>
