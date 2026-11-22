@@ -6,6 +6,8 @@ namespace Quiral.ControladorMaquetes.Maerklin;
 
 public enum Cs2ConnectionState { Disconnected, Connecting, Connected, Faulted }
 
+public sealed record Cs2Participant(uint DeviceUid,ushort SoftwareVersion,ushort DeviceId,DateTimeOffset SeenAt);
+
 /// <summary>
 /// Controlador natiu mCAN/TCP per a CS2: feedback S88 i comandes de locomotora
 /// codificades, sempre sotmeses al bloqueig físic fail-safe del nucli.
@@ -26,6 +28,9 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
     public Cs2ConnectionState State { get; private set; }=Cs2ConnectionState.Disconnected;
     public string? Host { get; private set; }
     public int Port { get; private set; }=DefaultPort;
+    public Cs2Participant? CentralIdentity { get; private set; }
+    public bool IdentityVerified => CentralIdentity?.DeviceId==0xFFFF;
+    public event Action<Cs2Participant>? ParticipantDiscovered;
     public event Action<S88ContactEvent>? S88ContactChanged;
     public event Action<S88ModuleSnapshot>? S88ModuleRead;
     public event Action<string>? Diagnostic;
@@ -46,7 +51,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         if(State==Cs2ConnectionState.Connected) throw new InvalidOperationException("La CS2 ja està connectada.");
         if(State is Cs2ConnectionState.Faulted or Cs2ConnectionState.Connecting)
             await DisconnectAsync().ConfigureAwait(false);
-        State=Cs2ConnectionState.Connecting; Host=host; Port=port;
+        State=Cs2ConnectionState.Connecting; Host=host; Port=port; CentralIdentity=null;
         var client=new TcpClient { NoDelay=true };
         try
         {
@@ -85,7 +90,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 
     async Task<CommandDispatchResult> IRailwayCommandHandler.ExecuteAsync(RailwayCommand command,CancellationToken cancellationToken)
     {
-        if(_core is null || !_core.SafetyGate.PhysicalOutputsEnabled)
+        if(_core is null || !_core.SafetyGate.PhysicalOutputsEnabled || !IdentityVerified)
             return CommandDispatchResult.Blocked("Control de locomotores bloquejat: cal superar totes les validacions de seguretat.");
         if(command.Parameters is null) return new(false,"INVALID_PARAMETERS","Falten els paràmetres de la comanda.");
         try
@@ -129,14 +134,14 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 
     public Task SubscribeS88ContactAsync(ushort deviceId,ushort contactNumber,CancellationToken cancellationToken=default)
     {
-        EnsureConnected();
+        EnsureCentralVerified();
         return SendFrameAsync(S88Feedback.BuildSubscribe(deviceId,contactNumber),cancellationToken);
     }
 
     /// <summary>Mode de compatibilitat legacy: la lectura S88 pot buidar buffers intermedis; usar només si Quiral és l'únic lector.</summary>
     public Task PollS88ModuleAsync(byte moduleNumber,CancellationToken cancellationToken=default)
     {
-        EnsureConnected();
+        EnsureCentralVerified();
         return SendFrameAsync(S88Feedback.BuildPoll(moduleNumber,QuiralUid),cancellationToken);
     }
 
@@ -160,6 +165,17 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
             {
                 await _stream!.ReadExactlyAsync(packet,cancellationToken).ConfigureAwait(false);
                 var frame=McanFrame.Decode(packet);
+                var participant=TryParseParticipant(frame);
+                if(participant is not null)
+                {
+                    ParticipantDiscovered?.Invoke(participant);
+                    if(participant.DeviceId==0xFFFF)
+                    {
+                        CentralIdentity=participant;
+                        _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+                            RailwayDeviceKind.CommandStation,RailwayDeviceState.Connected,"Märklin","60215",$"{Host}:{Port}",participant.SeenAt));
+                    }
+                }
                 var contact=S88Feedback.TryParseEvent(frame);
                 if(contact is not null)
                 {
@@ -182,6 +198,21 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         }
     }
 
+    private static Cs2Participant? TryParseParticipant(McanFrame frame)
+    {
+        if(frame.Command!=0x18||!frame.IsResponse||frame.Dlc!=8) return null;
+        var uid=System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(0,4));
+        var version=System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(4,2));
+        var deviceId=System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(6,2));
+        return new Cs2Participant(uid,version,deviceId,DateTimeOffset.UtcNow);
+    }
+
+    private void EnsureCentralVerified()
+    {
+        EnsureConnected();
+        if(!IdentityVerified) throw new InvalidOperationException("La connexió TCP existeix, però encara no s'ha identificat la CS2 60215 (resposta PING 0xFFFF pendent).");
+    }
+
     private void EnsureConnected()
     {
         if(State!=Cs2ConnectionState.Connected||_stream is null)
@@ -194,7 +225,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         if(_readerTask is not null) { try { await _readerTask.ConfigureAwait(false); } catch(OperationCanceledException) { } }
         _stream?.Dispose(); _client?.Dispose(); _readerCancellation?.Dispose();
         _stream=null; _client=null; _readerCancellation=null; _readerTask=null;
-        State=Cs2ConnectionState.Disconnected;
+        State=Cs2ConnectionState.Disconnected; CentralIdentity=null;
         if(_core is not null) _core.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
             RailwayDeviceKind.CommandStation,RailwayDeviceState.Disconnected,"Märklin","60215"));
     }
