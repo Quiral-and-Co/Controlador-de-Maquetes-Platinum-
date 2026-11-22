@@ -287,6 +287,9 @@
         },
         "verified": {
           "type": "boolean"
+        },
+        "method": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -302,7 +305,8 @@
           "type": "string"
         },
         "port": {
-          "type": "string"
+          "type": "string",
+          "enum": ["A", "B", "C"]
         }
       },
       "additionalProperties": false
