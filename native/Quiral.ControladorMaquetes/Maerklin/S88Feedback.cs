@@ -48,6 +48,15 @@ public static class S88Feedback
         return new S88ContactEvent(uid,device,contact,oldState==1,newState==1,timestamp,DateTimeOffset.UtcNow);
     }
 
+
+    public static S88ModuleSnapshot? TryParseBroadcast(McanFrame frame)
+    {
+        if(frame.Command!=BroadcastCommand||frame.Dlc!=3) return null;
+        var module=frame.Data[0];
+        var bits=System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(1,2));
+        return new S88ModuleSnapshot(0,module,bits,DateTimeOffset.UtcNow);
+    }
+
     public static S88ModuleSnapshot? TryParsePollReply(McanFrame frame)
     {
         if(frame.Command!=PollCommand||!frame.IsResponse||frame.Dlc!=7) return null;
