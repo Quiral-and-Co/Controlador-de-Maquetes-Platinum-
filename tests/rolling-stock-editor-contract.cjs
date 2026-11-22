@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const html=fs.readFileSync('index.html','utf8'),ui=fs.readFileSync('rolling-stock-ui.js','utf8'),app=fs.readFileSync('app.js','utf8');
+for(const id of ['rollingStockAdd','rollingStockImport','rollingStockExport','rollingStockEditor','rsFunctions','rsCv','rsImage','rsDrawing'])assert.match(html,new RegExp('id="'+id+'"'));
+assert.match(html,/<script src="rolling-stock-import-core\.js"><\/script>/);
+assert.match(ui,/dblclick/);
+assert.match(ui,/ArrowDown/);
+assert.match(ui,/event\.key==='Enter'/);
+assert.match(ui,/parseCs2|importer\.importText/);
+assert.match(app,/state\.config\.rollingStock/);
+assert.match(ui,/Les CV només s’han desat localment/);
+console.log('PASS rolling stock editor UI contract: import/manual edit/functions/images/CV and keyboard navigation');
