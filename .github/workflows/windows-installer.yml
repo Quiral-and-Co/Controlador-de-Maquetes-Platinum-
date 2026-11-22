@@ -17,6 +17,7 @@ on:
       - '**.css'
       - '**.cjs'
       - 'tests/**'
+      - 'src/**'
   pull_request:
     branches: [main]
     paths:
@@ -32,6 +33,7 @@ on:
       - '**.css'
       - '**.cjs'
       - 'tests/**'
+      - 'src/**'
 
 permissions:
   contents: read
@@ -53,6 +55,17 @@ jobs:
 
       - name: Install dependencies (repository has no lockfile)
         run: npm install --no-audit --no-fund --no-package-lock
+
+      - name: Set up .NET 8 for native QuiralCore
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build native QuiralCore communication layer
+        run: dotnet build src/QuiralCore.Communication/QuiralCore.Communication.csproj --configuration Release
+
+      - name: Test native MCAN and S88 communication
+        run: dotnet run --project tests/QuiralCore.Communication.Tests/QuiralCore.Communication.Tests.csproj --configuration Release
 
       - name: Run complete regression suite
         run: npm test
