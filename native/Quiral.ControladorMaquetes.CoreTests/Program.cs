@@ -97,6 +97,7 @@ static async Task TestProjects()
         Assert(await module.OpenAsync(p.Id),"No es pot obrir el projecte.");
         var restored=await core.State.ReadAsync<List<RailwayProject>>("projects/index.json");
         Assert(restored?.Count==1 && restored[0].Id==p.Id,"Persistència del projecte incorrecta.");
+        Assert(File.Exists(Path.Combine(root,"projects",p.Id+".json")),"Fitxer individual del projecte no creat.");
         await core.DisposeAsync();
     } finally { Delete(root); }
 }
@@ -130,6 +131,9 @@ static async Task TestRollingStock()
         var consist=await module.CreateCompositionAsync("Tren prova",new[]{loco.Id,wagon.Id});
         Assert(consist.VehicleIds.Count==2,"Composició incompleta.");
         await core.DisposeAsync();
+        var reloadCore=new QuiralCore(root); var reloadModule=new RollingStockModule(); reloadCore.RegisterModule(reloadModule); await reloadCore.InitializeAsync();
+        Assert((await reloadModule.SearchAsync()).Count==2,"Inventari no recuperat després de reiniciar el nucli.");
+        await reloadCore.DisposeAsync();
     } finally { Delete(root); }
 }
 static string Temp(string name) { var p=Path.Combine(Path.GetTempPath(),name,Guid.NewGuid().ToString("N")); Directory.CreateDirectory(p); return p; }
