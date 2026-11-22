@@ -69,7 +69,7 @@
   });
   $('rollingStockExport').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='parc-ferroviari-quiral.json';a.click();URL.revokeObjectURL(url);});
   form.addEventListener('submit',saveVehicle);$('rollingStockEditorClose').addEventListener('click',closeEditor);$('rollingStockCancel').addEventListener('click',closeEditor);
-  $('rollingStockDelete').addEventListener('click',()=>{if(!editingId)return;if(!window.confirm('Vols eliminar aquest vehicle del parc ferroviari?'))return;const result=core.removeVehicle(db(),editingId);if(!result.ok){setStatus(result.error);return;}saveDb(db());closeEditor();render();setStatus('Vehicle eliminat del parc.');});
+  $('rollingStockDelete').addEventListener('click',()=>{if(!editingId)return;if(!window.confirm('Vols eliminar aquest vehicle del parc ferroviari?'))return;const snapshot=window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()||{},active=snapshot.activeRun,activeLoco=snapshot.locomotives?.find(item=>item.id===active?.locomotiveId),editing=db().vehicles.find(item=>item.id===editingId);const activeIds=active&&(active.locomotiveId===editingId||(editing?.address&&String(editing.address)===String(activeLoco?.address||activeLoco?.wiThrottleId||'')))?[editingId]:[];const result=core.removeVehicle(db(),editingId,{activeIds});if(!result.ok){setStatus(result.error);return;}saveDb(db());closeEditor();render();setStatus('Vehicle eliminat del parc.');});
   window.addEventListener('jmri:rolling-stock-discovered',event=>{
     const discovered=event.detail;
     if(!discovered||typeof discovered!=='object')return;

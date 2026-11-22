@@ -59,6 +59,7 @@ window.JMRI_TC_TRAFFIC_CONTROL={
   const result=core.addLocomotive(runtime,{id:String(vehicle.id),name:String(vehicle.name||'Locomotora'),address:String(address),addressType,protocol:'DCC'});
   if(!result.ok)return result;
   c.traffic=c.traffic||{};c.traffic.locomotives=runtime.locomotives.map(item=>({...item}));
+  window.JMRI_TC_ROLLING_STOCK_MARK_DIRTY?.();
   render();return{ok:true,locomotive:result.locomotive};
  },
  setSpeed(value){return manualSpeed(value);},
