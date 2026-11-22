@@ -174,15 +174,15 @@ sealed class TrackingModule(string name,List<string> events) : IQuiralModule
 static Task TestMcanS88()
 {
     var data=new byte[]{0x00,0x07,0x00,0x01,0x00,0x2A,0x00,0x00};
-    var original=new McanFrame(1,S88Feedback.EventCommand,true,0x1234,data);
+    var original=new McanFrame(0,S88Feedback.EventCommand,true,S88Feedback.BroadcastHash,data);
     var encoded=original.Encode();
     Assert(encoded.Length==13,"Longitud de trama mCAN incorrecta.");
     var decoded=McanFrame.Decode(encoded);
-    Assert(decoded.Command==0x11 && decoded.IsResponse && decoded.Priority==1 && decoded.Dlc==8,"mCAN frame no preservat.");
+    Assert(decoded.Command==0x11 && decoded.IsResponse && decoded.Priority==0 && decoded.Hash==S88Feedback.BroadcastHash && decoded.Dlc==8,"mCAN frame no preservat.");
     var evt=S88Feedback.TryParseEvent(decoded);
     Assert(evt is { ContactId:7, PreviousOccupied:false, IsOccupied:true, Timestamp10Ms:42 },"Esdeveniment S88 incorrecte.");
     var pollData=new byte[]{0x00,0x00,0x00,0x00,0x01,0x80,0x01};
-    var poll=S88Feedback.TryParsePollReply(new McanFrame(1,S88Feedback.PollCommand,true,0x1234,pollData));
+    var poll=S88Feedback.TryParsePollReply(new McanFrame(0,S88Feedback.PollCommand,true,S88Feedback.BroadcastHash,pollData));
     Assert(poll is { ModuleNumber:1 } && poll.IsOccupied(1) && poll.IsOccupied(16),"Resposta de consulta S88 incorrecta.");
     var pollRequest=S88Feedback.BuildPoll(2,0x12345678);
     Assert(pollRequest.Priority==0 && pollRequest.Hash==S88Feedback.BroadcastHash && pollRequest.Data.SequenceEqual(new byte[]{0x12,0x34,0x56,0x78,2}),"Consulta S88 incorrecta.");
