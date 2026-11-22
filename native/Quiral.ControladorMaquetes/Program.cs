@@ -6,6 +6,7 @@ using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
 using Quiral.ControladorMaquetes.Maerklin;
 using Quiral.ControladorMaquetes.Accessories;
+using Quiral.ControladorMaquetes.Decoders;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -20,19 +21,22 @@ internal static class Program
         var geometry = new RailwayGeometryModule(projects);
         var rollingStock = new RollingStockModule();
         var accessories = new AccessoryModule();
+        var decoders = new DecoderConfigurationModule();
+        IDccCvProgrammer cvProgrammer = new UnavailableDccCvProgrammer();
         var cs2 = new Cs2TcpController();
         var s88Feedback = new S88FeedbackModule(cs2);
         core.RegisterModule(projects);
         core.RegisterModule(geometry);
         core.RegisterModule(rollingStock);
         core.RegisterModule(accessories);
+        core.RegisterModule(decoders);
         core.RegisterModule(cs2);
         core.RegisterModule(s88Feedback);
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
             var connectionSettings = new Cs2ConnectionSettingsStore(core.State);
-            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2, accessories, connectionSettings));
+            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2, accessories, connectionSettings, decoders, cvProgrammer));
         }
         catch (Exception exception)
         {
