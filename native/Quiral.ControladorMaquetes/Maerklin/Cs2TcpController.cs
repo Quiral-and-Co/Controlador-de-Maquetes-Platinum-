@@ -73,10 +73,10 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
     }
 
     /// <summary>Mode de compatibilitat legacy: la lectura S88 pot buidar buffers intermedis; usar només si Quiral és l'únic lector.</summary>
-    public Task PollS88ModuleAsync(ushort deviceId,byte moduleNumber,CancellationToken cancellationToken=default)
+    public Task PollS88ModuleAsync(byte moduleNumber,CancellationToken cancellationToken=default)
     {
         EnsureConnected();
-        return SendFrameAsync(S88Feedback.BuildPoll(deviceId,moduleNumber,QuiralUid,NextHash()),cancellationToken);
+        return SendFrameAsync(S88Feedback.BuildPoll(moduleNumber,QuiralUid,NextHash()),cancellationToken);
     }
 
     private ushort NextHash() { unchecked { _hash++; if(_hash==0) _hash=1; return _hash; } }
