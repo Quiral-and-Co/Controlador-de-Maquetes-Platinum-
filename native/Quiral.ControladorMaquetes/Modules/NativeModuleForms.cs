@@ -32,7 +32,7 @@ public sealed class ProjectManagerForm : Form
     public ProjectManagerForm(ProjectModule module)
     {
         _module=module; Text="Gestió de projectes · Quiral Control"; Width=720; Height=540; StartPosition=FormStartPosition.CenterParent;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=9 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=8 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Nom del projecte",_name,0); FormLayout.AddRow(root,"Amplada (mm)",_width,1);
         FormLayout.AddRow(root,"Alçada (mm)",_height,2); FormLayout.AddRow(root,"Nombre de nivells",_levels,3);
@@ -157,7 +157,7 @@ public sealed class Cs2ConnectionForm : Form
     {
         _controller=controller; Text="Märklin CS2 60215 · mCAN / S88"; Width=760; Height=540; StartPosition=FormStartPosition.CenterParent;
         _controller.S88ContactChanged+=OnContact; _controller.S88ModuleRead+=OnModule; _controller.Diagnostic+=OnDiagnostic;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=8 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=9 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Adreça IP / host",_host,0); FormLayout.AddRow(root,"Port TCP",_port,1);
         var connect=new Button { Text="Connectar",AutoSize=true }; connect.Click+=async (_,_)=>await ConnectAsync();
