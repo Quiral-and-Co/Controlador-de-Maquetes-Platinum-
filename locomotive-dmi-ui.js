@@ -131,7 +131,7 @@ function init(){
  $('dmiFunctionButtons').addEventListener('click',e=>{const button=e.target.closest('button[data-function]');if(button)toggleFunction(Number(button.dataset.function));});
  $('dmiLocomotive').onchange=()=>{const source=$('trafficLoco');if(source)source.value=$('dmiLocomotive').value;};
  const panel=$('locomotiveDmiPanel');
- panel?.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('application/x-quiral-rolling-stock')){event.preventDefault();event.dataTransfer.dropEffect='copy';}});
+ panel?.addEventListener('dragover',event=>{if(Array.from(event.dataTransfer?.types||[]).includes('application/x-quiral-rolling-stock')){event.preventDefault();event.dataTransfer.dropEffect='copy';}});
  panel?.addEventListener('drop',event=>{event.preventDefault();let raw='';try{raw=event.dataTransfer?.getData('application/x-quiral-rolling-stock')||event.dataTransfer?.getData('text/plain')||'';}catch{}const result=window.JMRI_TC_RollingStockCore?.resolveDrop(raw,traffic()?.getSnapshot?.()?.locomotives||[]);if(!result?.ok){setStatus(result?.error||'No s’ha pogut llegir el vehicle arrossegat.');return;}selectLocomotive(result.locomotive.id);});
  renderSpeed();refresh();setInterval(refresh,1000);
 }
