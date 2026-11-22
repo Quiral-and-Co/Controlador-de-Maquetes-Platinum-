@@ -48,7 +48,7 @@ public sealed class QuiralCore : IAsyncDisposable
 
             StateOfCore = QuiralCoreState.Ready;
             Events.Publish(new QuiralEvent(DateTimeOffset.UtcNow, "core.ready", "Quiral Control està preparat en mode local."));
-            await WriteAuditAsync("CORE_READY", "Nucli iniciat; sortides físiques bloquejades.", cancellationToken).ConfigureAwait(false);
+            await AppendAuditUnlockedAsync("CORE_READY", "Nucli iniciat; sortides físiques bloquejades.", cancellationToken).ConfigureAwait(false);
         }
         catch
         {
