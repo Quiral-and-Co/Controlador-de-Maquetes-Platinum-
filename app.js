@@ -438,6 +438,7 @@
   $('exportXtcBtn')?.addEventListener('click',exportXtc);
   let trainEditMode=false;
   function trainRoster(){if(!window.JMRI_TC_TRAIN_ROSTER)throw new Error('Mòdul de gestió de trens no carregat.');state.config.trainRoster=window.JMRI_TC_TRAIN_ROSTER.ensure(state.config.trainRoster||{});return state.config.trainRoster;}
+  window.JMRI_TC_ROLLING_STOCK_SOURCE=()=>({roster:state.config.trainRoster||{},locomotives:window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()?.locomotives||state.config.traffic?.locomotives||[]});
   function trainPrompt(message,value=''){return window.prompt(message,value);}
   function trainCreateEngine(){const panel=$('trafficLocoName')?.closest('.dispatcher-subpanel');panel?.scrollIntoView?.({behavior:'smooth',block:'center'});$('trafficLocoName')?.focus?.();log('Nova locomotora: completa el nom, el tipus d’adreça i l’adreça al registre de locomotores. L’alta no adquireix el control ni habilita DCC.');}
   function trainCreateCar(){const name=trainPrompt('Nom del nou vagó/cotxe:');if(name===null)return;const type=(trainPrompt('Tipus: PASSENGER o FREIGHT','PASSENGER')||'PASSENGER').toUpperCase();const length=trainPrompt('Longitud en mm (20–2000):','200');if(length===null)return;checkpoint();const result=window.JMRI_TC_TRAIN_ROSTER.addCar(trainRoster(),{name,type,lengthMm:Number(length)});if(!result.ok){state.history.pop();state.isDirty=false;updateHistoryButtons();log(result.error);return;}render();log('Creat '+result.car.name+' ('+result.car.id+').');}
@@ -497,6 +498,8 @@
     else if(command==='windowShowSchedules'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Horaris'))$('scheduleTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowOperation'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Operació'))$('operationTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowMetgeQuiral'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral'))$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
+    else if(command==='windowShowRollingStock')window.jmriDesktop?.openNativeWindow?.({type:'rollingStock',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir Material mòbil: '+error.message));
+    else if(command==='windowShowLocomotiveDmi')window.jmriDesktop?.openNativeWindow?.({type:'locomotiveDmi',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir Control de locomotora: '+error.message));
     else if(command==='helpQuick')showHelp('quick');
     else if(command==='helpContents')showHelp('contents');
     else if(command==='helpShortcuts')showHelp('shortcuts');
