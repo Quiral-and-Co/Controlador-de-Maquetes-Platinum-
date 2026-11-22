@@ -45,11 +45,27 @@
   $('rollingStockImport').addEventListener('click',()=>$('rollingStockFile').click());
   $('rollingStockFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];if(!file)return;
-    try{const parsed=importer.importText(file.name,await file.text());if(!parsed.ok)throw new Error(parsed.error);const result=importer.mergeImport(db(),parsed.vehicles);saveDb(db());render();setStatus('Importació '+parsed.source+': '+result.added+' afegits, '+result.updated+' actualitzats, '+result.errors.length+' errors. Revisa les fitxes importades abans de circular.');}
+    try{let parsed;
+      if(file.name.toLowerCase().endsWith('.z21')){
+        if(!window.jmriDesktop?.importZ21Database)throw new Error('La importació SQLite .z21 només està disponible a l’aplicació d’escriptori.');
+        parsed=await window.jmriDesktop.importZ21Database(new Uint8Array(await file.arrayBuffer()));
+      }else{
+        parsed=importer.importText(file.name,await file.text());
+        if(!parsed.ok)throw new Error(parsed.error);
+      }
+      const result=importer.mergeImport(db(),parsed.vehicles);saveDb(db());render();setStatus('Importació '+(parsed.source||'central')+': '+result.added+' afegits, '+result.updated+' actualitzats, '+result.errors.length+' errors. Revisa les fitxes importades abans de circular.');}
     catch(error){setStatus('Importació no completada: '+error.message);}finally{event.target.value='';}
   });
   $('rollingStockExport').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='parc-ferroviari-quiral.json';a.click();URL.revokeObjectURL(url);});
   form.addEventListener('submit',saveVehicle);$('rollingStockEditorClose').addEventListener('click',closeEditor);$('rollingStockCancel').addEventListener('click',closeEditor);
   $('rollingStockDelete').addEventListener('click',()=>{if(!editingId)return;const result=core.removeVehicle(db(),editingId);if(!result.ok){setStatus(result.error);return;}saveDb(db());closeEditor();render();setStatus('Vehicle eliminat del parc.');});
+  window.addEventListener('jmri:rolling-stock-discovered',event=>{
+    const discovered=event.detail;
+    if(!discovered||typeof discovered!=='object')return;
+    const payload={...discovered,source:discovered.source||'AUTO_DISCOVERY'};
+    const result=core.upsertVehicle(db(),payload);
+    if(result.ok){saveDb(db());render();setStatus('Vehicle detectat i incorporat: '+result.vehicle.name+'. Revisa la identitat i les funcions abans d’habilitar-ne el control.');}
+    else setStatus('Detecció no incorporada: '+result.error);
+  });
   render();setInterval(render,1200);window.JMRI_TC_ROLLING_STOCK_UI={refresh:render,getSelected:()=>selectedId,openEditor};
 })();

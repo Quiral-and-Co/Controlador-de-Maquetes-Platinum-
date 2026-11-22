@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('node:assert/strict');
+const initSqlJs=require('sql.js');
+const {zipSync}=require('fflate');
+const {importZ21Archive}=require('../electron/rolling-stock-import.cjs');
+(async()=>{
+ const SQL=await initSqlJs({locateFile:file=>require.resolve('sql.js').replace(/sql-wasm\.js$/,file)});
+ const db=new SQL.Database();
+ db.run('CREATE TABLE vehicles (id INTEGER,name TEXT,image_name TEXT,type INTEGER,max_speed INTEGER,address INTEGER,active INTEGER,position INTEGER,full_name TEXT,speed_display INTEGER,railway TEXT,traction_direction INTEGER,description TEXT,dummy INTEGER)');
+ db.run('CREATE TABLE functions (id INTEGER,vehicle_id INTEGER,button_type INTEGER,shortcut TEXT,time TEXT,position INTEGER,image_name TEXT,function INTEGER,show_function_number INTEGER,is_configured INTEGER)');
+ db.run("INSERT INTO vehicles VALUES (1,'BR 89','br89.png',0,80,3,1,0,'BR 89',128,'DB',0,'Steam locomotive',0)");
+ db.run("INSERT INTO functions VALUES (1,1,0,'Llums','0',0,'light.png',0,1,1)");
+ db.run("INSERT INTO functions VALUES (2,1,1,'Xiulet','1',1,'whistle.png',1,1,1)");
+ const sqlite=db.export();db.close();
+ const archive=zipSync({'export/layout/data.sqlite':sqlite,'export/layout/br89.png':new Uint8Array([137,80,78,71]),'export/layout/light.png':new Uint8Array([137,80,78,71]),'export/layout/whistle.png':new Uint8Array([137,80,78,71])});
+ const imported=await importZ21Archive(archive);
+ assert.equal(imported.ok,true);assert.equal(imported.vehicles.length,1);
+ assert.equal(imported.vehicles[0].name,'BR 89');assert.equal(imported.vehicles[0].kind,'locomotive');
+ assert.equal(imported.vehicles[0].functions.length,2);assert.match(imported.vehicles[0].image,/^data:image\/png;base64,/);
+ assert.match(imported.vehicles[0].functions[0].icon,/^data:image\/png;base64,/);
+ assert.equal(imported.counts.functions,2);assert.equal(imported.counts.images,1);
+ await assert.rejects(()=>importZ21Archive(new Uint8Array([1,2,3])),/central directory|invalid|unexpected/i);
+ console.log('PASS Z21 .z21 ZIP/SQLite importer: vehicles, function icons, vehicle images and metadata');
+})().catch(error=>{console.error(error);process.exitCode=1;});
