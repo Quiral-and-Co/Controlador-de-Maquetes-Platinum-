@@ -12,7 +12,7 @@ public sealed record Cs2Participant(uint DeviceUid,ushort SoftwareVersion,ushort
 /// Controlador natiu mCAN/TCP per a CS2: feedback S88 i comandes de locomotora
 /// codificades, sempre sotmeses al bloqueig físic fail-safe del nucli.
 /// </summary>
-public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
+public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule, IRailwayCommandHandler
 {
     public const int DefaultPort=15731;
     public string Name => "MaerklinCS2Controller";
