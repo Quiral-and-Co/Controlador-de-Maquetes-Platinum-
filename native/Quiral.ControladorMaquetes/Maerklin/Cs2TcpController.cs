@@ -127,10 +127,10 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         }
     }
 
-    public Task SubscribeS88ContactAsync(ushort contactId,CancellationToken cancellationToken=default)
+    public Task SubscribeS88ContactAsync(ushort deviceId,ushort contactNumber,CancellationToken cancellationToken=default)
     {
         EnsureConnected();
-        return SendFrameAsync(S88Feedback.BuildSubscribe(contactId),cancellationToken);
+        return SendFrameAsync(S88Feedback.BuildSubscribe(deviceId,contactNumber),cancellationToken);
     }
 
     /// <summary>Mode de compatibilitat legacy: la lectura S88 pot buidar buffers intermedis; usar només si Quiral és l'únic lector.</summary>
@@ -165,7 +165,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
                 {
                     S88ContactChanged?.Invoke(contact);
                     _core?.Events.Publish(new QuiralEvent(contact.ReceivedAt,"s88.contact.changed",
-                        $"Contacte S88 {contact.ContactId} = {(contact.IsOccupied ? "OCUPAT" : "LLIURE")}"));
+                        $"S88 {contact.DeviceId}:{contact.ContactNumber} = {(contact.IsOccupied ? "OCUPAT" : "LLIURE")}"));
                 }
                 var module=S88Feedback.TryParsePollReply(frame) ?? S88Feedback.TryParseBroadcast(frame);
                 if(module is not null) S88ModuleRead?.Invoke(module);
