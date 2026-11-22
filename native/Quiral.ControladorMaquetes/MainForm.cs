@@ -58,7 +58,7 @@ public sealed class MainForm : Form
         var statusStrip = new StatusStrip();
         _status.Text = "SORTIDES FÍSIQUES BLOQUEJADES";
         _status.ForeColor = Color.DarkRed;
-        _status.Font = new Font(SystemFonts.StatusFont, FontStyle.Bold);
+        _status.Font = new Font(SystemFonts.StatusFont ?? SystemFonts.DefaultFont, FontStyle.Bold);
         statusStrip.Items.Add(_status);
         statusStrip.Items.Add(new ToolStripStatusLabel { Spring = true });
         statusStrip.Items.Add(new ToolStripStatusLabel("Quiral Control · Nucli local preparat"));
