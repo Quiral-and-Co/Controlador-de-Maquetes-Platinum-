@@ -5,10 +5,10 @@ RequestExecutionLevel admin
   !define VERSION "1.4.0"
 !endif
 !ifndef PUBLISH_DIR
-  !define PUBLISH_DIR "publish"
+  !define PUBLISH_DIR "..\publish"
 !endif
 !ifndef OUTPUT_FILE
-  !define OUTPUT_FILE "dist\Controlador-de-Maquetes-Quiral-Platinum-Setup-${VERSION}.exe"
+  !define OUTPUT_FILE "..\dist\Controlador-de-Maquetes-Quiral-Platinum-Setup-${VERSION}.exe"
 !endif
 
 Name "Controlador de Maquetes by Quiral & Co. Platinum"
