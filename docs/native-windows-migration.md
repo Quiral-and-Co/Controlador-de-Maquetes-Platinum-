@@ -65,6 +65,7 @@ El projecte `native/Quiral.ControladorMaquetes.CoreTests` conté proves executab
 - registre i cerca de dispositius;
 - persistència i rebuig de path traversal;
 - bloqueig d'ordres físiques abans d'arribar a un controlador;
-- inicialització, auditoria i aturada del nucli.
+- inicialització, auditoria i aturada del nucli;
+- inici dels mòduls en ordre i aturada en ordre invers.
 
 La CI de Windows executa aquestes proves després de compilar l'aplicació nativa.
