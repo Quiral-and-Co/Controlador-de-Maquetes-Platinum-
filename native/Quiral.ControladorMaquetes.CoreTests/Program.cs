@@ -1,5 +1,8 @@
 using Quiral.ControladorMaquetes.Core;
 using Quiral.ControladorMaquetes.Safety;
+using Quiral.ControladorMaquetes.Projects;
+using Quiral.ControladorMaquetes.Geometry;
+using Quiral.ControladorMaquetes.RollingStock;
 
 var checks = new List<(string Name, Func<Task> Run)>
 {
@@ -8,153 +11,137 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Local state round-trip and path traversal rejection", TestLocalState),
     ("Physical commands blocked before driver execution", TestSafetyGate),
     ("Core lifecycle and audit log", TestCoreLifecycle),
-    ("Module startup and reverse shutdown order", TestModuleLifecycle)
+    ("Module startup and reverse shutdown order", TestModuleLifecycle),
+    ("Project create, open and persistence", TestProjects),
+    ("XYZ geometry, parallel offset and grade", TestGeometry),
+    ("Rolling stock uniqueness and train composition", TestRollingStock)
 };
 
 var failed = 0;
 foreach (var check in checks)
 {
-    try
-    {
-        await check.Run();
-        Console.WriteLine($"PASS: {check.Name}");
-    }
-    catch (Exception exception)
-    {
-        failed++;
-        Console.Error.WriteLine($"FAIL: {check.Name}: {exception}");
-    }
+    try { await check.Run(); Console.WriteLine($"PASS: {check.Name}"); }
+    catch (Exception exception) { failed++; Console.Error.WriteLine($"FAIL: {check.Name}: {exception}"); }
 }
-
 Console.WriteLine($"Quiral Control core self-tests: {checks.Count - failed}/{checks.Count} passed.");
 return failed == 0 ? 0 : 1;
 
 static Task TestEventBus()
 {
-    var bus = new QuiralEventBus();
-    var received = 0;
-    using (bus.Subscribe<int>(value => received += value))
-        bus.Publish(3);
-    bus.Publish(7);
-    Assert(received == 3, "La subscripció no s'ha alliberat correctament.");
+    var bus = new QuiralEventBus(); var received = 0;
+    using (bus.Subscribe<int>(value => received += value)) bus.Publish(3);
+    bus.Publish(7); Assert(received == 3, "La subscripció no s'ha alliberat.");
     return Task.CompletedTask;
 }
-
 static Task TestDeviceRegistry()
 {
     var registry = new DeviceRegistry();
     registry.Upsert(new RailwayDevice("cs2-main", "Märklin CS2", RailwayDeviceKind.CommandStation,
         RailwayDeviceState.Configured, "Märklin", "60215"));
-    Assert(registry.Snapshot().Count == 1, "El registre no conserva el dispositiu.");
-    Assert(registry.TryGet("CS2-MAIN", out var device) && device?.Model == "60215",
-        "La cerca no és insensible a majúscules.");
+    Assert(registry.Snapshot().Count == 1, "Registre buit.");
+    Assert(registry.TryGet("CS2-MAIN", out var device) && device?.Model == "60215", "Cerca no sensible.");
     return Task.CompletedTask;
 }
-
 static async Task TestLocalState()
 {
-    var root = Path.Combine(Path.GetTempPath(), "QuiralCoreTests", Guid.NewGuid().ToString("N"));
-    try
-    {
+    var root = Temp("QuiralCoreTests");
+    try {
         var store = new LocalStateStore(root);
         await store.WriteAsync("projects/test.json", new TestState("project-alpha", 4));
         var restored = await store.ReadAsync<TestState>("projects/test.json");
-        Assert(restored is { Name: "project-alpha", Revision: 4 }, "No s'ha recuperat l'estat guardat.");
-
+        Assert(restored is { Name: "project-alpha", Revision: 4 }, "Round-trip incorrecte.");
         var rejected = false;
         try { await store.WriteAsync("../escape.json", new TestState("bad", 0)); }
         catch (UnauthorizedAccessException) { rejected = true; }
-        Assert(rejected, "La persistència ha acceptat una ruta fora del directori.");
-    }
-    finally
-    {
-        if (Directory.Exists(root)) Directory.Delete(root, true);
-    }
+        Assert(rejected, "Path traversal acceptat.");
+    } finally { Delete(root); }
 }
-
 static async Task TestSafetyGate()
 {
-    var gate = new PhysicalOutputGate();
-    var handler = new CountingHandler();
-    var dispatcher = new CommandDispatcher(gate);
-    dispatcher.RegisterHandler(handler);
-
-    var result = await dispatcher.DispatchAsync(new RailwayCommand("cs2-main", "set-speed",
-        RequiresPhysicalOutput: true));
-    Assert(!result.Accepted && result.Code == "SAFETY_BLOCKED", "L'ordre física no ha estat bloquejada.");
-    Assert(handler.Calls == 0, "El controlador ha rebut una ordre bloquejada.");
-    Assert(!gate.PhysicalOutputsEnabled, "Les sortides físiques s'han habilitat.");
+    var gate = new PhysicalOutputGate(); var handler = new CountingHandler();
+    var dispatcher = new CommandDispatcher(gate); dispatcher.RegisterHandler(handler);
+    var result = await dispatcher.DispatchAsync(new RailwayCommand("cs2-main", "set-speed", true));
+    Assert(!result.Accepted && result.Code == "SAFETY_BLOCKED", "Ordre no bloquejada.");
+    Assert(handler.Calls == 0 && !gate.PhysicalOutputsEnabled, "El controlador ha rebut una ordre bloquejada.");
 }
-
 static async Task TestCoreLifecycle()
 {
-    var root = Path.Combine(Path.GetTempPath(), "QuiralCoreLifecycle", Guid.NewGuid().ToString("N"));
-    try
-    {
-        var core = new QuiralCore(root);
-        await core.InitializeAsync();
-        Assert(core.StateOfCore == QuiralCoreState.Ready, "El nucli no ha entrat en estat Ready.");
-        Assert(!core.SafetyGate.PhysicalOutputsEnabled, "El nucli ha habilitat sortides físiques.");
-        Assert(File.Exists(Path.Combine(root, "logs", "quiral-audit.log")), "No s'ha creat el registre d'auditoria.");
-        await core.DisposeAsync();
-        Assert(core.StateOfCore == QuiralCoreState.Stopped, "El nucli no s'ha aturat correctament.");
-    }
-    finally
-    {
-        if (Directory.Exists(root)) Directory.Delete(root, true);
-    }
+    var root = Temp("QuiralCoreLifecycle");
+    try {
+        var core = new QuiralCore(root); await core.InitializeAsync();
+        Assert(core.StateOfCore == QuiralCoreState.Ready && !core.SafetyGate.PhysicalOutputsEnabled, "Estat del nucli incorrecte.");
+        Assert(File.Exists(Path.Combine(root, "logs", "quiral-audit.log")), "Falta auditoria.");
+        await core.DisposeAsync(); Assert(core.StateOfCore == QuiralCoreState.Stopped, "Nucli no aturat.");
+    } finally { Delete(root); }
 }
-
-
 static async Task TestModuleLifecycle()
 {
-    var root = Path.Combine(Path.GetTempPath(), "QuiralCoreModules", Guid.NewGuid().ToString("N"));
-    var events = new List<string>();
-    try
-    {
-        var core = new QuiralCore(root);
-        core.RegisterModule(new TrackingModule("A", events));
-        core.RegisterModule(new TrackingModule("B", events));
-        await core.InitializeAsync();
-        await core.DisposeAsync();
-        var expected = new[] { "start:A", "start:B", "stop:B", "stop:A" };
-        Assert(events.SequenceEqual(expected), "L'ordre d'inici/aturada dels mòduls no és correcte.");
-    }
-    finally
-    {
-        if (Directory.Exists(root)) Directory.Delete(root, true);
-    }
+    var root = Temp("QuiralCoreModules"); var events = new List<string>();
+    try {
+        var core = new QuiralCore(root); core.RegisterModule(new TrackingModule("A", events));
+        core.RegisterModule(new TrackingModule("B", events)); await core.InitializeAsync(); await core.DisposeAsync();
+        Assert(events.SequenceEqual(new[] { "start:A", "start:B", "stop:B", "stop:A" }), "Ordre lifecycle incorrecte.");
+    } finally { Delete(root); }
 }
-
-static void Assert(bool condition, string message)
+static async Task TestProjects()
 {
-    if (!condition) throw new InvalidOperationException(message);
+    var root=Temp("QuiralProjects");
+    try {
+        var core=new QuiralCore(root); var module=new ProjectModule(); core.RegisterModule(module); await core.InitializeAsync();
+        var p=await module.CreateAsync("Maqueta prova",3000,1800,5,110);
+        Assert(p.Scale=="H0" && p.Levels.Count==5 && p.Levels[4].ElevationMm==440,"Projecte o nivells incorrectes.");
+        Assert(await module.OpenAsync(p.Id),"No es pot obrir el projecte.");
+        var restored=await core.State.ReadAsync<List<RailwayProject>>("projects/index.json");
+        Assert(restored?.Count==1 && restored[0].Id==p.Id,"Persistència del projecte incorrecta.");
+        await core.DisposeAsync();
+    } finally { Delete(root); }
 }
-
-sealed record TestState(string Name, int Revision);
-
+static Task TestGeometry()
+{
+    var a=new Point3(0,0,0); var b=new Point3(1000,0,50);
+    Assert(Math.Abs(RailwayGeometryModule.Distance(a,b)-Math.Sqrt(1002500))<0.001,"Distància XYZ incorrecta.");
+    Assert(Math.Abs(RailwayGeometryModule.GradePercent(a,b)-5)<0.0001,"Pendent incorrecte.");
+    var p77=RailwayGeometryModule.ParallelOffset(a,b,77);
+    var p64=RailwayGeometryModule.ParallelOffset(a,b,64);
+    Assert(Math.Abs(p77[0].Y-77)<0.001 && Math.Abs(p64[0].Y-64)<0.001,"Separació paral·lela incorrecta.");
+    var module=new RailwayGeometryModule();
+    var rejected=false; try { module.AddSegment(a,a); } catch(ArgumentException) { rejected=true; }
+    Assert(rejected,"S'ha acceptat un tram nul.");
+    return Task.CompletedTask;
+}
+static async Task TestRollingStock()
+{
+    var root=Temp("QuiralRollingStock");
+    try {
+        var core=new QuiralCore(root); var module=new RollingStockModule(); core.RegisterModule(module); await core.InitializeAsync();
+        var now=DateTimeOffset.UtcNow;
+        var loco=await module.AddAsync(new RollingStockItem("",RollingStockKind.Locomotive,"Märklin","3003",
+            "Locomotora vapor Märklin 3003","H0","III","DB",null,DigitalProtocol.None,null,
+            Array.Empty<string>(),null,"Referència històrica",now,now));
+        var rejected=false;
+        try { await module.AddAsync(loco with { Id="" }); } catch(InvalidOperationException) { rejected=true; }
+        Assert(rejected,"Referència duplicada acceptada.");
+        var wagon=await module.AddAsync(new RollingStockItem("",RollingStockKind.PassengerCar,"Märklin","test-car",
+            "Cotxe prova","H0","III","DB",null,DigitalProtocol.None,null,Array.Empty<string>(),null,"",now,now));
+        var consist=await module.CreateCompositionAsync("Tren prova",new[]{loco.Id,wagon.Id});
+        Assert(consist.VehicleIds.Count==2,"Composició incompleta.");
+        await core.DisposeAsync();
+    } finally { Delete(root); }
+}
+static string Temp(string name) { var p=Path.Combine(Path.GetTempPath(),name,Guid.NewGuid().ToString("N")); Directory.CreateDirectory(p); return p; }
+static void Delete(string path) { if(Directory.Exists(path)) Directory.Delete(path,true); }
+static void Assert(bool condition,string message) { if(!condition) throw new InvalidOperationException(message); }
+sealed record TestState(string Name,int Revision);
 sealed class CountingHandler : IRailwayCommandHandler
 {
     public int Calls { get; private set; }
-    public bool CanHandle(RailwayCommand command) => true;
-    public Task<CommandDispatchResult> ExecuteAsync(RailwayCommand command, CancellationToken cancellationToken)
-    {
-        Calls++;
-        return Task.FromResult(new CommandDispatchResult(true, "OK", "Executed"));
-    }
+    public bool CanHandle(RailwayCommand command)=>true;
+    public Task<CommandDispatchResult> ExecuteAsync(RailwayCommand command,CancellationToken ct)
+    { Calls++; return Task.FromResult(new CommandDispatchResult(true,"OK","Executed")); }
 }
-
-sealed class TrackingModule(string name, List<string> events) : IQuiralModule
+sealed class TrackingModule(string name,List<string> events) : IQuiralModule
 {
-    public string Name => name;
-    public Task StartAsync(QuiralCore core, CancellationToken cancellationToken)
-    {
-        events.Add($"start:{name}");
-        return Task.CompletedTask;
-    }
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        events.Add($"stop:{name}");
-        return Task.CompletedTask;
-    }
+    public string Name=>name;
+    public Task StartAsync(QuiralCore core,CancellationToken ct) { events.Add($"start:{name}"); return Task.CompletedTask; }
+    public Task StopAsync(CancellationToken ct) { events.Add($"stop:{name}"); return Task.CompletedTask; }
 }
