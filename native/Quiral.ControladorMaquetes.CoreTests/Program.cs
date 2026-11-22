@@ -327,6 +327,7 @@ static async Task TestCs2TcpFeedback()
         Assert(contact.DeviceId==0x1234 && contact.ContactNumber==42 && contact.IsOccupied && contact.Timestamp10Ms==100,"El feedback S88 TCP no s'ha rebut correctament.");
         var saved=feedback.Snapshot.Single();
         Assert(saved.ContactUid==0x1234002A && saved.IsOccupied,"El mòdul S88 no ha actualitzat l'estat tipat del contacte.");
+        await feedback.FlushAsync();
         Assert(core.Devices.TryGet("s88-1234-0042",out var sensor) && sensor?.Kind==RailwayDeviceKind.Sensor &&
             sensor.State==RailwayDeviceState.Connected,"El feedback S88 no s'ha integrat al registre central de dispositius.");
         var persisted=await core.State.ReadAsync<List<S88ContactState>>("feedback/s88-contacts.json",timeout.Token);
