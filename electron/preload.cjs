@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('jmriDesktop', Object.freeze({
   startApplication: command => ipcRenderer.invoke('splash:start', command),
+  checkForUpdates: () => ipcRenderer.invoke('updates:check'),
+  openReleasePage: url => ipcRenderer.invoke('updates:open-release', url),
   showAbout: () => ipcRenderer.invoke('splash:about'),
   showHelp: () => ipcRenderer.invoke('splash:help'),
   openProject: options => ipcRenderer.invoke('project:open', options),
