@@ -113,7 +113,7 @@ public sealed class MainForm : Form
         _dataPathValue.Text = "Dades locals: " + _core.DataDirectory + Environment.NewLine + Environment.NewLine +
             "Nucli intern inicialitzat correctament." + Environment.NewLine +
             "Sense servidor web, navegador incrustat ni dependència de serveis externs." + Environment.NewLine +
-            "Controlador Märklin CS2 60215 registrat (connexió manual)." + Environment.NewLine +
+            "Controlador Märklin CS2 60215 registrat (connexió manual)." + Environment.NewLine +\n            "Feedback S88 integrat al registre central de sensors i a la persistència local." + Environment.NewLine +
             "Les ordres que requereixen sortides físiques són rebutjades pel gestor de seguretat.";
         details.Controls.Add(_dataPathValue);
         dashboard.Controls.Add(details, 0, 3);
