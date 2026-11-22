@@ -15,7 +15,7 @@ SetRegView 64
 
 Name "Controlador de Maquetes Platinum Edition"
 Caption "Instal·lador de Controlador de Maquetes Platinum Edition"
-OutFile "$\{OUTPUT_FILE}"
+OutFile "${OUTPUT_FILE}"
 InstallDir "$PROGRAMFILES64\Quiral and Co.\Controlador de Maquetes Platinum Edition"
 InstallDirRegKey HKLM "Software\Quiral and Co.\Controlador de Maquetes Platinum Edition" "InstallDir"
 ShowInstDetails show
