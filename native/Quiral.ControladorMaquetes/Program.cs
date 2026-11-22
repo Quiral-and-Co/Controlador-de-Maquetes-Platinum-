@@ -31,7 +31,8 @@ internal static class Program
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
-            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2, accessories));
+            var connectionSettings = new Cs2ConnectionSettingsStore(core.State);
+            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2, accessories, connectionSettings));
         }
         catch (Exception exception)
         {
