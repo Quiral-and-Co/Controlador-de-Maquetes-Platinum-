@@ -1,7 +1,6 @@
 Unicode true
 ManifestDPIAware true
 RequestExecutionLevel admin
-SetRegView 64
 
 !ifndef VERSION
   !define VERSION "1.4.1"
@@ -37,8 +36,13 @@ Var UpgradeBackup
 !insertmacro MUI_LANGUAGE "English"
 
 Function .onInit
+  SetRegView 64
   !insertmacro MUI_LANGDLL_DISPLAY
   StrCpy $UpgradeBackup "$TEMP\QuiralControl-UserData-${VERSION}.zip"
+FunctionEnd
+
+Function un.onInit
+  SetRegView 64
 FunctionEnd
 
 Section "Aplicació nativa" SEC_APP
