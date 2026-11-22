@@ -16,7 +16,7 @@ internal static class Program
         ApplicationConfiguration.Initialize();
         var core = new QuiralCore();
         var projects = new ProjectModule();
-        var geometry = new RailwayGeometryModule();
+        var geometry = new RailwayGeometryModule(projects);
         var rollingStock = new RollingStockModule();
         var cs2 = new Cs2TcpController();
         core.RegisterModule(projects);
