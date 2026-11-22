@@ -9,7 +9,6 @@ public sealed record McanFrame(byte Priority, byte Command, bool IsResponse, ush
     public byte[] Encode()
     {
         if (Priority > 3) throw new ArgumentOutOfRangeException(nameof(Priority));
-        if (Command > 0xFF) throw new ArgumentOutOfRangeException(nameof(Command));
         if (Data.Length > 8) throw new ArgumentOutOfRangeException(nameof(Data));
         var packet = new byte[WireLength];
         var canId = ((uint)Priority << 30) | ((uint)(Command * 2 + (IsResponse ? 1 : 0)) << 16) | Hash;
@@ -25,7 +24,7 @@ public sealed record McanFrame(byte Priority, byte Command, bool IsResponse, ush
         var canId=System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(packet[..4]);
         var dlc=(int)(packet[4]&0x0F);
         if(dlc>8) throw new InvalidDataException("DLC mCAN invàlid.");
-        var commandResponse=(byte)((canId>>16)&0x1FF);
+        var commandResponse=(ushort)((canId>>16)&0x1FF);
         return new McanFrame((byte)((canId>>30)&0x03),(byte)(commandResponse>>1),
             (commandResponse&1)!=0,(ushort)(canId&0xFFFF),packet.Slice(5,dlc).ToArray());
     }
