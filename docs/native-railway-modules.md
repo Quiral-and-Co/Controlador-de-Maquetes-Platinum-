@@ -15,6 +15,7 @@ Aquesta implementació és a la branca `feature/native-windows-architecture` i u
 - Distància espacial, longitud en planta i pendent percentual.
 - Desplaçament paral·lel amb separació explícita; les proves cobreixen 77 mm i 64 mm.
 - Rebuig de coordenades no finites i trams nuls.
+- La geometria queda vinculada al projecte actiu i es filtra en canviar de projecte.
 - Les connexions/topologia i les geometries de catàleg s'han de completar abans d'utilitzar el model com a validació constructiva.
 
 ## Material mòbil
