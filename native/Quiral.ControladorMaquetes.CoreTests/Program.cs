@@ -67,6 +67,20 @@ static async Task TestSafetyGate()
     var result = await dispatcher.DispatchAsync(new RailwayCommand("cs2-main", "set-speed", true));
     Assert(!result.Accepted && result.Code == "SAFETY_BLOCKED", "Ordre no bloquejada.");
     Assert(handler.Calls == 0 && !gate.PhysicalOutputsEnabled, "El controlador ha rebut una ordre bloquejada.");
+
+    var root=Temp("QuiralCs2Safety");
+    try
+    {
+        var core=new QuiralCore(root); var cs2=new Cs2TcpController(); core.RegisterModule(cs2); await core.InitializeAsync();
+        var guarded=await core.Commands.DispatchAsync(new RailwayCommand("marklin-cs2-60215","set-speed",true,
+            new Dictionary<string,string>{{"protocol","Dcc"},{"address","3"},{"speed","100"}}));
+        Assert(!guarded.Accepted && guarded.Code=="SAFETY_BLOCKED","El nucli no ha bloquejat una ordre física CS2.");
+        var untrusted=await core.Commands.DispatchAsync(new RailwayCommand("marklin-cs2-60215","set-speed",false,
+            new Dictionary<string,string>{{"protocol","Dcc"},{"address","3"},{"speed","100"}}));
+        Assert(!untrusted.Accepted && untrusted.Code=="SAFETY_BLOCKED","El controlador ha permès evitar el bloqueig indicant RequiresPhysicalOutput=false.");
+        await core.DisposeAsync();
+    }
+    finally { Delete(root); }
 }
 static async Task TestCoreLifecycle()
 {
