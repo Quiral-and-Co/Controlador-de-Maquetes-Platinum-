@@ -297,7 +297,11 @@ static async Task TestCs2TcpFeedback()
     var port=((IPEndPoint)listener.LocalEndpoint).Port;
     var acceptTask=listener.AcceptTcpClientAsync(timeout.Token);
     var root=Temp("QuiralCs2Tcp");
-    var core=new QuiralCore(root); var controller=new Cs2TcpController(); core.RegisterModule(controller);
+    var core=new QuiralCore(root);
+    var controller=new Cs2TcpController();
+    var feedback=new S88FeedbackModule(controller);
+    core.RegisterModule(controller);
+    core.RegisterModule(feedback);
     try
     {
         await core.InitializeAsync();
@@ -321,6 +325,12 @@ static async Task TestCs2TcpFeedback()
         await stream.WriteAsync(eventFrame.Encode(),timeout.Token);
         var contact=await received.Task.WaitAsync(timeout.Token);
         Assert(contact.DeviceId==0x1234 && contact.ContactNumber==42 && contact.IsOccupied && contact.Timestamp10Ms==100,"El feedback S88 TCP no s'ha rebut correctament.");
+        var saved=feedback.Snapshot.Single();
+        Assert(saved.ContactUid==0x1234002A && saved.IsOccupied,"El mòdul S88 no ha actualitzat l'estat tipat del contacte.");
+        Assert(core.Devices.TryGet("s88-1234-0042",out var sensor) && sensor?.Kind==RailwayDeviceKind.Sensor &&
+            sensor.State==RailwayDeviceState.Connected,"El feedback S88 no s'ha integrat al registre central de dispositius.");
+        var persisted=await core.State.ReadAsync<List<S88ContactState>>("feedback/s88-contacts.json",timeout.Token);
+        Assert(persisted?.Single().ContactUid==0x1234002A,"L'estat S88 no s'ha persistit al nucli.");
         await controller.DisconnectAsync();
     }
     finally
