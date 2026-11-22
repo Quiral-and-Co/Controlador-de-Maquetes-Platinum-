@@ -76,13 +76,17 @@ jobs:
           $sentinel = Join-Path $dataDir 'upgrade-preservation-smoke-test.txt'
           Set-Content -LiteralPath $sentinel -Value 'Quiral upgrade preservation test' -Encoding utf8
           $installDir = Join-Path $env:RUNNER_TEMP 'QuiralNativeSmoke'
-          $process = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Installer returned $($process.ExitCode)." }
+          $firstInstall = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
+          if ($firstInstall.ExitCode -ne 0) { throw "Initial installer returned $($firstInstall.ExitCode)." }
           $application = Join-Path $installDir 'Quiral.ControladorMaquetes.exe'
           $uninstaller = Join-Path $installDir 'Uninstall.exe'
           if (-not (Test-Path $application)) { throw 'Installed native application executable is missing.' }
           if (-not (Test-Path $uninstaller)) { throw 'Uninstaller executable is missing.' }
-          if (-not (Test-Path -LiteralPath $sentinel)) { throw 'Installer did not preserve user data.' }
+          Set-Content -LiteralPath $sentinel -Value 'Quiral upgrade preservation test' -Encoding utf8
+          $upgrade = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
+          if ($upgrade.ExitCode -ne 0) { throw "Upgrade installer returned $($upgrade.ExitCode)." }
+          if (-not (Test-Path $sentinel)) { throw 'Upgrade did not restore the user data backup.' }
+          $uninstaller = Join-Path $installDir 'Uninstall.exe'
           $remove = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
           if ($remove.ExitCode -ne 0) { throw "Uninstaller returned $($remove.ExitCode)." }
           if (Test-Path $installDir) { throw 'Uninstallation left the application directory behind.' }
