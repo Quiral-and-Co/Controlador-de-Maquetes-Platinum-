@@ -24,9 +24,9 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
     public Cs2ConnectionState State { get; private set; }=Cs2ConnectionState.Disconnected;
     public string? Host { get; private set; }
     public int Port { get; private set; }=DefaultPort;
-    public event EventHandler<S88ContactEvent>? S88ContactChanged;
-    public event EventHandler<S88ModuleSnapshot>? S88ModuleRead;
-    public event EventHandler<string>? Diagnostic;
+    public event Action<S88ContactEvent>? S88ContactChanged;
+    public event Action<S88ModuleSnapshot>? S88ModuleRead;
+    public event Action<string>? Diagnostic;
 
     public Task StartAsync(QuiralCore core,CancellationToken cancellationToken)
     {
@@ -51,9 +51,9 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
             State=Cs2ConnectionState.Connected;
             _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
                 RailwayDeviceKind.CommandStation,RailwayDeviceState.Connected,"Märklin","60215",$"{host}:{port}",DateTimeOffset.UtcNow));
-            _readerCancellation=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _readerCancellation=new CancellationTokenSource();
             _readerTask=ReadLoopAsync(_readerCancellation.Token);
-            Diagnostic?.Invoke(this,$"Connexió TCP establerta amb CS2 a {host}:{port}.");
+            Diagnostic?.Invoke($"Connexió TCP establerta amb CS2 a {host}:{port}.");
             // PING de descobriment: cap ordre de tracció ni accessori.
             await SendFrameAsync(new McanFrame(0,0x18,false,_hash,Array.Empty<byte>()),cancellationToken).ConfigureAwait(false);
         }
@@ -100,16 +100,16 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
                 await _stream!.ReadExactlyAsync(packet,cancellationToken).ConfigureAwait(false);
                 var frame=McanFrame.Decode(packet);
                 var contact=S88Feedback.TryParseEvent(frame);
-                if(contact is not null) S88ContactChanged?.Invoke(this,contact);
+                if(contact is not null) S88ContactChanged?.Invoke(contact);
                 var module=S88Feedback.TryParsePollReply(frame);
-                if(module is not null) S88ModuleRead?.Invoke(this,module);
+                if(module is not null) S88ModuleRead?.Invoke(module);
             }
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested) { }
         catch(Exception ex)
         {
             State=Cs2ConnectionState.Faulted;
-            Diagnostic?.Invoke(this,$"S'ha perdut la comunicació amb la CS2: {ex.Message}");
+            Diagnostic?.Invoke($"S'ha perdut la comunicació amb la CS2: {ex.Message}");
         }
     }
 
