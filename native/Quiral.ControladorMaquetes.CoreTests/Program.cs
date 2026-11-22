@@ -16,7 +16,8 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Project create, open and persistence", TestProjects),
     ("XYZ geometry, parallel offset and grade", TestGeometry),
     ("Rolling stock uniqueness and train composition", TestRollingStock),
-    ("mCAN frame codec and S88 event decoding", TestMcanS88)
+    ("mCAN frame codec and S88 event decoding", TestMcanS88),
+    ("mCAN locomotive command encoders", TestMcanLocomotiveCommands)
 };
 
 var failed = 0;
@@ -161,5 +162,19 @@ static Task TestMcanS88()
     Assert(poll is { ModuleNumber:1 } && poll.IsOccupied(1) && poll.IsOccupied(16),"Resposta de consulta S88 incorrecta.");
     var subscription=S88Feedback.BuildSubscribe(0x1234,7,0x2222);
     Assert(subscription.Command==0x11 && subscription.Dlc==5,"Registre de contacte S88 incorrecte.");
+    return Task.CompletedTask;
+}
+
+static Task TestMcanLocomotiveCommands()
+{
+    var speed=McanLocomotiveCommands.BuildSpeed(DigitalProtocol.Dcc,3,800,0x4711);
+    Assert(speed.Command==0x04 && speed.Dlc==6 && speed.Data.SequenceEqual(new byte[]{0,0,0xC0,3,3,0x20}),"Codificació de velocitat DCC incorrecta.");
+    var direction=McanLocomotiveCommands.BuildDirection(DigitalProtocol.Mm2,72,2,0x4712);
+    Assert(direction.Dlc==5 && direction.Data.SequenceEqual(new byte[]{0,0,0,72,2}),"Codificació del sentit MM2 incorrecta.");
+    var function=McanLocomotiveCommands.BuildFunction(DigitalProtocol.Mfx,5,3,true,0x4713);
+    Assert(function.Dlc==6 && function.Data.SequenceEqual(new byte[]{0,0,0x40,5,3,1}),"Codificació de funció mfx incorrecta.");
+    var rejected=false; try { McanLocomotiveCommands.BuildSpeed(DigitalProtocol.Dcc,3,1001,0x4711); }
+    catch(ArgumentOutOfRangeException) { rejected=true; }
+    Assert(rejected,"S'ha acceptat una velocitat fora de rang.");
     return Task.CompletedTask;
 }
