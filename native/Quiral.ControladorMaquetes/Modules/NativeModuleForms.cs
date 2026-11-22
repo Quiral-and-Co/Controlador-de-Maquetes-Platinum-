@@ -32,7 +32,7 @@ public sealed class ProjectManagerForm : Form
     public ProjectManagerForm(ProjectModule module)
     {
         _module=module; Text="Gestió de projectes · Quiral Control"; Width=720; Height=540; StartPosition=FormStartPosition.CenterParent;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=8 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=9 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Nom del projecte",_name,0); FormLayout.AddRow(root,"Amplada (mm)",_width,1);
         FormLayout.AddRow(root,"Alçada (mm)",_height,2); FormLayout.AddRow(root,"Nombre de nivells",_levels,3);
@@ -148,7 +148,8 @@ public sealed class Cs2ConnectionForm : Form
     private readonly Cs2TcpController _controller;
     private readonly TextBox _host=new() { Width=180 };
     private readonly NumericUpDown _port=FormLayout.Number(15731,1,65535,0);
-    private readonly NumericUpDown _contactId=FormLayout.Number(1,1,65535,0);
+    private readonly NumericUpDown _device=FormLayout.Number(1,1,65535,0);
+    private readonly NumericUpDown _contact=FormLayout.Number(1,1,65535,0);
     private readonly NumericUpDown _module=FormLayout.Number(1,1,255,0);
     private readonly ListBox _log=new() { Dock=DockStyle.Fill };
     private readonly Label _status=new() { AutoSize=true,Text="Desconnectada" };
@@ -163,14 +164,15 @@ public sealed class Cs2ConnectionForm : Form
         var disconnect=new Button { Text="Desconnectar",AutoSize=true }; disconnect.Click+=async (_,_)=>await _controller.DisconnectAsync();
         var buttons=new FlowLayoutPanel { AutoSize=true }; buttons.Controls.AddRange(new Control[]{connect,disconnect});
         root.Controls.Add(buttons,0,2); root.SetColumnSpan(buttons,2);
-        FormLayout.AddRow(root,"Adreça de contacte S88",_contactId,3);
+        FormLayout.AddRow(root,"Identificador del dispositiu S88",_device,3);
+        FormLayout.AddRow(root,"Número de contacte S88",_contact,4);
         var subscribe=new Button { Text="Subscriure contacte",AutoSize=true }; subscribe.Click+=async (_,_)=>await SubscribeAsync();
         var poll=new Button { Text="Consultar mòdul (legacy)",AutoSize=true }; poll.Click+=async (_,_)=>await PollAsync();
         var feedbackButtons=new FlowLayoutPanel { AutoSize=true }; feedbackButtons.Controls.AddRange(new Control[]{subscribe,poll});
-        root.Controls.Add(feedbackButtons,0,4); root.SetColumnSpan(feedbackButtons,2);
-        FormLayout.AddRow(root,"Mòdul S88",_module,5);
-        root.Controls.Add(_status,0,6); root.SetColumnSpan(_status,2);
-        root.Controls.Add(_log,0,7); root.SetColumnSpan(_log,2);
+        root.Controls.Add(feedbackButtons,0,5); root.SetColumnSpan(feedbackButtons,2);
+        FormLayout.AddRow(root,"Mòdul S88",_module,6);
+        root.Controls.Add(_status,0,7); root.SetColumnSpan(_status,2);
+        root.Controls.Add(_log,0,8); root.SetColumnSpan(_log,2);
         Controls.Add(root);
         FormClosed+=async (_,_)=>{ _controller.S88ContactChanged-=OnContact; _controller.S88ModuleRead-=OnModule; _controller.Diagnostic-=OnDiagnostic; await _controller.DisconnectAsync(); };
     }
@@ -181,7 +183,7 @@ public sealed class Cs2ConnectionForm : Form
     }
     private async Task SubscribeAsync()
     {
-        try { await _controller.SubscribeS88ContactAsync((ushort)_contactId.Value); Log("Subscripció S88 sol·licitada."); }
+        try { await _controller.SubscribeS88ContactAsync((ushort)_device.Value,(ushort)_contact.Value); Log("Subscripció S88 sol·licitada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
     private async Task PollAsync()
@@ -189,7 +191,7 @@ public sealed class Cs2ConnectionForm : Form
         try { await _controller.PollS88ModuleAsync((byte)_module.Value); Log("Consulta S88 legacy enviada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
-    private void OnContact(S88ContactEvent e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"S88 contacte {e.ContactId} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms"))); }
+    private void OnContact(S88ContactEvent e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"S88 {e.DeviceId}:{e.ContactNumber} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms"))); }
     private void OnModule(S88ModuleSnapshot e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}"))); }
     private void OnDiagnostic(string e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log(e))); }
     private void Log(string value) { if(!IsDisposed) _log.Items.Insert(0,$"{DateTime.Now:HH:mm:ss}  {value}"); }
