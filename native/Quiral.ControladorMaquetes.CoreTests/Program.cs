@@ -163,21 +163,6 @@ static async Task TestRollingStock()
 static string Temp(string name) { var p=Path.Combine(Path.GetTempPath(),name,Guid.NewGuid().ToString("N")); Directory.CreateDirectory(p); return p; }
 static void Delete(string path) { if(Directory.Exists(path)) Directory.Delete(path,true); }
 static void Assert(bool condition,string message) { if(!condition) throw new InvalidOperationException(message); }
-sealed record TestState(string Name,int Revision);
-sealed class CountingHandler : IRailwayCommandHandler
-{
-    public int Calls { get; private set; }
-    public bool CanHandle(RailwayCommand command)=>true;
-    public Task<CommandDispatchResult> ExecuteAsync(RailwayCommand command,CancellationToken ct)
-    { Calls++; return Task.FromResult(new CommandDispatchResult(true,"OK","Executed")); }
-}
-sealed class TrackingModule(string name,List<string> events) : IQuiralModule
-{
-    public string Name=>name;
-    public Task StartAsync(QuiralCore core,CancellationToken ct) { events.Add($"start:{name}"); return Task.CompletedTask; }
-    public Task StopAsync(CancellationToken ct) { events.Add($"stop:{name}"); return Task.CompletedTask; }
-}
-
 static Task TestMcanS88()
 {
     var data=new byte[]{0x12,0x34,0x00,0x07,0x00,0x01,0x00,0x2A};
@@ -281,4 +266,19 @@ static async Task TestCs2TcpFeedback()
         listener.Stop();
         Delete(root);
     }
+}
+
+sealed record TestState(string Name,int Revision);
+sealed class CountingHandler : IRailwayCommandHandler
+{
+    public int Calls { get; private set; }
+    public bool CanHandle(RailwayCommand command)=>true;
+    public Task<CommandDispatchResult> ExecuteAsync(RailwayCommand command,CancellationToken ct)
+    { Calls++; return Task.FromResult(new CommandDispatchResult(true,"OK","Executed")); }
+}
+sealed class TrackingModule(string name,List<string> events) : IQuiralModule
+{
+    public string Name=>name;
+    public Task StartAsync(QuiralCore core,CancellationToken ct) { events.Add($"start:{name}"); return Task.CompletedTask; }
+    public Task StopAsync(CancellationToken ct) { events.Add($"stop:{name}"); return Task.CompletedTask; }
 }
