@@ -11,7 +11,7 @@
       const depth=m[1].length,key=m[2].trim().toLowerCase(),value=m[3].trim();
       if(depth===1&&key==='funktionen'){current._section='functions';current._function=null;continue;}
       if(depth===2&&key==='nr'){current._function={number:Number(value),label:'F'+value,icon:Number(value)===0?'lightbulb':'circle',momentary:false};current.functions.push(current._function);continue;}
-      if(depth===2&&current._function){if(key==='typ')current._function.type=value;else if(key==='dauer')current._function.momentary=Number(value)>0;else if(key==='wert')current._function.value=value;continue;}
+      if(depth===2&&current._function){if(key==='typ')current._function.type=value;else if(key==='dauer')current._function.momentary=Number(value)>0;else if(key==='wert')current._function.value=value;else if(key==='symbol'||key==='icon')current._function.icon=value;else if(key==='name'||key==='bezeichnung')current._function.label=value;continue;}
       if(depth===1){current[key]=value;if(key==='name')current.name=value;}
     }
     if(current)records.push(current);

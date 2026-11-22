@@ -51,6 +51,16 @@ window.JMRI_TC_TRAFFIC_CONTROL={
   const run=activeRun(),route=routeById(run?.routeId),gate=route?safetyGate(route):{ok:false};
   return{config:config(),locomotives:runtime.locomotives.map(x=>({...x})),activeRun:run?{...run}:null,bridgeConnected,dccEnabled,dccArmed,physicalOutputsEnabled:dccEnabled&&dccArmed,deadmanHeld,safetyReady:gate.ok};
  },
+ registerLocomotive(vehicle){
+  if(!vehicle||String(vehicle.protocol||'').toUpperCase()!=='DCC')return{ok:false,error:'El registre WiThrottle només admet locomotores DCC.'};
+  const address=Number(vehicle.address);if(!Number.isInteger(address)||address<1||address>10239)return{ok:false,error:'Adreça DCC fora del rang 1–10239.'};
+  const c=config();if(!c)return{ok:false,error:'No hi ha cap projecte actiu.'};
+  const addressType=address<=127?'S':'L';
+  const result=core.addLocomotive(runtime,{id:String(vehicle.id),name:String(vehicle.name||'Locomotora'),address:String(address),addressType,protocol:'DCC'});
+  if(!result.ok)return result;
+  c.traffic=c.traffic||{};c.traffic.locomotives=runtime.locomotives.map(item=>({...item}));
+  render();return{ok:true,locomotive:result.locomotive};
+ },
  setSpeed(value){return manualSpeed(value);},
  setDirection(value){return manualDirection(value);},
  emergencyStop(){const run=activeRun();if(!run||!bridgeConnected)return false;return emergency(run)===true;},

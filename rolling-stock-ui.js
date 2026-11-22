@@ -24,14 +24,14 @@
     if(!items.length){const empty=document.createElement('p');empty.className='rolling-stock-empty';empty.textContent='Parc buit. Afegeix vehicles manualment o importa una base de dades de central digital.';host.append(empty);return;}
     if(selectedIndex>=items.length)selectedIndex=items.length-1;
     items.forEach((item,index)=>{
-      const row=document.createElement('button');row.type='button';row.className='rolling-stock-item';row.draggable=item.kind!=='car';row.dataset.vehicleId=item.id;row.dataset.vehicleKind=item.kind;row.setAttribute('role','listitem');row.setAttribute('aria-selected',String(item.id===selectedId));row.classList.toggle('selected',item.id===selectedId);
+      const row=document.createElement('button');row.type='button';row.className='rolling-stock-item';row.draggable=!!item.draggable&&item.kind!=='car';row.dataset.vehicleId=item.id;row.dataset.vehicleKind=item.kind;row.setAttribute('role','listitem');row.setAttribute('aria-selected',String(item.id===selectedId));row.classList.toggle('selected',item.id===selectedId);
       const icon=document.createElement('span');icon.className='rolling-stock-icon';icon.textContent=item.drawing&&item.drawing.length<8?item.drawing:(item.kind==='locomotive'?'🚂':'🚃');
       const details=document.createElement('span');details.className='rolling-stock-details';const name=document.createElement('strong');name.textContent=item.name;const meta=document.createElement('small');meta.textContent=[item.kind==='locomotive'?'Locomotora':item.kind==='multiple-unit'?'Automotor':'Vehicle',item.protocol||'',item.address?'Adreça '+item.address:'',item.manufacturer||''].filter(Boolean).join(' · ');details.append(name,meta);
-      const hint=document.createElement('span');hint.className='rolling-stock-drag-hint';hint.textContent=item.kind==='car'?'Vehicle':(item.image?'📷':'Configurar');row.append(icon,details,hint);
+      const hint=document.createElement('span');hint.className='rolling-stock-drag-hint';hint.textContent=item.kind==='car'?'Vehicle':(item.controlReady===false?'No assignada al control':(item.image?'📷':'Arrossega al DMI'));row.append(icon,details,hint);
       row.addEventListener('click',()=>{selectedId=item.id;selectedIndex=index;render();setStatus('Seleccionat: '+item.name+'. Doble clic o prem Intro per configurar.');});
       row.addEventListener('dblclick',()=>openEditor(db().vehicles.find(v=>v.id===item.id)||item));
       row.addEventListener('keydown',event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();selectedIndex=Math.max(0,Math.min(items.length-1,index+(event.key==='ArrowDown'?1:-1)));selectedId=items[selectedIndex].id;render();host.querySelectorAll('.rolling-stock-item')[selectedIndex]?.focus();}else if(event.key==='Enter'){event.preventDefault();openEditor(db().vehicles.find(v=>v.id===item.id)||item);}});
-      row.addEventListener('dragstart',event=>{selectedId=item.id;row.classList.add('selected');const payload=core.createDragPayload(item);if(!payload){event.preventDefault();return;}event.dataTransfer?.setData(core.DRAG_TYPE,payload);event.dataTransfer?.setData('text/plain',payload);if(event.dataTransfer)event.dataTransfer.effectAllowed='copy';setStatus('Arrossegant '+item.name+'.');});
+      row.addEventListener('dragstart',event=>{selectedId=item.id;row.classList.add('selected');const payload=core.createDragPayload(item);if(!payload){event.preventDefault();setStatus('Registra primer aquesta locomotora DCC al control. Els protocols MFX/M4/MM2 necessiten el seu adaptador de central.');return;}event.dataTransfer?.setData(core.DRAG_TYPE,payload);event.dataTransfer?.setData('text/plain',payload);if(event.dataTransfer)event.dataTransfer.effectAllowed='copy';setStatus('Arrossegant '+item.name+'.');});
       host.append(row);
     });
   }
@@ -42,6 +42,17 @@
     }catch(error){setStatus(error.message);}
   }
   $('rollingStockAdd').addEventListener('click',()=>openEditor(null));
+  $('rollingStockRegister').addEventListener('click',()=>{
+    const vehicle=db().vehicles.find(v=>v.id===selectedId);
+    if(!vehicle){setStatus('Selecciona primer una locomotora importada.');return;}
+    if(String(vehicle.protocol||'').toUpperCase()!=='DCC'){setStatus('El registre directe al control WiThrottle només admet DCC. MFX, M4 i MM2 requereixen l’adaptador específic de la central.');return;}
+    const address=Number(vehicle.address);
+    if(!Number.isInteger(address)||address<1||address>10239){setStatus('L’adreça DCC importada no és vàlida. Edita la fitxa abans de registrar-la.');return;}
+    const result=window.JMRI_TC_TRAFFIC_CONTROL?.registerLocomotive?.({...vehicle,address});
+    if(!result?.ok){setStatus(result?.error||'No s’ha pogut registrar la locomotora al control.');return;}
+    render();setStatus('Locomotora '+vehicle.name+' registrada al control DCC. Encara calen els interbloqueigs habituals abans de qualsevol moviment.');
+  });
+
   $('rollingStockImport').addEventListener('click',()=>$('rollingStockFile').click());
   $('rollingStockFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];if(!file)return;
@@ -58,7 +69,7 @@
   });
   $('rollingStockExport').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='parc-ferroviari-quiral.json';a.click();URL.revokeObjectURL(url);});
   form.addEventListener('submit',saveVehicle);$('rollingStockEditorClose').addEventListener('click',closeEditor);$('rollingStockCancel').addEventListener('click',closeEditor);
-  $('rollingStockDelete').addEventListener('click',()=>{if(!editingId)return;const result=core.removeVehicle(db(),editingId);if(!result.ok){setStatus(result.error);return;}saveDb(db());closeEditor();render();setStatus('Vehicle eliminat del parc.');});
+  $('rollingStockDelete').addEventListener('click',()=>{if(!editingId)return;if(!window.confirm('Vols eliminar aquest vehicle del parc ferroviari?'))return;const result=core.removeVehicle(db(),editingId);if(!result.ok){setStatus(result.error);return;}saveDb(db());closeEditor();render();setStatus('Vehicle eliminat del parc.');});
   window.addEventListener('jmri:rolling-stock-discovered',event=>{
     const discovered=event.detail;
     if(!discovered||typeof discovered!=='object')return;

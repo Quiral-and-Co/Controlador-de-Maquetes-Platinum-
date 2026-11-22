@@ -39,17 +39,17 @@
   }
   function buildInventory(locomotives=[],roster={},database={}){
     const db=ensureDatabase(database),byId=new Map();
-    for(const v of db.vehicles){byId.set(v.id,{...v,kind:v.kind==='car'?'car':v.kind,draggable:v.kind!=='car'});}
+    for(const v of db.vehicles){byId.set(v.id,{...v,kind:v.kind==='car'?'car':v.kind,controlReady:false,draggable:false});}
     for(const item of Array.isArray(locomotives)?locomotives:[]){
       const found=[...byId.values()].find(v=>v.id===String(item.id)|| (v.address&&v.address===String(item.address||item.wiThrottleId||'')));
-      const merged={...(found||{}),id:String(item.id||found?.id||''),name:String(found?.name||item.name||'Locomotora sense nom'),kind:'locomotive',type:'LOCOMOTIVE',address:String(found?.address||item.address||item.wiThrottleId||''),protocol:found?.protocol||item.protocol||'DCC',draggable:true};
+      const merged={...(found||{}),id:String(item.id||found?.id||''),name:String(found?.name||item.name||'Locomotora sense nom'),kind:'locomotive',type:'LOCOMOTIVE',address:String(found?.address||item.address||item.wiThrottleId||''),protocol:found?.protocol||item.protocol||'DCC',controlReady:true,draggable:true};
       if(merged.id)byId.set(merged.id,merged);
     }
     const cars=(Array.isArray(roster?.cars)?roster.cars:[]).map(item=>({id:String(item.id||''),name:String(item.name||'Vehicle sense nom'),kind:'car',type:String(item.type||'PASSENGER'),address:'',draggable:false,attached:!!(item.trainId||item.trainSetId)})).filter(item=>item.id);
     for(const car of cars)if(!byId.has(car.id))byId.set(car.id,car);
     return [...byId.values()];
   }
-  function createDragPayload(item){if(!item||!['locomotive','multiple-unit'].includes(item.kind)||typeof item.id!=='string'||!item.id)return '';return JSON.stringify({schema:1,kind:item.kind,id:item.id});}
+  function createDragPayload(item){if(!item||!['locomotive','multiple-unit'].includes(item.kind)||item.controlReady===false||typeof item.id!=='string'||!item.id)return '';return JSON.stringify({schema:1,kind:item.kind,id:item.id});}
   function resolveDrop(raw,locomotives=[]){let payload;try{payload=JSON.parse(String(raw||''));}catch{return{ok:false,error:'Dades d’arrossegament no vàlides.'};}if(!payload||payload.schema!==1||typeof payload.id!=='string'||!payload.id)return{ok:false,error:'Identificador de vehicle no vàlid.'};if(!['locomotive','multiple-unit'].includes(payload.kind))return{ok:false,error:'Només es poden deixar anar locomotores al control DMI.'};const locomotive=(Array.isArray(locomotives)?locomotives:[]).find(item=>item?.id===payload.id);if(!locomotive)return{ok:false,error:'La locomotora no està habilitada al registre de control actual.'};return{ok:true,locomotive};}
   const api={DRAG_TYPE,PROTOCOLS,ensureDatabase,normalizeFunctions,validateVehicle,upsertVehicle,removeVehicle,buildInventory,createDragPayload,resolveDrop};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
