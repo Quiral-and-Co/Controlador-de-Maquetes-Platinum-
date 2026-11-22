@@ -32,7 +32,7 @@ public sealed class ProjectManagerForm : Form
     public ProjectManagerForm(ProjectModule module)
     {
         _module=module; Text="Gestió de projectes · Quiral Control"; Width=720; Height=540; StartPosition=FormStartPosition.CenterParent;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=7 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=8 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Nom del projecte",_name,0); FormLayout.AddRow(root,"Amplada (mm)",_width,1);
         FormLayout.AddRow(root,"Alçada (mm)",_height,2); FormLayout.AddRow(root,"Nombre de nivells",_levels,3);
@@ -190,8 +190,8 @@ public sealed class Cs2ConnectionForm : Form
         try { await _controller.PollS88ModuleAsync((byte)_module.Value); Log("Consulta S88 legacy enviada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
-    private void OnContact(S88ContactEvent e)=>BeginInvoke(()=>Log($"S88 {e.DeviceId}:{e.ContactNumber} {(e.IsOccupied?"OCUPAT":"LLIURE")}"));
-    private void OnModule(S88ModuleSnapshot e)=>BeginInvoke(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}"));
-    private void OnDiagnostic(string e)=>BeginInvoke(()=>Log(e));
+    private void OnContact(S88ContactEvent e)=>BeginInvoke(new Action(()=>Log($"S88 {e.DeviceId}:{e.ContactNumber} {(e.IsOccupied?"OCUPAT":"LLIURE")}")));
+    private void OnModule(S88ModuleSnapshot e)=>BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}")));
+    private void OnDiagnostic(string e)=>BeginInvoke(new Action(()=>Log(e)));
     private void Log(string value) { if(!IsDisposed) _log.Items.Insert(0,$"{DateTime.Now:HH:mm:ss}  {value}"); }
 }
