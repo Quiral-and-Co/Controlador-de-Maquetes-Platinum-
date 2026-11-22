@@ -11,7 +11,6 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
     public const int DefaultPort = 15731;
     private readonly string _host;
     private readonly int _port;
-    private readonly TimeSpan _frameTimeout;
     private TcpClient? _client;
     private CancellationTokenSource? _lifetime;
     private Task? _reader;
@@ -21,13 +20,12 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
 
     public bool IsConnected => _client?.Connected == true;
 
-    public Cs2TcpConnection(string host, int port = DefaultPort, TimeSpan? frameTimeout = null)
+    public Cs2TcpConnection(string host, int port = DefaultPort)
     {
         if (string.IsNullOrWhiteSpace(host)) throw new ArgumentException("A CS2 host/IP is required.", nameof(host));
         if (port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(port));
         _host = host;
         _port = port;
-        _frameTimeout = frameTimeout ?? TimeSpan.FromSeconds(5);
     }
 
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
@@ -36,7 +34,7 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
         var client = new TcpClient { NoDelay = true };
         await client.ConnectAsync(_host, _port, cancellationToken).ConfigureAwait(false);
         _client = client;
-        _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _lifetime = new CancellationTokenSource();
         _reader = ReadLoopAsync(client, _lifetime.Token);
     }
 
@@ -48,9 +46,7 @@ public sealed class Cs2TcpConnection : IAsyncDisposable
             var stream = client.GetStream();
             while (!cancellationToken.IsCancellationRequested)
             {
-                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                timeout.CancelAfter(_frameTimeout);
-                await stream.ReadExactlyAsync(frameBytes, timeout.Token).ConfigureAwait(false);
+                await stream.ReadExactlyAsync(frameBytes, cancellationToken).ConfigureAwait(false);
                 var frame = McanFrame.Decode(frameBytes);
                 FrameReceived?.Invoke(this, frame);
             }
