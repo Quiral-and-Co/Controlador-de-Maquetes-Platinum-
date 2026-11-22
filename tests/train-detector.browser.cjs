@@ -1,0 +1,21 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path');
+const {chromium}=require('playwright'),root=path.resolve(__dirname,'..'),mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'};
+const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname));if(!file.startsWith(root+path.sep)&&file!==path.join(root,'index.html')){res.writeHead(403).end();return;}fs.readFile(file,(err,data)=>{if(err){res.writeHead(404).end(String(err));return;}res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(data);});});
+(async()=>{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser,context;try{
+ browser=await chromium.launch({headless:true,args:['--no-sandbox']});context=await browser.newContext();const page=await context.newPage();
+ await page.goto('http://127.0.0.1:'+server.address().port+'/index.html?nativeWindow=trainDetector');
+ const config={levels:[{id:1,name:'Nivell 1',sensors:[{id:'S-LS1',systemName:'LS1',userName:'Detector existent',protocol:'S88',moduleAddress:'1',input:1,verified:true}],blocks:[{id:'B1',name:'Tram nord',verified:true,sensorIds:['S-LS1']}]}]};
+ await page.evaluate(c=>{window.JMRI_TC_DISPATCHER={getConfig:()=>c,checkpoint:()=>{},refresh:()=>{}};window.JMRI_TC_BOARD={getTelemetry:()=>({connected:true,sensors:{LS1:2},sensorUpdatedAt:{LS1:Date.now()}}),requestSensorReading:()=>true};},config);
+ await page.waitForSelector('#trainDetectorApp');await page.waitForTimeout(100);
+ assert.match(await page.locator('#tdBlocks').innerText(),/OCUPAT/,'occupied detector shown in monitor');
+ await page.locator('#tdConfig').click();assert.equal(await page.locator('#tdDialog').evaluate(el=>el.open),true);
+ const protocols=await page.locator('#tdProtocol option').evaluateAll(xs=>xs.map(x=>x.value));
+ for(const key of ['S88','S88N','RS','LOCONET','RBUS','XPRESSNET','JMRI','CUSTOM'])assert.ok(protocols.includes(key),'protocol option missing: '+key);
+ await page.locator('#tdProtocol').selectOption('RS');await page.locator('#tdBus').fill('RS-BUS-1');await page.locator('#tdModuleAddress').fill('12');await page.locator('#tdInput').fill('3');await page.locator('#tdSystemName').fill('RS12.3');await page.locator('#tdUserName').fill('Detector RS');await page.locator('#tdSaveSensor').click();
+ assert.equal(config.levels[0].sensors.length,2);assert.equal(config.levels[0].sensors[1].protocol,'RS');assert.equal(config.levels[0].sensors[1].moduleAddress,'12');assert.equal(config.levels[0].sensors[1].input,3);
+ await page.locator('#tdSensorChoices .td-sensor').filter({hasText:'Detector RS'}).locator('input[type=checkbox]').check();await page.locator('#tdSaveMapping').click();assert.ok(config.levels[0].blocks[0].sensorIds.includes(config.levels[0].sensors[1].id));
+ await page.locator('#tdSensorChoices .td-sensor').filter({hasText:'Detector RS'}).getByRole('button',{name:'Editar'}).click();await page.locator('#tdModuleAddress').fill('13');await page.locator('#tdSaveSensor').click();assert.equal(config.levels[0].sensors[1].moduleAddress,'13');
+ assert.match(await page.locator('#tdConfigMessage').innerText(),/Verificació física pendent/);
+ console.log('PASS: occupancy monitor, independent configuration dialog, S88/RS/LocoNet/R-bus protocol metadata, sensor CRUD and block assignment');
+}finally{await context?.close().catch(()=>{});await browser?.close().catch(()=>{});await new Promise(resolve=>server.close(resolve));}})().catch(e=>{console.error(e);process.exitCode=1;});
