@@ -513,6 +513,7 @@
     else if(command==='windowShowCommunications')window.JMRI_TC_DESKTOP?.focusWindow?.('Terminal tren-terra');
     else if(command==='windowShowDiagnostics')window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral');
     else if(command==='windowShowTelemetry')window.JMRI_TC_DESKTOP?.focusWindow?.('Control de locomotora');
+    else if(command==='windowShowTrainDetector')window.jmriDesktop?.openNativeWindow?.({type:'trainDetector',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir el monitor de detectors: '+error.message));
     else if(command==='windowShowEmergencies')window.JMRI_TC_DESKTOP?.focusWindow?.('Validació i bloqueig de seguretat');
     else if(command==='windowShowDrivers')window.JMRI_TC_DESKTOP?.focusWindow?.('Gestió de circulacions');
     else if(command==='helpQuick')showHelp('quick');
