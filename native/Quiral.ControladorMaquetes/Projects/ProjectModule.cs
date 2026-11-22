@@ -87,7 +87,7 @@ public sealed class ProjectModule : IQuiralModule
         {
             if (!_projects.Remove(projectId)) return false;
             if (ActiveProject?.Id == projectId) ActiveProject = null;
-            var file=Path.Combine(_coreState.DataDirectory,"projects",projectId+".json");
+            var file=Path.Combine((_core??throw new InvalidOperationException("Mòdul no inicialitzat.")).DataDirectory,"projects",projectId+".json");
             if(File.Exists(file)) File.Delete(file);
             await PersistAsync(cancellationToken);
             return true;
