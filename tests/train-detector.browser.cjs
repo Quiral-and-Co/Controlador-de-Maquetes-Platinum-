@@ -7,7 +7,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html?nativeWindow=trainDetector');
  const config={levels:[{id:1,name:'Nivell 1',sensors:[{id:'S-LS1',systemName:'LS1',userName:'Detector existent',protocol:'S88',moduleAddress:'1',input:1,verified:true}],blocks:[{id:'B1',name:'Tram nord',verified:true,sensorIds:['S-LS1']}]}]};
  await page.evaluate(c=>{window.JMRI_TC_DISPATCHER={getConfig:()=>c,checkpoint:()=>{},refresh:()=>{}};window.JMRI_TC_BOARD={getTelemetry:()=>({connected:true,sensors:{LS1:2},sensorUpdatedAt:{LS1:Date.now()}}),requestSensorReading:()=>true};},config);
- await page.waitForSelector('#trainDetectorApp');await page.waitForTimeout(100);
+ await page.waitForSelector('#trainDetectorApp');await page.locator('#tdRefresh').click();await page.waitForTimeout(50);
  assert.match(await page.locator('#tdBlocks').innerText(),/OCUPAT/,'occupied detector shown in monitor');
  await page.locator('#tdConfig').click();assert.equal(await page.locator('#tdDialog').evaluate(el=>el.open),true);
  const protocols=await page.locator('#tdProtocol option').evaluateAll(xs=>xs.map(x=>x.value));
