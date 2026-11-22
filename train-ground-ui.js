@@ -11,6 +11,8 @@ $('tgRegistration').className='tg-pill '+(state.mode==='GSMR'&&state.registered?
 $('tgMode').value=state.mode;$('tgChannel').value=state.channel;$('tgTrainId').value=state.trainId;$('tgRadioId').value=state.radioId;$('tgPeer').value=state.peer;$('tgFunction').value=state.selectedFunction;
 $('tgRegister').disabled=state.mode!=='GSMR'||state.registered;$('tgCall').disabled=state.callState!=='IDLE'||(state.mode==='GSMR'&&!state.registered);$('tgAnswer').disabled=!['CALLING','RINGING'].includes(state.callState);$('tgRelease').disabled=state.callState==='IDLE';$('tgTransmit').disabled=state.callState!=='CONNECTED';$('tgPttOn').disabled=state.callState!=='CONNECTED';$('tgPttOff').disabled=!state.ptt;
 $('tgPttState').textContent=state.ptt?'PTT · PREMUTAT':'PTT · EN REPÒS';
+ const display=$('tg15SegmentDisplay');if(display){const value=(state.dialled||state.trainId||'').replace(/[^0-9A-Za-z*#-]/g,'').slice(-8).padStart(6,'0');display.textContent=value||'000000';display.dataset.state=state.callState;}
+ $('tg15SegmentMode').textContent=(state.mode==='GSMR'?'GSM-R':'ANALÒGIC')+' · '+({IDLE:'EN ESPERA',CALLING:'TRUCANT',RINGING:'ENTRANT',CONNECTED:'CONNECTAT'})[state.callState];
 $('tgMessages').replaceChildren();state.messages.slice().reverse().forEach(m=>{const li=document.createElement('li');li.textContent=m.mode+' · '+m.from+' → '+m.to+': '+m.text;$('tgMessages').append(li);});
 $('tgEvents').replaceChildren();state.events.slice().reverse().forEach(e=>{const li=document.createElement('li');li.textContent=e.type+' · '+e.message;$('tgEvents').append(li);});
 }
