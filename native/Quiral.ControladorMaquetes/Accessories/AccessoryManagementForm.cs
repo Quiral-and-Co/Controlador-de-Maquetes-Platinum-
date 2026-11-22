@@ -54,6 +54,7 @@ public sealed class AccessoryManagementForm : Form
     {
         _grid.DataSource = (await _module.SnapshotAsync()).ToList();
         if (_grid.Columns[nameof(RailwayAccessory.Id)] is { } id) id.Visible = false;
+        if (_grid.Columns[nameof(RailwayAccessory.StateLabel)] is { } state) state.HeaderText = "Estat actual (descriptiu; sense feedback físic)";
     }
 
     private async Task AddItemAsync()
@@ -93,6 +94,7 @@ internal sealed class AccessoryEditorForm : Form
     private readonly ComboBox _position = new() { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
     private readonly TextBox _decoder = new() { Dock = DockStyle.Fill };
     private readonly TextBox _notes = new() { Dock = DockStyle.Fill };
+    private readonly TextBox _stateLabel = new() { Dock = DockStyle.Fill };
     private readonly string? _id;
     private readonly DateTimeOffset _created;
 
@@ -115,16 +117,17 @@ internal sealed class AccessoryEditorForm : Form
         {
             _name.Text = item.Name; _kind.SelectedItem = item.Kind; _protocol.SelectedItem = item.Protocol;
             _address.Value = item.Address; _output.Value = item.Output; _position.SelectedItem = item.Position;
-            _decoder.Text = item.Decoder ?? ""; _notes.Text = item.Notes ?? "";
+            _decoder.Text = item.Decoder ?? ""; _notes.Text = item.Notes ?? ""; _stateLabel.Text = item.StateLabel ?? "";
         }
 
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 9 };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 10 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 135));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         AddRow(layout, 0, "Nom", _name); AddRow(layout, 1, "Tipus", _kind);
         AddRow(layout, 2, "Protocol", _protocol); AddRow(layout, 3, "Adreça", _address);
         AddRow(layout, 4, "Sortida", _output); AddRow(layout, 5, "Posició coneguda", _position);
         AddRow(layout, 6, "Decoder", _decoder); AddRow(layout, 7, "Notes", _notes);
+        AddRow(layout, 8, "Estat / posició", _stateLabel);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
         var save = new Button { Text = "Desar", DialogResult = DialogResult.None, AutoSize = true };
         var cancel = new Button { Text = "Cancel·lar", DialogResult = DialogResult.Cancel, AutoSize = true };
@@ -135,12 +138,13 @@ internal sealed class AccessoryEditorForm : Form
             Value = new RailwayAccessory(_id ?? "", _name.Text, (AccessoryKind)_kind.SelectedItem!,
                 (AccessoryProtocol)_protocol.SelectedItem!, (int)_address.Value, (int)_output.Value,
                 (AccessoryPosition)_position.SelectedItem!, string.IsNullOrWhiteSpace(_decoder.Text) ? null : _decoder.Text,
-                string.IsNullOrWhiteSpace(_notes.Text) ? null : _notes.Text, _created, DateTimeOffset.UtcNow);
+                string.IsNullOrWhiteSpace(_notes.Text) ? null : _notes.Text, _created, DateTimeOffset.UtcNow,
+                string.IsNullOrWhiteSpace(_stateLabel.Text) ? null : _stateLabel.Text.Trim());
             DialogResult = DialogResult.OK;
             Close();
         };
         buttons.Controls.Add(save); buttons.Controls.Add(cancel);
-        layout.Controls.Add(buttons, 0, 8); layout.SetColumnSpan(buttons, 2);
+        layout.Controls.Add(buttons, 0, 9); layout.SetColumnSpan(buttons, 2);
         Controls.Add(layout);
         AcceptButton = save; CancelButton = cancel;
     }
