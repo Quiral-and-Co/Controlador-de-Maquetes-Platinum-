@@ -66,6 +66,17 @@ jobs:
       - name: Editor XYZ, parallel tracks, curves and topology acceptance gate
         run: node tests/editor-geometry-acceptance.cjs
 
+      - name: Verify Platinum product identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Get-Content -Raw package.json | ConvertFrom-Json
+          if ($package.name -ne 'controlador-de-maquetes-platinum') { throw "Unexpected npm package name: $($package.name)" }
+          if ($package.build.productName -ne 'Controlador de Maquetes Platinum') { throw "Unexpected Windows product name: $($package.build.productName)" }
+          if ($package.build.appId -ne 'cat.quiral.controladormaquetesplatinum') { throw "Unexpected application ID: $($package.build.appId)" }
+          if ($package.build.win.artifactName -notlike 'Controlador-de-Maquetes-Platinum-Setup-*') { throw 'Windows artifactName does not use the Platinum identity.' }
+          if ($package.build.nsis.shortcutName -ne 'Controlador de Maquetes Platinum') { throw 'NSIS shortcut name does not use the Platinum identity.' }
+
       - name: Build NSIS installer
         run: npm run dist:win
 
@@ -73,9 +84,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File | Select-Object -First 1
-          if (-not $installer) {
-            throw 'No NSIS installer .exe was generated.'
+          $installers = @(Get-ChildItem -Path dist -Filter '*.exe' -File)
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one NSIS installer .exe; found $($installers.Count)."
+          }
+          $installer = $installers[0]
+          if ($installer.Name -notlike 'Controlador-de-Maquetes-Platinum-Setup-*') {
+            throw "Installer filename has the wrong product identity: $($installer.Name)"
           }
           if ($installer.Length -le 0) {
             throw 'The NSIS installer is empty.'
@@ -93,7 +108,7 @@ jobs:
       - name: Upload installer and SHA-256 manifest
         uses: actions/upload-artifact@v4
         with:
-          name: JMRI-TC-Gold-Custom-Windows-11-NSIS
+          name: Controlador-de-Maquetes-Platinum-Windows-11-NSIS
           path: |
             dist/*.exe
             dist/*.exe.sha256
