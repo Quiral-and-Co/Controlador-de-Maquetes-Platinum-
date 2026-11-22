@@ -6,6 +6,7 @@ namespace Quiral.ControladorMaquetes.Geometry;
 public readonly record struct Point3(double X, double Y, double Z);
 public sealed record TrackSegment(string Id, string ProjectId, Point3 Start, Point3 End, double GaugeMm = 16.5);
 public sealed record GeometryIssue(string Code, string Message, string? ElementId = null);
+public sealed record TrackConnection(string FirstSegmentId,bool FirstAtEnd,string SecondSegmentId,bool SecondAtEnd);
 
 public sealed class RailwayGeometryModule : IQuiralModule
 {
@@ -83,16 +84,24 @@ public sealed class RailwayGeometryModule : IQuiralModule
         return new[] { new Point3(start.X+ox,start.Y+oy,start.Z), new Point3(end.X+ox,end.Y+oy,end.Z) };
     }
 
-    public static IReadOnlyList<GeometryIssue> ValidateConnections(IEnumerable<TrackSegment> segments, double toleranceMm = 1.0)
+    public static IReadOnlyList<GeometryIssue> ValidateConnections(IEnumerable<TrackSegment> segments,
+        IEnumerable<TrackConnection> connections,double toleranceMm=1.0)
     {
-        if (!double.IsFinite(toleranceMm) || toleranceMm < 0) throw new ArgumentOutOfRangeException(nameof(toleranceMm));
-        var items=segments.ToArray(); var issues=new List<GeometryIssue>();
-        for (var i=0;i<items.Length;i++) for(var j=i+1;j<items.Length;j++)
+        if(!double.IsFinite(toleranceMm)||toleranceMm<0) throw new ArgumentOutOfRangeException(nameof(toleranceMm));
+        var byId=segments.ToDictionary(x=>x.Id,StringComparer.OrdinalIgnoreCase);
+        var issues=new List<GeometryIssue>();
+        foreach(var connection in connections)
         {
-            var a=items[i]; var b=items[j];
-            var min=Math.Min(Math.Min(Distance(a.Start,b.Start),Distance(a.Start,b.End)),
-                Math.Min(Distance(a.End,b.Start),Distance(a.End,b.End)));
-            if (min > toleranceMm) issues.Add(new("OPEN_CONNECTION",$"Els trams {a.Id} i {b.Id} no tenen extrems coincidents.",a.Id));
+            if(!byId.TryGetValue(connection.FirstSegmentId,out var first)||
+                !byId.TryGetValue(connection.SecondSegmentId,out var second))
+            {
+                issues.Add(new("MISSING_SEGMENT","La connexió fa referència a un tram inexistent.",connection.FirstSegmentId));
+                continue;
+            }
+            var a=connection.FirstAtEnd?first.End:first.Start;
+            var b=connection.SecondAtEnd?second.End:second.Start;
+            if(Distance(a,b)>toleranceMm)
+                issues.Add(new("MISALIGNED_CONNECTION",$"Els extrems declarats dels trams {first.Id} i {second.Id} no coincideixen.",first.Id));
         }
         return issues;
     }
