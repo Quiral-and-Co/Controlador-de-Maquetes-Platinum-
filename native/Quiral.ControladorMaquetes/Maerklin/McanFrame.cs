@@ -22,7 +22,7 @@ public sealed record McanFrame(byte Priority, byte Command, bool IsResponse, ush
     {
         if (packet.Length != WireLength) throw new ArgumentException("Un paquet mCAN Ethernet ha de tenir exactament 13 bytes.",nameof(packet));
         var canId=System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(packet[..4]);
-        var dlc=(int)(packet[4]&0x0F);
+        var dlc=(int)packet[4];
         if(dlc>8) throw new InvalidDataException("DLC mCAN invàlid.");
         var commandResponse=(ushort)((canId>>16)&0x1FF);
         return new McanFrame((byte)((canId>>30)&0x03),(byte)(commandResponse>>1),
