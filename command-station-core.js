@@ -8,7 +8,7 @@
   const CATALOGUE=Object.freeze([
     {id:'marklin-cs1',manufacturer:'Märklin',models:['Central Station 1 (60212)'],protocols:['Märklin CS1'],interfaces:['TCP'],catalogueVerification:'CONDITIONAL',notes:'La connexió d’ordinador depèn de la revisió de maquinari i del firmware; la CS1 original sense modificació pot no disposar de port PC funcional.'},
     {id:'marklin-6051',manufacturer:'Märklin',models:['Interface 6051'],protocols:['Märklin 6050/6051'],interfaces:['Serial'],catalogueVerification:'DOCUMENTED',defaultBaudRate:2400,notes:'RS-232, 2400 baud, 8 bits de dades, sense paritat i 2 bits de parada.'},
-    {id:'marklin-cs1-reloaded',manufacturer:'Märklin / ESU',models:['Central Station 1 Reloaded by ESU'],protocols:['ECoS'],interfaces:['TCP'],catalogueVerification:'DOCUMENTED',notes:'Perfil ECoS per a CS1 actualitzada/reloaded; confirmar firmware i IP de la unitat.'},
+    {id:'marklin-cs1-reloaded',manufacturer:'ESU',models:['Central Station 1 Reloaded by ESU'],protocols:['ECoS'],interfaces:['TCP'],catalogueVerification:'DOCUMENTED',notes:'Perfil ECoS per a CS1 actualitzada/reloaded; confirmar firmware i IP de la unitat.'},
     {id:'marklin-cs2',manufacturer:'Märklin',models:['Central Station 2'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'marklin-cs3',manufacturer:'Märklin',models:['Central Station 3','Central Station 3+'],protocols:['MFX','MM2','DCC'],interfaces:['TCP']},
     {id:'esu-ecos',manufacturer:'ESU',models:['ECoS 50200','ECoS 50210'],protocols:['DCC','MM2','MFX'],interfaces:['TCP']},
