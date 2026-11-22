@@ -13,3 +13,6 @@ Validació local:
 ```bash
 node tests/installer-language.cjs
 ```
+
+
+El compilador NSIS té `warningsAsErrors: false` perquè el paquet MultiUser no inclou una cadena de traducció catalana (`MULTIUSER_TEXT_INSTALLMODE_TITLE`). NSIS utilitza el text alternatiu anglès per a aquesta cadena, en lloc d'interrompre la generació de l'instal·lador. La resta de missatges de l'assistent continuen utilitzant l'idioma seleccionat quan hi ha traducció disponible.
