@@ -8,12 +8,12 @@ RequestExecutionLevel admin
   !define PUBLISH_DIR "publish"
 !endif
 !ifndef OUTPUT_FILE
-  !define OUTPUT_FILE "dist\Controlador-de-Maquetes-Quiral-Platinum-Setup-\${VERSION}.exe"
+  !define OUTPUT_FILE "dist\Controlador-de-Maquetes-Quiral-Platinum-Setup-${VERSION}.exe"
 !endif
 
 Name "Controlador de Maquetes by Quiral & Co. Platinum"
 Caption "Instal·lador de Quiral & Co. Platinum"
-OutFile "\${OUTPUT_FILE}"
+OutFile "${OUTPUT_FILE}"
 InstallDir "$PROGRAMFILES64\Quiral & Co.\Controlador de Maquetes Platinum"
 InstallDirRegKey HKLM "Software\Quiral & Co.\Controlador de Maquetes Platinum" "InstallDir"
 ShowInstDetails show
@@ -30,7 +30,7 @@ ShowUnInstDetails show
 
 Section "Aplicació nativa Quiral Control" SEC_APP
   SetOutPath "$INSTDIR"
-  File /r "\${PUBLISH_DIR}\*"
+  File /r "${PUBLISH_DIR}\*"
 
   CreateDirectory "$SMPROGRAMS\Quiral & Co."
   CreateShortCut "$SMPROGRAMS\Quiral & Co.\Controlador de Maquetes Platinum.lnk" "$INSTDIR\Quiral.ControladorMaquetes.exe"
