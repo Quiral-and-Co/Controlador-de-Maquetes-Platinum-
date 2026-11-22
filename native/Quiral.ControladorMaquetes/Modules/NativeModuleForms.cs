@@ -74,7 +74,7 @@ public sealed class GeometryWorkbenchForm : Form
     public GeometryWorkbenchForm(RailwayGeometryModule module)
     {
         _module=module; Text="Geometria ferroviària XYZ · Quiral Control"; Width=850; Height=560; StartPosition=FormStartPosition.CenterParent;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(12), ColumnCount=2, RowCount=9 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,190)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         string[] labels={"X inicial (mm)","Y inicial (mm)","Z inicial (mm)","X final (mm)","Y final (mm)","Z final (mm)"};
         for(int i=0;i<labels.Length;i++) FormLayout.AddRow(root,labels[i],_xyz[i],i);
@@ -113,7 +113,7 @@ public sealed class RollingStockForm : Form
     {
         _module=module; Text="Gestió de material mòbil · Quiral Control"; Width=820; Height=580; StartPosition=FormStartPosition.CenterParent;
         _kind.DataSource=Enum.GetValues<RollingStockKind>();
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=8 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Tipus",_kind,0); FormLayout.AddRow(root,"Fabricant",_manufacturer,1);
         FormLayout.AddRow(root,"Referència",_reference,2); FormLayout.AddRow(root,"Nom",_name,3);
@@ -156,7 +156,7 @@ public sealed class Cs2ConnectionForm : Form
     {
         _controller=controller; Text="Märklin CS2 60215 · mCAN / S88"; Width=760; Height=540; StartPosition=FormStartPosition.CenterParent;
         _controller.S88ContactChanged+=OnContact; _controller.S88ModuleRead+=OnModule; _controller.Diagnostic+=OnDiagnostic;
-        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2 };
+        var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=8 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Adreça IP / host",_host,0); FormLayout.AddRow(root,"Port TCP",_port,1);
         var connect=new Button { Text="Connectar",AutoSize=true }; connect.Click+=async (_,_)=>await ConnectAsync();
