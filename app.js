@@ -508,7 +508,7 @@
     else if(command==='windowShowRadio')window.JMRI_TC_DESKTOP?.focusWindow?.('Terminal tren-terra');
     else if(command==='windowShowSpielewelt')window.JMRI_TC_DESKTOP?.focusWindow?.('Món de Jocs');
     else if(command==='windowShowSignalling')window.JMRI_TC_DESKTOP?.focusWindow?.('Senyalització ferroviària ADIF');
-    else if(command==='windowShowTrackControl')window.JMRI_TC_DESKTOP?.focusWindow?.('Diagnòstic topològic');
+    else if(command==='windowShowTrackControl')window.JMRI_TC_DESKTOP?.focusWindow?.('Tauler de disseny');
     else if(command==='windowShowStations')window.JMRI_TC_DESKTOP?.focusWindow?.('Estacions i baixadors');
     else if(command==='windowShowCommunications')window.JMRI_TC_DESKTOP?.focusWindow?.('Terminal tren-terra');
     else if(command==='windowShowDiagnostics')window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral');
