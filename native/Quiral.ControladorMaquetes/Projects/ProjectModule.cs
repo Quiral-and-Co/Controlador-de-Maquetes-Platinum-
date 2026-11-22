@@ -14,6 +14,7 @@ public sealed class ProjectModule : IQuiralModule
     private readonly Dictionary<string, RailwayProject> _projects = new(StringComparer.OrdinalIgnoreCase);
     private readonly SemaphoreSlim _sync = new(1, 1);
     private QuiralCore? _core;
+    private LocalStateStore _coreState => (_core??throw new InvalidOperationException("Mòdul no inicialitzat.")).State;
     public string Name => "ProjectManagement";
     public RailwayProject? ActiveProject { get; private set; }
 
@@ -40,7 +41,7 @@ public sealed class ProjectModule : IQuiralModule
             Enumerable.Range(0, levels).Select(i => new ProjectLevel(Guid.NewGuid().ToString("N"),
                 $"Nivell {i + 1}", i * levelSpacingMm)).ToArray(), now, now);
         await _sync.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try { _projects.Add(project.Id, project); await PersistAsync(cancellationToken); ActiveProject = project; }
+        try { _projects.Add(project.Id, project); await _coreState.WriteAsync($"projects/{project.Id}.json",project,cancellationToken); await PersistAsync(cancellationToken); ActiveProject = project; }
         finally { _sync.Release(); }
         return project;
     }
@@ -58,7 +59,7 @@ public sealed class ProjectModule : IQuiralModule
         try
         {
             if (!_projects.TryGetValue(projectId, out var project)) return false;
-            ActiveProject = project;
+            ActiveProject = await _coreState.ReadAsync<RailwayProject>($"projects/{project.Id}.json",cancellationToken).ConfigureAwait(false) ?? project;
             return true;
         }
         finally { _sync.Release(); }
@@ -73,6 +74,7 @@ public sealed class ProjectModule : IQuiralModule
             var updated = ActiveProject with { UpdatedAt = DateTimeOffset.UtcNow };
             _projects[updated.Id] = updated;
             ActiveProject = updated;
+            await _coreState.WriteAsync($"projects/{updated.Id}.json",updated,cancellationToken);
             await PersistAsync(cancellationToken);
         }
         finally { _sync.Release(); }
@@ -85,6 +87,8 @@ public sealed class ProjectModule : IQuiralModule
         {
             if (!_projects.Remove(projectId)) return false;
             if (ActiveProject?.Id == projectId) ActiveProject = null;
+            var file=Path.Combine(_coreState.DataDirectory,"projects",projectId+".json");
+            if(File.Exists(file)) File.Delete(file);
             await PersistAsync(cancellationToken);
             return true;
         }
