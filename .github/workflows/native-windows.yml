@@ -63,7 +63,7 @@ jobs:
           $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish'
           $distDir = Join-Path $env:GITHUB_WORKSPACE 'dist'
           $application = Join-Path $publishDir 'Quiral.ControladorMaquetes.exe'
-          $output = Join-Path $distDir 'Controlador-de-Maquetes-Quiral-Platinum-Setup-1.4.0.exe'
+          $output = Join-Path $distDir 'Controlador-de-Maquetes-Quiral-Platinum-Setup-1.4.2.exe'
           if (-not (Test-Path -LiteralPath $application -PathType Leaf)) {
             throw "Published application was not found: $application"
           }
@@ -75,7 +75,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $makensis)) {
             throw 'makensis.exe was not found after installing NSIS.'
           }
-          & $makensis "/DVERSION=1.4.0" "/DPUBLISH_DIR=$publishDir" "/DOUTPUT_FILE=$output" 'installer/native-quiral.nsi'
+          & $makensis "/DVERSION=1.4.2" "/DPUBLISH_DIR=$publishDir" "/DOUTPUT_FILE=$output" 'installer/native-quiral.nsi'
           if ($LASTEXITCODE -ne 0) { throw "NSIS failed with exit code $LASTEXITCODE." }
           if (-not (Test-Path -LiteralPath $output -PathType Leaf)) {
             throw "NSIS completed without producing the installer: $output"
