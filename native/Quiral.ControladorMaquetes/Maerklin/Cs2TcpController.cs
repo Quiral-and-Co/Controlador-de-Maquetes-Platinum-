@@ -100,7 +100,12 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
                 await _stream!.ReadExactlyAsync(packet,cancellationToken).ConfigureAwait(false);
                 var frame=McanFrame.Decode(packet);
                 var contact=S88Feedback.TryParseEvent(frame);
-                if(contact is not null) S88ContactChanged?.Invoke(contact);
+                if(contact is not null)
+                {
+                    S88ContactChanged?.Invoke(contact);
+                    _core?.Events.Publish(new QuiralEvent(contact.ReceivedAt,"s88.contact.changed",
+                        $"Contacte {contact.DeviceId}:{contact.ContactNumber} = {(contact.IsOccupied ? "OCUPAT" : "LLIURE")}"));
+                }
                 var module=S88Feedback.TryParsePollReply(frame);
                 if(module is not null) S88ModuleRead?.Invoke(module);
             }
@@ -109,6 +114,9 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         catch(Exception ex)
         {
             State=Cs2ConnectionState.Faulted;
+            _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+                RailwayDeviceKind.CommandStation,RailwayDeviceState.Faulted,"Märklin","60215",$"{Host}:{Port}"));
+            _core?.Events.Publish(new QuiralEvent(DateTimeOffset.UtcNow,"cs2.connection.lost",ex.Message));
             Diagnostic?.Invoke($"S'ha perdut la comunicació amb la CS2: {ex.Message}");
         }
     }
