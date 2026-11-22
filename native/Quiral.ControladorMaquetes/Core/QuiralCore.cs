@@ -11,6 +11,7 @@ public enum QuiralCoreState { Created, Initializing, Ready, Stopping, Stopped, F
 public sealed class QuiralCore : IAsyncDisposable
 {
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
+    private readonly SemaphoreSlim _auditLock = new(1, 1);
     private readonly string _dataDirectory;
     private readonly List<IQuiralModule> _modules = new();
     private readonly List<IQuiralModule> _startedModules = new();
@@ -74,7 +75,7 @@ public sealed class QuiralCore : IAsyncDisposable
 
             StateOfCore = QuiralCoreState.Ready;
             Events.Publish(new QuiralEvent(DateTimeOffset.UtcNow, "core.ready", "Quiral Control està preparat en mode local."));
-            await AppendAuditUnlockedAsync("CORE_READY", "Nucli iniciat; sortides físiques bloquejades.", cancellationToken).ConfigureAwait(false);
+            await AppendAuditAsync("CORE_READY", "Nucli iniciat; sortides físiques bloquejades.", cancellationToken).ConfigureAwait(false);
         }
         catch
         {
@@ -89,27 +90,27 @@ public sealed class QuiralCore : IAsyncDisposable
         }
     }
 
-    public async Task WriteAuditAsync(string code, string message, CancellationToken cancellationToken = default)
+    public Task WriteAuditAsync(string code, string message, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentNullException.ThrowIfNull(message);
-        await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            await AppendAuditUnlockedAsync(code, message, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _lifecycle.Release();
-        }
+        return AppendAuditAsync(code, message, cancellationToken);
     }
 
-    private async Task AppendAuditUnlockedAsync(string code, string message, CancellationToken cancellationToken)
+    private async Task AppendAuditAsync(string code, string message, CancellationToken cancellationToken)
     {
         var line = $"{DateTimeOffset.UtcNow:O}\\t{code}\\t{message}{Environment.NewLine}";
         var path = Path.Combine(_dataDirectory, "logs", "quiral-audit.log");
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        await File.AppendAllTextAsync(path, line, cancellationToken).ConfigureAwait(false);
+        await _auditLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await File.AppendAllTextAsync(path, line, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _auditLock.Release();
+        }
     }
 
     private async Task StopStartedModulesAsync()
@@ -142,11 +143,7 @@ public sealed class QuiralCore : IAsyncDisposable
                 StateOfCore = QuiralCoreState.Stopping;
                 SafetyGate.Disarm();
                 await StopStartedModulesAsync().ConfigureAwait(false);
-                var path = Path.Combine(_dataDirectory, "logs", "quiral-audit.log");
-                if (Directory.Exists(Path.GetDirectoryName(path)!))
-                    await File.AppendAllTextAsync(path,
-                        $"{DateTimeOffset.UtcNow:O}\\tCORE_STOPPED\\tNucli aturat; sortides físiques bloquejades.{Environment.NewLine}")
-                        .ConfigureAwait(false);
+                await AppendAuditAsync("CORE_STOPPED", "Nucli aturat; sortides físiques bloquejades.", CancellationToken.None).ConfigureAwait(false);
             }
             StateOfCore = QuiralCoreState.Stopped;
             _disposed = true;
@@ -155,6 +152,7 @@ public sealed class QuiralCore : IAsyncDisposable
         {
             _lifecycle.Release();
             _lifecycle.Dispose();
+            _auditLock.Dispose();
         }
     }
 }
