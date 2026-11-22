@@ -20,7 +20,7 @@
     const functions=normalizeFunctions(input.functions);
     if(new Set(functions.map(fn=>fn.number)).size!==functions.length||functions.some(fn=>fn.number<0||fn.number>68))return{ok:false,error:'Les funcions han de tenir números únics entre F0 i F68.'};
     const address=String(input.address??'').trim();
-    const imageRaw=String(input.image||''),image=/^(https?:\\/\\/|data:image\\/(?:png|jpeg|jpg|webp|gif);base64,)/i.test(imageRaw)?imageRaw:'';
+    const imageRaw=String(input.image||''),lowerImage=imageRaw.toLowerCase(),image=(lowerImage.startsWith('http://')||lowerImage.startsWith('https://')||lowerImage.startsWith('data:image/'))?imageRaw:'';
     const cv=input.cv&&typeof input.cv==='object'&&!Array.isArray(input.cv)?clone(input.cv):{};
     const speedProfile=input.speedProfile&&typeof input.speedProfile==='object'&&!Array.isArray(input.speedProfile)?clone(input.speedProfile):{points:[]};
     if(!Array.isArray(speedProfile.points)||speedProfile.points.length>127||speedProfile.points.some(p=>!Number.isFinite(Number(p.step))||!Number.isFinite(Number(p.kmh))||Number(p.step)<0||Number(p.step)>126||Number(p.kmh)<0||Number(p.kmh)>500))return{ok:false,error:'La corba de velocitat ha de contenir passos 0–126 i velocitats 0–500 km/h.'};
