@@ -15,6 +15,7 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Module startup and reverse shutdown order", TestModuleLifecycle),
     ("Project create, open and persistence", TestProjects),
     ("XYZ geometry, parallel offset and grade", TestGeometry),
+    ("Geometry isolation by active project", TestGeometryProjectScope),
     ("Rolling stock uniqueness and train composition", TestRollingStock),
     ("mCAN frame codec and S88 event decoding", TestMcanS88),
     ("mCAN locomotive command encoders", TestMcanLocomotiveCommands)
@@ -181,4 +182,26 @@ static Task TestMcanLocomotiveCommands()
     catch(ArgumentOutOfRangeException) { rejected=true; }
     Assert(rejected,"S'ha acceptat una velocitat fora de rang.");
     return Task.CompletedTask;
+}
+
+static async Task TestGeometryProjectScope()
+{
+    var root=Temp("QuiralGeometryProjects");
+    try
+    {
+        var core=new QuiralCore(root); var projects=new ProjectModule(); var geometry=new RailwayGeometryModule(projects);
+        core.RegisterModule(projects); core.RegisterModule(geometry); await core.InitializeAsync();
+        var blocked=false; try { await geometry.AddSegmentAsync(new Point3(0,0,0),new Point3(100,0,0)); }
+        catch(InvalidOperationException) { blocked=true; }
+        Assert(blocked,"La geometria s'ha pogut editar sense projecte actiu.");
+        var first=await projects.CreateAsync("Projecte A",3000,1800);
+        var firstSegment=await geometry.AddSegmentAsync(new Point3(0,0,0),new Point3(100,0,0));
+        var second=await projects.CreateAsync("Projecte B",2000,1000);
+        var secondSegment=await geometry.AddSegmentAsync(new Point3(0,0,0),new Point3(200,0,0));
+        Assert(geometry.Segments.Count==1 && geometry.Segments[0].Id==secondSegment.Id,"La geometria no s'ha filtrat pel projecte actiu.");
+        await projects.OpenAsync(first.Id);
+        Assert(geometry.Segments.Count==1 && geometry.Segments[0].Id==firstSegment.Id,"La geometria del projecte A no s'ha recuperat.");
+        await core.DisposeAsync();
+    }
+    finally { Delete(root); }
 }
