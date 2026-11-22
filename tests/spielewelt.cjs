@@ -25,6 +25,8 @@ let depot=game.createSession(loco,{mode:game.MODES.DEPOT_REFUEL});
 depot.resources.water=10;
 assert.equal(game.refill(depot,{atDepot:false}).ok,false);
 assert.equal(game.refill(depot,{atDepot:true}).session.resources.water,100);
+assert.equal(game.refill(depot,{atDepot:true,depotType:'diesel'}).ok,false);
+assert.equal(game.refill(depot,{atDepot:true,depotType:'steam'}).ok,true);
 assert.equal(game.refill(noConsumption,{atDepot:true}).ok,false);
 const diesel=game.createSession({id:'D1',decoderProtocol:'mfx',vehicleType:'diesel'});
 assert.ok(diesel.resources.fuel!==undefined);
