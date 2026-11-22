@@ -17,7 +17,8 @@ public sealed record RailwayAccessory(
     string? Decoder = null,
     string? Notes = null,
     DateTimeOffset CreatedAt = default,
-    DateTimeOffset UpdatedAt = default);
+    DateTimeOffset UpdatedAt = default,
+    string? StateLabel = null);
 
 /// <summary>
 /// Registre local centralitzat d'accessoris i desviaments. Gestiona identitat,
