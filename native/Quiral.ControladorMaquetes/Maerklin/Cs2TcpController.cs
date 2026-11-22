@@ -9,9 +9,11 @@ public enum Cs2ConnectionState { Disconnected, Connecting, Connected, Faulted }
 /// Controlador natiu mCAN/TCP per a CS2. Aquesta primera iteració només connecta,
 /// consulta presència i rep feedback S88; no exposa ordres de tracció/accessoris.
 /// </summary>
-public sealed class Cs2TcpController : IAsyncDisposable
+public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 {
     public const int DefaultPort=15731;
+    public string Name => "MaerklinCS2Controller";
+    private QuiralCore? _core;
     private const uint QuiralUid=0x51434F31;
     private readonly SemaphoreSlim _sendLock=new(1,1);
     private TcpClient? _client;
@@ -26,6 +28,14 @@ public sealed class Cs2TcpController : IAsyncDisposable
     public event EventHandler<S88ModuleSnapshot>? S88ModuleRead;
     public event EventHandler<string>? Diagnostic;
 
+    public Task StartAsync(QuiralCore core,CancellationToken cancellationToken)
+    {
+        _core=core;
+        core.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+            RailwayDeviceKind.CommandStation,RailwayDeviceState.Configured,"Märklin","60215"));
+        return Task.CompletedTask;
+    }
+
     public async Task ConnectAsync(string host,int port=DefaultPort,CancellationToken cancellationToken=default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(host);
@@ -39,6 +49,8 @@ public sealed class Cs2TcpController : IAsyncDisposable
             _client=client; _stream=client.GetStream();
             _hash=(ushort)((QuiralUid>>16)^(QuiralUid&0xFFFF));
             State=Cs2ConnectionState.Connected;
+            _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+                RailwayDeviceKind.CommandStation,RailwayDeviceState.Connected,"Märklin","60215",$"{host}:{port}",DateTimeOffset.UtcNow));
             _readerCancellation=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _readerTask=ReadLoopAsync(_readerCancellation.Token);
             Diagnostic?.Invoke(this,$"Connexió TCP establerta amb CS2 a {host}:{port}.");
@@ -47,7 +59,10 @@ public sealed class Cs2TcpController : IAsyncDisposable
         }
         catch
         {
-            State=Cs2ConnectionState.Faulted; client.Dispose(); _client=null; _stream=null; throw;
+            State=Cs2ConnectionState.Faulted;
+            _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+                RailwayDeviceKind.CommandStation,RailwayDeviceState.Faulted,"Märklin","60215",$"{host}:{port}"));
+            client.Dispose(); _client=null; _stream=null; throw;
         }
     }
 
@@ -111,7 +126,11 @@ public sealed class Cs2TcpController : IAsyncDisposable
         _stream?.Dispose(); _client?.Dispose(); _readerCancellation?.Dispose();
         _stream=null; _client=null; _readerCancellation=null; _readerTask=null;
         State=Cs2ConnectionState.Disconnected;
+        if(_core is not null) _core.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
+            RailwayDeviceKind.CommandStation,RailwayDeviceState.Disconnected,"Märklin","60215"));
     }
+
+    public Task StopAsync(CancellationToken cancellationToken) => DisconnectAsync();
 
     public async ValueTask DisposeAsync()
     {
