@@ -4,6 +4,8 @@ using Quiral.ControladorMaquetes.Projects;
 using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
 using Quiral.ControladorMaquetes.Maerklin;
+using System.Net;
+using System.Net.Sockets;
 
 var checks = new List<(string Name, Func<Task> Run)>
 {
@@ -18,6 +20,7 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Geometry isolation by active project", TestGeometryProjectScope),
     ("Rolling stock uniqueness and train composition", TestRollingStock),
     ("mCAN frame codec and S88 event decoding", TestMcanS88),
+    ("CS2 TCP connection, PING and live S88 event", TestCs2TcpFeedback),
     ("mCAN locomotive command encoders", TestMcanLocomotiveCommands)
 };
 
@@ -224,4 +227,40 @@ static async Task TestGeometryProjectScope()
         await core.DisposeAsync();
     }
     finally { Delete(root); }
+}
+
+static async Task TestCs2TcpFeedback()
+{
+    using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(8));
+    using var listener=new TcpListener(IPAddress.Loopback,0);
+    listener.Start();
+    var port=((IPEndPoint)listener.LocalEndpoint).Port;
+    var acceptTask=listener.AcceptTcpClientAsync(timeout.Token);
+    var root=Temp("QuiralCs2Tcp");
+    var core=new QuiralCore(root); var controller=new Cs2TcpController(); core.RegisterModule(controller);
+    try
+    {
+        await core.InitializeAsync();
+        var received=new TaskCompletionSource<S88ContactEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+        controller.S88ContactChanged+=e=>received.TrySetResult(e);
+        await controller.ConnectAsync("127.0.0.1",port,timeout.Token);
+        using var client=await acceptTask;
+        var stream=client.GetStream();
+        var pingBytes=new byte[McanFrame.WireLength];
+        await stream.ReadExactlyAsync(pingBytes,timeout.Token);
+        var ping=McanFrame.Decode(pingBytes);
+        Assert(ping.Command==0x18 && ping.Dlc==0,"La primera trama de la CS2 no és el PING esperat.");
+        var eventFrame=new McanFrame(0,S88Feedback.EventCommand,false,S88Feedback.BroadcastHash,
+            new byte[]{0x00,0x2A,0x00,0x01,0x00,0x64,0x00,0x00});
+        await stream.WriteAsync(eventFrame.Encode(),timeout.Token);
+        var contact=await received.Task.WaitAsync(timeout.Token);
+        Assert(contact.ContactId==42 && contact.IsOccupied && contact.Timestamp10Ms==100,"El feedback S88 TCP no s'ha rebut correctament.");
+        await controller.DisconnectAsync();
+    }
+    finally
+    {
+        await core.DisposeAsync();
+        listener.Stop();
+        Delete(root);
+    }
 }
