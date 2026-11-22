@@ -10,6 +10,7 @@ on:
       - ".github/workflows/native-windows.yml"
   pull_request:
     branches:
+      - feature/railway-cab-panels-windows
       - feature/native-windows-architecture
       - main
     paths:
