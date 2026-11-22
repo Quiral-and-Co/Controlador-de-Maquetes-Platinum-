@@ -156,7 +156,7 @@ public sealed class Cs2ConnectionForm : Form
     public Cs2ConnectionForm(Cs2TcpController controller)
     {
         _controller=controller; Text="Märklin CS2 60215 · mCAN / S88"; Width=760; Height=540; StartPosition=FormStartPosition.CenterParent;
-        _controller.S88ContactChanged+=OnContact; _controller.S88ModuleRead+=OnModule; _controller.Diagnostic+=OnDiagnostic;
+        _controller.S88ContactChanged+=OnContact; _controller.S88ModuleRead+=OnModule; _controller.Diagnostic+=OnDiagnostic; _controller.ParticipantDiscovered+=OnParticipant;
         var root=new TableLayoutPanel { Dock=DockStyle.Fill,Padding=new Padding(12),ColumnCount=2,RowCount=9 };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         FormLayout.AddRow(root,"Adreça IP / host",_host,0); FormLayout.AddRow(root,"Port TCP",_port,1);
@@ -174,11 +174,11 @@ public sealed class Cs2ConnectionForm : Form
         root.Controls.Add(_status,0,7); root.SetColumnSpan(_status,2);
         root.Controls.Add(_log,0,8); root.SetColumnSpan(_log,2);
         Controls.Add(root);
-        FormClosed+=async (_,_)=>{ _controller.S88ContactChanged-=OnContact; _controller.S88ModuleRead-=OnModule; _controller.Diagnostic-=OnDiagnostic; await _controller.DisconnectAsync(); };
+        FormClosed+=async (_,_)=>{ _controller.S88ContactChanged-=OnContact; _controller.S88ModuleRead-=OnModule; _controller.Diagnostic-=OnDiagnostic; _controller.ParticipantDiscovered-=OnParticipant; await _controller.DisconnectAsync(); };
     }
     private async Task ConnectAsync()
     {
-        try { await _controller.ConnectAsync(_host.Text,(int)_port.Value); _status.Text="Connectada · "+_host.Text; }
+        try { await _controller.ConnectAsync(_host.Text,(int)_port.Value); _status.Text="TCP connectada · esperant identificació de la CS2"; }
         catch(Exception ex) { _status.Text="Error de connexió"; Log(ex.Message); }
     }
     private async Task SubscribeAsync()
@@ -191,6 +191,7 @@ public sealed class Cs2ConnectionForm : Form
         try { await _controller.PollS88ModuleAsync((byte)_module.Value); Log("Consulta S88 legacy enviada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
+    private void OnParticipant(Cs2Participant e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>{ _status.Text=e.DeviceId==0xFFFF ? $"CS2 identificada · UID {e.DeviceUid:X8} · SW {e.SoftwareVersion}" : $"Dispositiu mCAN 0x{e.DeviceId:X4}"; Log($"Participant mCAN 0x{e.DeviceId:X4} · UID {e.DeviceUid:X8}"); })); }
     private void OnContact(S88ContactEvent e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"S88 {e.DeviceId}:{e.ContactNumber} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms"))); }
     private void OnModule(S88ModuleSnapshot e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}"))); }
     private void OnDiagnostic(string e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log(e))); }
