@@ -24,7 +24,7 @@ function initStations(){
  const stops=[];
  $('stationAdd').addEventListener('click',()=>{
   const station=$('stationName').value.trim(),platform=$('stationPlatform').value.trim(),train=$('stationTrain').value.trim(),time=$('stationTime').value;
-  if(!station||!platform||!train||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(time)){$('stationStatus').textContent='Completa estació, via, tren i hora vàlids.';return;}
+  if(!station||!platform||!train||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)){$('stationStatus').textContent='Completa estació, via, tren i hora vàlids.';return;}
   stops.push({station,platform,train,time});stops.sort((a,b)=>a.time.localeCompare(b.time));
   const list=$('stationStops');list.replaceChildren();stops.forEach(item=>{const li=document.createElement('li');li.textContent=item.time+' · '+item.station+' · '+item.platform+' · '+item.train;list.append(li);});
   $('stationStatus').textContent='Parada afegida a la planificació local. No s’ha reservat cap itinerari ni s’ha mogut cap tren.';
