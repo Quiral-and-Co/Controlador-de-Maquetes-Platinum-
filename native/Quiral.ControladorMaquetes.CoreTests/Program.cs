@@ -3,6 +3,7 @@ using Quiral.ControladorMaquetes.Safety;
 using Quiral.ControladorMaquetes.Projects;
 using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
+using Quiral.ControladorMaquetes.Maerklin;
 
 var checks = new List<(string Name, Func<Task> Run)>
 {
@@ -14,7 +15,8 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Module startup and reverse shutdown order", TestModuleLifecycle),
     ("Project create, open and persistence", TestProjects),
     ("XYZ geometry, parallel offset and grade", TestGeometry),
-    ("Rolling stock uniqueness and train composition", TestRollingStock)
+    ("Rolling stock uniqueness and train composition", TestRollingStock),
+    ("mCAN frame codec and S88 event decoding", TestMcanS88)
 };
 
 var failed = 0;
@@ -144,4 +146,20 @@ sealed class TrackingModule(string name,List<string> events) : IQuiralModule
     public string Name=>name;
     public Task StartAsync(QuiralCore core,CancellationToken ct) { events.Add($"start:{name}"); return Task.CompletedTask; }
     public Task StopAsync(CancellationToken ct) { events.Add($"stop:{name}"); return Task.CompletedTask; }
+}
+
+static Task TestMcanS88()
+{
+    var data=new byte[]{0x12,0x34,0x00,0x07,0x00,0x01,0x00,0x2A};
+    var original=new McanFrame(1,S88Feedback.EventCommand,true,0x1234,data);
+    var decoded=McanFrame.Decode(original.Encode());
+    Assert(decoded.Command==0x11 && decoded.IsResponse && decoded.Priority==1 && decoded.Dlc==8,"mCAN frame no preservat.");
+    var evt=S88Feedback.TryParseEvent(decoded);
+    Assert(evt is { DeviceId:0x1234, ContactNumber:7, PreviousOccupied:false, IsOccupied:true, Timestamp10Ms:42 },"Esdeveniment S88 incorrecte.");
+    var pollData=new byte[]{0x00,0x00,0x12,0x34,0x01,0x80,0x01};
+    var poll=S88Feedback.TryParsePollReply(new McanFrame(1,S88Feedback.PollCommand,true,0x1234,pollData));
+    Assert(poll is { ModuleNumber:1 } && poll.IsOccupied(1) && poll.IsOccupied(16),"Resposta de consulta S88 incorrecta.");
+    var subscription=S88Feedback.BuildSubscribe(0x1234,7,0x2222);
+    Assert(subscription.Command==0x11 && subscription.Dlc==5,"Registre de contacte S88 incorrecte.");
+    return Task.CompletedTask;
 }
