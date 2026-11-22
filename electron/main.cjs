@@ -12,6 +12,8 @@ const { installMultiMonitor } = require('./multimonitor.cjs');
 let bridge = null;
 let quitting = false;
 let mainWindow = null;
+let splashWindow = null;
+let pendingStartupCommand = null;
 let multiMonitor = null;
 const approvedProjectPaths = createProjectPathPolicy();
 const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
@@ -311,7 +313,55 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('modern'); return createWindow(); }).catch(async error => {
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 1500, height: 850, minWidth: 980, minHeight: 620,
+    show: false, resizable: true, center: true,
+    title: 'Controlador de Maquetes Platinum',
+    backgroundColor: '#081727',
+    autoHideMenuBar: true,
+    webPreferences: {
+      contextIsolation: true, nodeIntegration: false, sandbox: true,
+      preload: path.join(__dirname, 'preload.cjs')
+    }
+  });
+  splashWindow.once('ready-to-show', () => splashWindow.show());
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.on('closed', () => { splashWindow = null; if (!mainWindow && !quitting) app.quit(); });
+}
+
+ipcMain.handle('splash:start', async (_event, command = 'start') => {
+  if (mainWindow) { mainWindow.focus(); return { started: true }; }
+  pendingStartupCommand = command === 'settings' ? 'preferences' : null;
+  const splash = splashWindow;
+  splashWindow = null;
+  if (splash && !splash.isDestroyed()) splash.close();
+  await createWindow();
+  if (pendingStartupCommand) {
+    mainWindow.webContents.once('did-finish-load', () => mainWindow?.webContents.send('app:command', pendingStartupCommand));
+    pendingStartupCommand = null;
+  }
+  return { started: true };
+});
+ipcMain.handle('splash:about', async () => {
+  await dialog.showMessageBox(splashWindow || mainWindow, {
+    type: 'info', buttons: ['D’acord'],
+    title: 'Quant a Controlador de Maquetes Platinum',
+    message: 'Controlador de Maquetes by Quiral & Co. Platinum',
+    detail: 'Versió 1.4.0\\nFabricant: Quiral & Co.\\nEdició: Platinum'
+  });
+  return { shown: true };
+});
+ipcMain.handle('splash:help', async () => {
+  await dialog.showMessageBox(splashWindow || mainWindow, {
+    type: 'info', buttons: ['D’acord'], title: 'Ajuda',
+    message: 'Benvingut al Controlador de Maquetes Platinum.',
+    detail: 'Prem Iniciar per obrir l’entorn de treball. La configuració inicial és accessible des del menú Fitxer.'
+  });
+  return { shown: true };
+});
+
+app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu('modern'); createSplashWindow(); }).catch(async error => {
   console.error(error);
   await dialog.showMessageBox({
     type: 'error', buttons: ['D’acord'],
