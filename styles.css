@@ -310,3 +310,6 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .tg-15seg-mode{text-align:right}
 
 .tg-15seg-display svg{flex:0 0 40px;overflow:visible}.tg-15seg-display line{stroke-width:4;stroke-linecap:round}.tg-15seg-display .segment-on{stroke:#8effad;filter:drop-shadow(0 0 3px #5cff8a)}.tg-15seg-display .segment-off{stroke:#1a3428;opacity:.7}
+
+/* Keep ribbon groups at intrinsic width: prevent neighbouring icon buttons from overlapping on narrow workspaces. */
+body.mode-modern .ribbon-group{flex:0 0 auto}
