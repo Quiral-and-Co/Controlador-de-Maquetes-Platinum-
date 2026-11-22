@@ -78,19 +78,19 @@ public sealed class GeometryWorkbenchForm : Form
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,190)); root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
         string[] labels={"X inicial (mm)","Y inicial (mm)","Z inicial (mm)","X final (mm)","Y final (mm)","Z final (mm)"};
         for(int i=0;i<labels.Length;i++) FormLayout.AddRow(root,labels[i],_xyz[i],i);
-        var add=new Button { Text="Afegir tram",AutoSize=true }; add.Click+=(_,_)=>AddSegment();
+        var add=new Button { Text="Afegir tram",AutoSize=true }; add.Click+=async (_,_)=>await AddSegmentAsync();
         root.Controls.Add(add,0,6); root.SetColumnSpan(add,2);
         root.Controls.Add(_segments,0,7); root.SetColumnSpan(_segments,2);
         root.Controls.Add(_status,0,8); root.SetColumnSpan(_status,2);
         Controls.Add(root); RefreshSegments();
     }
-    private void AddSegment()
+    private async Task AddSegmentAsync()
     {
         try
         {
             var a=new Point3((double)_xyz[0].Value,(double)_xyz[1].Value,(double)_xyz[2].Value);
             var b=new Point3((double)_xyz[3].Value,(double)_xyz[4].Value,(double)_xyz[5].Value);
-            var segment=_module.AddSegment(a,b);
+            var segment=await _module.AddSegmentAsync(a,b);
             _status.Text=$"Longitud: {RailwayGeometryModule.Distance(a,b):F1} mm · Pendent: {RailwayGeometryModule.GradePercent(a,b):F2}%";
             RefreshSegments();
         }
