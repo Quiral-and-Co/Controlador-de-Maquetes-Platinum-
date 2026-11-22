@@ -7,8 +7,8 @@ namespace Quiral.ControladorMaquetes.Maerklin;
 public enum Cs2ConnectionState { Disconnected, Connecting, Connected, Faulted }
 
 /// <summary>
-/// Controlador natiu mCAN/TCP per a CS2. Aquesta primera iteració només connecta,
-/// consulta presència i rep feedback S88; no exposa ordres de tracció/accessoris.
+/// Controlador natiu mCAN/TCP per a CS2: feedback S88 i comandes de locomotora
+/// codificades, sempre sotmeses al bloqueig físic fail-safe del nucli.
 /// </summary>
 public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 {
@@ -65,6 +65,13 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
             State=Cs2ConnectionState.Faulted;
             _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
                 RailwayDeviceKind.CommandStation,RailwayDeviceState.Faulted,"Märklin","60215",$"{host}:{port}"));
+            if(_readerCancellation is not null)
+            {
+                await _readerCancellation.CancelAsync().ConfigureAwait(false);
+                if(_readerTask is not null) { try { await _readerTask.ConfigureAwait(false); } catch(OperationCanceledException) { } }
+                _readerCancellation.Dispose();
+            }
+            _readerCancellation=null; _readerTask=null;
             client.Dispose(); _client=null; _stream=null; throw;
         }
     }
@@ -72,7 +79,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 
     public bool CanHandle(RailwayCommand command) =>
         command.DeviceId.Equals("marklin-cs2-60215",StringComparison.OrdinalIgnoreCase) &&
-        command.CommandName is "set-speed" or "set-direction" or "set-function";
+        (command.CommandName is "set-speed" or "set-direction" or "set-function");
 
     async Task<CommandDispatchResult> IRailwayCommandHandler.ExecuteAsync(RailwayCommand command,CancellationToken cancellationToken)
     {
