@@ -1,6 +1,6 @@
 {
   "name": "jmri-tc-gold-custom",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
   "main": "electron/main.cjs",
