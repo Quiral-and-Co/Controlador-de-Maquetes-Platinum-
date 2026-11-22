@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict');
+const p=require('../train-detector-protocols-core');
+for(const key of ['S88','S88-N','RS','LocoNet','R-bus','XpressNet','JMRI','CUSTOM'])assert.ok(p.PROTOCOLS[p.canonical(key)],'protocol registered: '+key);
+assert.equal(p.canonical('LocoNet'),'LOCONET');
+assert.equal(p.canonical('R-bus'),'RBUS');
+const base={systemName:'LS101',moduleAddress:'1',input:1,debounceMs:40,timeoutMs:15000};
+assert.equal(p.validate(base).valid,true);
+assert.equal(p.validate({...base,input:0}).valid,false);
+assert.equal(p.validate({...base,moduleAddress:''}).valid,false);
+assert.equal(p.validate({...base,debounceMs:9000}).valid,false);
+assert.equal(p.validate({...base,timeoutMs:100}).valid,false);
+assert.equal(p.describe({...base,protocol:'RS'}).family,'RS');
+console.log('PASS: detector protocol catalogue, metadata validation and fail-safe configuration checks');
