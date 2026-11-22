@@ -22,7 +22,8 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Rolling stock uniqueness and train composition", TestRollingStock),
     ("mCAN frame codec and S88 event decoding", TestMcanS88),
     ("CS2 TCP connection, PING and live S88 event", TestCs2TcpFeedback),
-    ("mCAN locomotive command encoders", TestMcanLocomotiveCommands)
+    ("mCAN locomotive command encoders", TestMcanLocomotiveCommands),
+    ("Native accessory registry CRUD, address uniqueness and persistence", TestAccessories)
 };
 
 var failed = 0;
@@ -94,6 +95,46 @@ static async Task TestQuiralCoreRailwayIntegration()
     {
         Delete(root);
     }
+}
+
+
+static async Task TestAccessories()
+{
+    var root = Temp("QuiralAccessories");
+    try
+    {
+        var core = new QuiralCore(root);
+        var module = new Quiral.ControladorMaquetes.Accessories.AccessoryModule();
+        core.RegisterModule(module);
+        await core.InitializeAsync();
+
+        var turnout = await module.AddAsync(new Quiral.ControladorMaquetes.Accessories.RailwayAccessory(
+            "", "Desviament entrada", Quiral.ControladorMaquetes.Accessories.AccessoryKind.Turnout,
+            Quiral.ControladorMaquetes.Accessories.AccessoryProtocol.Mm2, 12, 1));
+        Assert(!module.PhysicalControlImplemented, "El registre no ha de declarar accionament físic implementat.");
+        Assert(core.Devices.TryGet("accessory-" + turnout.Id, out var device) &&
+            device?.Kind == RailwayDeviceKind.AccessoryDecoder, "L'accessori no s'ha registrat al DeviceRegistry.");
+
+        var duplicateRejected = false;
+        try
+        {
+            await module.AddAsync(new Quiral.ControladorMaquetes.Accessories.RailwayAccessory(
+                "", "Duplicat", Quiral.ControladorMaquetes.Accessories.AccessoryKind.Turnout,
+                Quiral.ControladorMaquetes.Accessories.AccessoryProtocol.Mm2, 12, 1));
+        }
+        catch (InvalidOperationException) { duplicateRejected = true; }
+        Assert(duplicateRejected, "S'ha acceptat una adreça/sortida duplicada.");
+
+        var updated = await module.UpdateAsync(turnout with { Name = "Desviament principal", Output = 2 });
+        Assert(updated.Name == "Desviament principal" && updated.Output == 2, "L'edició de l'accessori ha fallat.");
+        var restored = await core.State.ReadAsync<List<Quiral.ControladorMaquetes.Accessories.RailwayAccessory>>(
+            "accessories/registry.json");
+        Assert(restored?.Single().Name == "Desviament principal", "El registre d'accessoris no s'ha persistit.");
+        Assert(await module.RemoveAsync(turnout.Id), "No s'ha pogut eliminar l'accessori.");
+        Assert(!core.Devices.TryGet("accessory-" + turnout.Id, out _), "El dispositiu eliminat continua al registre central.");
+        await core.DisposeAsync();
+    }
+    finally { Delete(root); }
 }
 
 static Task TestEventBus()
