@@ -2,7 +2,7 @@
 
 L'instal·lador NSIS assistit mostra un selector d'idioma abans de començar la instal·lació:
 
-- Català (ca_ES), idioma predeterminat.
+- Català (ca_ES), idioma predeterminat (LCID de Windows 1027).
 - Espanyol (es_ES).
 - Anglès (en_US).
 
