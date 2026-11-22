@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Quiral.ControladorMaquetes</AssemblyName>
+    <RootNamespace>Quiral.ControladorMaquetes</RootNamespace>
+    <Version>1.4.0</Version>
+    <Product>Controlador de Maquetes by Quiral &amp; Co. Platinum</Product>
+    <Company>Quiral &amp; Co.</Company>
+    <Description>Aplicació ferroviària nativa per a Windows.</Description>
+  </PropertyGroup>
+</Project>
