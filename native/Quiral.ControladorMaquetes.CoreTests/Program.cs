@@ -129,6 +129,13 @@ static Task TestGeometry()
     var module=new RailwayGeometryModule();
     var rejected=false; try { module.AddSegment(a,a); } catch(ArgumentException) { rejected=true; }
     Assert(rejected,"S'ha acceptat un tram nul.");
+    var first=module.AddSegment(new Point3(0,0,0),new Point3(100,0,0));
+    var second=module.AddSegment(new Point3(100,0,0),new Point3(200,0,0));
+    var valid=RailwayGeometryModule.ValidateConnections(module.Segments,new[]{new TrackConnection(first.Id,true,second.Id,false)});
+    Assert(valid.Count==0,"S'ha rebutjat una connexió geomètricament coincident.");
+    var third=module.AddSegment(new Point3(200,5,0),new Point3(300,5,0));
+    var invalid=RailwayGeometryModule.ValidateConnections(module.Segments,new[]{new TrackConnection(second.Id,true,third.Id,false)});
+    Assert(invalid.Any(x=>x.Code=="MISALIGNED_CONNECTION"),"No s'ha detectat una connexió desalineada.");
     return Task.CompletedTask;
 }
 static async Task TestRollingStock()
