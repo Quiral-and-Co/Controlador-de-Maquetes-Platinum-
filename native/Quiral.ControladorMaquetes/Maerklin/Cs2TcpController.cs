@@ -156,7 +156,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
                     _core?.Events.Publish(new QuiralEvent(contact.ReceivedAt,"s88.contact.changed",
                         $"Contacte {contact.DeviceId}:{contact.ContactNumber} = {(contact.IsOccupied ? "OCUPAT" : "LLIURE")}"));
                 }
-                var module=S88Feedback.TryParsePollReply(frame);
+                var module=S88Feedback.TryParsePollReply(frame) ?? S88Feedback.TryParseBroadcast(frame);
                 if(module is not null) S88ModuleRead?.Invoke(module);
             }
         }
