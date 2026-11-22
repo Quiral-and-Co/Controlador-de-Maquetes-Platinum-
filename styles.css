@@ -313,3 +313,5 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 
 /* Keep ribbon groups at intrinsic width: prevent neighbouring icon buttons from overlapping on narrow workspaces. */
 body.mode-modern .ribbon-group{flex:0 0 auto}
+
+.update-check-btn{white-space:nowrap}.update-status{color:#aebdce;font-size:11px;max-width:320px;line-height:1.35}@media(max-width:900px){.update-status{flex-basis:100%}}
