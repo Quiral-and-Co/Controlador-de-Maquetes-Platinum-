@@ -32,7 +32,7 @@ Aquesta implementació és a la branca `feature/native-windows-architecture` i u
 - Paquets mCAN fixos de 13 bytes; codificació/descodificació del CAN-ID, prioritat, comandament, resposta, hash i DLC.
 - PING de descobriment; trames fixes de 13 bytes i port TCP 15731 per defecte.
 - Constructors tipats de velocitat, sentit i funcions per a Motorola/MM2, mfx i DCC; les ordres passen exclusivament pel `CommandDispatcher`.
-- Subscripció d'esdeveniments S88 (comandament 0x11), identificador de contacte de 16 bits, estats anterior/nou i marca temporal de 10 ms.
+- Subscripció d'esdeveniments S88 (comandament 0x11), identificador únic S88 de 32 bits (ID dispositiu de 16 bits + número de contacte de 16 bits), estats anterior/nou i marca temporal de 10 ms.
 - Recepció de broadcast S88 (0x12) i resposta de consulta per mòdul (0x10), amb el bit 15 associat al contacte 1.
 - Lectura de compatibilitat S88 polling (0x10), documentada com a mode legacy perquè pot buidar buffers intermedis.
 - Esdeveniments S88 publicats al bus intern de Quiral i diagnòstic de pèrdua de connexió.
