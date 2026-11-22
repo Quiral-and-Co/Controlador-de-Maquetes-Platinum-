@@ -439,6 +439,9 @@
   let trainEditMode=false;
   function trainRoster(){if(!window.JMRI_TC_TRAIN_ROSTER)throw new Error('Mòdul de gestió de trens no carregat.');state.config.trainRoster=window.JMRI_TC_TRAIN_ROSTER.ensure(state.config.trainRoster||{});return state.config.trainRoster;}
   window.JMRI_TC_ROLLING_STOCK_SOURCE=()=>({roster:state.config.trainRoster||{},locomotives:window.JMRI_TC_TRAFFIC_CONTROL?.getSnapshot?.()?.locomotives||state.config.traffic?.locomotives||[]});
+  window.JMRI_TC_ROLLING_STOCK_DB=()=>state.config.rollingStock||{schemaVersion:1,vehicles:[]};
+  window.JMRI_TC_ROLLING_STOCK_SAVE=db=>{state.config.rollingStock=db;state.isDirty=true;updateHistoryButtons?.();};
+  window.JMRI_TC_ROLLING_STOCK_MARK_DIRTY=()=>{state.isDirty=true;updateHistoryButtons();};
   function trainPrompt(message,value=''){return window.prompt(message,value);}
   function trainCreateEngine(){const panel=$('trafficLocoName')?.closest('.dispatcher-subpanel');panel?.scrollIntoView?.({behavior:'smooth',block:'center'});$('trafficLocoName')?.focus?.();log('Nova locomotora: completa el nom, el tipus d’adreça i l’adreça al registre de locomotores. L’alta no adquireix el control ni habilita DCC.');}
   function trainCreateCar(){const name=trainPrompt('Nom del nou vagó/cotxe:');if(name===null)return;const type=(trainPrompt('Tipus: PASSENGER o FREIGHT','PASSENGER')||'PASSENGER').toUpperCase();const length=trainPrompt('Longitud en mm (20–2000):','200');if(length===null)return;checkpoint();const result=window.JMRI_TC_TRAIN_ROSTER.addCar(trainRoster(),{name,type,lengthMm:Number(length)});if(!result.ok){state.history.pop();state.isDirty=false;updateHistoryButtons();log(result.error);return;}render();log('Creat '+result.car.name+' ('+result.car.id+').');}

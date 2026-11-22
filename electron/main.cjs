@@ -5,6 +5,7 @@ const os = require('node:os');
 const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
+const { importZ21Archive } = require('./rolling-stock-import.cjs');
 const { createProjectPathPolicy } = require('./project-path-policy.cjs');
 const { installMultiMonitor } = require('./multimonitor.cjs');
 
@@ -22,6 +23,12 @@ const projectFilters = [
 ];
 
 function installProjectHandlers() {
+  ipcMain.handle('rolling-stock:import-z21', async (_event, bytes) => {
+    if (!(bytes instanceof Uint8Array) && !ArrayBuffer.isView(bytes)) throw new TypeError('El fitxer Z21 no s’ha rebut en un format binari vàlid.');
+    if (bytes.byteLength > 100 * 1024 * 1024) throw new Error('El fitxer Z21 supera el límit de 100 MB.');
+    return importZ21Archive(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+  });
+
   ipcMain.handle('project:open', async (_event, options = {}) => {
     const filters = options.importXtc === true ? [{ name: 'Disseny XTrackCAD', extensions: ['xtc', 'xti', 'xtm'] }, projectFilters[2]] : projectFilters;
     const result = await dialog.showOpenDialog(mainWindow, { title: 'Obrir un projecte', buttonLabel: 'Obrir', properties: ['openFile'], filters });

@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('jmriDesktop', Object.freeze({
   openProject: options => ipcRenderer.invoke('project:open', options),
+  importZ21Database: bytes => ipcRenderer.invoke('rolling-stock:import-z21', bytes),
   saveProject: options => ipcRenderer.invoke('project:save', options),
   confirmDiscard: () => ipcRenderer.invoke('project:confirm-discard'),
   createBackup: filePath => ipcRenderer.invoke('project:backup', filePath),
