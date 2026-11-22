@@ -41,7 +41,23 @@ public sealed class ProjectModule : IQuiralModule
             Enumerable.Range(0, levels).Select(i => new ProjectLevel(Guid.NewGuid().ToString("N"),
                 $"Nivell {i + 1}", i * levelSpacingMm)).ToArray(), now, now);
         await _sync.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try { _projects.Add(project.Id, project); await _coreState.WriteAsync($"projects/{project.Id}.json",project,cancellationToken); await PersistAsync(cancellationToken); ActiveProject = project; }
+        try
+        {
+            _projects.Add(project.Id, project);
+            try
+            {
+                await _coreState.WriteAsync($"projects/{project.Id}.json",project,cancellationToken);
+                await PersistAsync(cancellationToken);
+                ActiveProject = project;
+            }
+            catch
+            {
+                _projects.Remove(project.Id);
+                var file=Path.Combine((_core??throw new InvalidOperationException("Mòdul no inicialitzat.")).DataDirectory,"projects",project.Id+".json");
+                if(File.Exists(file)) File.Delete(file);
+                throw;
+            }
+        }
         finally { _sync.Release(); }
         return project;
     }
