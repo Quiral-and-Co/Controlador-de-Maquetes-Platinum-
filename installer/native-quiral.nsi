@@ -15,8 +15,6 @@ ShowUnInstDetails show
 
 !include "MUI2.nsh"
 !define MUI_ABORTWARNING
-!define MUI_ICON "installer\quiral.ico"
-!define MUI_UNICON "installer\quiral.ico"
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -29,7 +27,7 @@ Section "Aplicació nativa Quiral Control" SEC_APP
   File /r "publish\*.*"
 
   CreateDirectory "$SMPROGRAMS\Quiral & Co."
-  CreateShortcut "$SMPROGRAMS\Quiral & Co.\Controlador de Maquetes Platinum.lnk" "$INSTDIR\Quiral.ControladorMaquetes.exe"
+  CreateShortCut "$SMPROGRAMS\Quiral & Co.\Controlador de Maquetes Platinum.lnk" "$INSTDIR\Quiral.ControladorMaquetes.exe"
   CreateShortcut "$DESKTOP\Controlador de Maquetes Platinum.lnk" "$INSTDIR\Quiral.ControladorMaquetes.exe"
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
