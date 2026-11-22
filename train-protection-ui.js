@@ -11,6 +11,7 @@ function render(){
  $('tpTargetReadout').textContent=snap.targetKmh+' km/h';
  $('tpDistanceReadout').textContent=Math.round(snap.targetDistanceM)+' m';
  $('tpAck').disabled=!snap.ackPending||snap.emergency;
+ ['tpAckGreen','tpAckYellow','tpAckGreenYellow'].forEach(id=>{const button=$(id);if(button)button.disabled=!snap.ackPending||snap.emergency;});
  $('tpAck').textContent=snap.ackPending?'RECONÈIXER AVÍS · '+snap.ackSecondsRemaining+' s':'RECONÈIXER';
  $('tpTick').disabled=snap.emergency;$('tpEvent').textContent=snap.lastEvent;
  $('tpEvents').replaceChildren();snap.events.slice().reverse().forEach(e=>{const li=document.createElement('li');li.textContent=e.second+' s · '+e.message;$('tpEvents').append(li);});
@@ -24,7 +25,11 @@ function init(){
  $('tpSetSpeed').onclick=()=>{if(!session)return;const r=p.setSpeed(session,$('tpSpeed').value);if(r.ok)session=r.session;else status(r.error);render();};
  $('tpSetTarget').onclick=()=>{if(!session)return;const r=p.setTarget(session,{permittedKmh:$('tpPermitted').value,targetKmh:$('tpTarget').value,targetDistanceM:$('tpDistance').value});if(r.ok)session=r.session;else status(r.error);render();};
  $('tpWarning').onclick=()=>{if(!session)return;const r=p.requestAcknowledgement(session,$('tpReason').value,Number($('tpAckWindow').value));if(r.ok)session=r.session;else status(r.error);render();};
- $('tpAck').onclick=()=>{const r=p.acknowledge(session);if(r.ok)session=r.session;else status(r.error);render();};
+ const acknowledgeWith=colour=>{const r=p.acknowledge(session);if(r.ok){session=r.session;status('Confirmació '+colour+' registrada a la simulació.');}else status(r.error);render();};
+ $('tpAck').onclick=()=>acknowledgeWith('general');
+ $('tpAckGreen').onclick=()=>acknowledgeWith('verda');
+ $('tpAckYellow').onclick=()=>acknowledgeWith('groga');
+ $('tpAckGreenYellow').onclick=()=>acknowledgeWith('verd/groga');
  $('tpTick').onclick=()=>{const r=p.tick(session,1);if(r.ok)session=r.session;else status(r.error);render();};
  $('tpEmergency').onclick=()=>{if(!session)return;session=p.trip(session,'polsador d’emergència del panell').session;render();};
  $('tpReset').onclick=()=>{if(!session)return;if(session.emergency&&!window.confirm('Confirmes el reinici de la simulació? No rearma cap sortida física.'))return;const r=p.reset(session);if(r.ok)session=r.session;render();};

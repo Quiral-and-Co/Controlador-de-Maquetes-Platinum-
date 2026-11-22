@@ -40,10 +40,12 @@
     const depleted=Object.keys(resources).filter(key=>resources[key]<=0);
     return{ok:true,session:{...session,resources,elapsedMinutes:session.elapsedMinutes+duration,lastEvent:depleted.length?'Recurs esgotat: '+depleted.join(', ')+'.':'Consum virtual actualitzat: '+(used.join(', ')||'cap recurs')+'.',depleted}};
   }
-  function refill(session,{atDepot=false}={}){
+  function refill(session,{atDepot=false,depotType='universal'}={}){
     if(session.mode!==MODES.DEPOT_REFUEL)return{ok:false,error:'El repostatge només està disponible en el mode «Repostatge al dipòsit».'};
-    if(atDepot!==true)return{ok:false,error:'Cal confirmar que la locomotora és al dipòsit de màquines.'};
-    const resources={};Object.keys(PROFILES[profileFor(session.profile)].resources).forEach(key=>resources[key]=100);
+    if(atDepot!==true)return{ok:false,error:'Cal confirmar que el vehicle és en un punt de recàrrega habilitat.'};
+    const profile=profileFor(session.profile);
+    if(depotType!=='universal'&&depotType!==profile)return{ok:false,error:'Aquest punt de recàrrega no és compatible amb el tipus de vehicle seleccionat.'};
+    const resources={};Object.keys(PROFILES[profile].resources).forEach(key=>resources[key]=100);
     return{ok:true,session:{...session,resources,lastEvent:'Recursos de la simulació virtual reposats al dipòsit.'}};
   }
   function resourceStatus(session){

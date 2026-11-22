@@ -292,3 +292,24 @@ body[data-ui-theme="windows-dark"] .desktop-window-tabs button.active,body[data-
 .mode-btn.mode-icon-btn:hover::after,.mode-btn.mode-icon-btn:focus-visible::after{opacity:1;visibility:visible}
 .mode-btn.mode-icon-btn:focus-visible{outline:2px solid #2878d0;outline-offset:2px}
 @media(max-width:600px){.top-actions{gap:4px}.mode-btn.mode-icon-btn{width:30px;min-width:30px;height:30px;min-height:30px}}
+
+/* Platinum cab panels: independent vigilance, station stops and backlit radio display */
+.deadman-standalone-panel,.stations-panel{background:#172433;border:1px solid #3a5268;border-radius:12px;padding:18px;color:#e8edf4}
+.dm-window-controls,.dm-window-lamps,.stations-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.dm-window-controls button{min-width:150px;min-height:48px;font-weight:800}
+.dm-window-lamps span{padding:10px 14px;border-radius:6px;background:#26384b;border:1px solid #52677c;font-size:.82rem;font-weight:800}
+.dm-window-lamps .active{outline:3px solid #f4d35e}
+.stations-form label{display:grid;gap:5px;min-width:150px;flex:1}
+.station-stops{display:grid;gap:8px;padding-left:22px}
+.station-stops li{padding:9px;background:#203246;border-radius:6px}
+.tp-ack-green,.tp-ack-yellow,.tp-ack-green-yellow{width:52px!important;height:52px!important;min-width:52px!important;padding:0!important;border-radius:5px!important;font-size:1.35rem!important;border:2px solid #d5e1ec!important}
+.tp-ack-green{background:#168044!important;color:#fff!important}.tp-ack-yellow{background:#e0b323!important;color:#17202a!important}.tp-ack-green-yellow{background:linear-gradient(135deg,#168044 0 50%,#e0b323 50% 100%)!important;color:#fff!important}
+.tg-15seg-panel{margin:12px 0 18px;padding:14px 18px;background:#101b1b;border:2px solid #45605a;border-radius:8px;box-shadow:inset 0 0 18px #071010}
+.tg-15seg-label,.tg-15seg-mode{display:block;color:#8da9a0;font-size:.72rem;letter-spacing:.16em}
+.tg-15seg-display{display:flex;justify-content:center;gap:5px;margin:7px auto;padding:8px 14px;text-align:center;background:#07120e;color:#8effad;border:1px solid #416a4b;border-radius:5px;font:700 clamp(2rem,5vw,3.4rem)/1.1 "DSEG15 Classic","Segment7",Consolas,monospace;letter-spacing:.22em;text-shadow:0 0 5px #5cff8a,0 0 15px #29d75a;min-height:1.3em}
+.tg-15seg-mode{text-align:right}
+
+.tg-15seg-display svg{flex:0 0 40px;overflow:visible}.tg-15seg-display line{stroke-width:4;stroke-linecap:round}.tg-15seg-display .segment-on{stroke:#8effad;filter:drop-shadow(0 0 3px #5cff8a)}.tg-15seg-display .segment-off{stroke:#1a3428;opacity:.7}
+
+/* Keep ribbon groups at intrinsic width: prevent neighbouring icon buttons from overlapping on narrow workspaces. */
+body.mode-modern .ribbon-group{flex:0 0 auto}

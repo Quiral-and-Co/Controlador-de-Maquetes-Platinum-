@@ -503,6 +503,19 @@
     else if(command==='windowShowMetgeQuiral'){if(!window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral'))$('metgeQuiralTitle')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
     else if(command==='windowShowRollingStock')window.jmriDesktop?.openNativeWindow?.({type:'rollingStock',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir Material mòbil: '+error.message));
     else if(command==='windowShowLocomotiveDmi')window.jmriDesktop?.openNativeWindow?.({type:'locomotiveDmi',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir Control de locomotora: '+error.message));
+    else if(command==='windowShowDeadman')window.JMRI_TC_DESKTOP?.focusWindow?.('Home mort');
+    else if(command==='windowShowProtection')window.JMRI_TC_DESKTOP?.focusWindow?.('Protecció i conducció manual');
+    else if(command==='windowShowRadio')window.JMRI_TC_DESKTOP?.focusWindow?.('Terminal tren-terra');
+    else if(command==='windowShowSpielewelt')window.JMRI_TC_DESKTOP?.focusWindow?.('Món de Jocs');
+    else if(command==='windowShowSignalling')window.JMRI_TC_DESKTOP?.focusWindow?.('Senyalització ferroviària ADIF');
+    else if(command==='windowShowTrackControl')window.JMRI_TC_DESKTOP?.focusWindow?.('Tauler de disseny');
+    else if(command==='windowShowStations')window.JMRI_TC_DESKTOP?.focusWindow?.('Estacions i baixadors');
+    else if(command==='windowShowCommunications')window.JMRI_TC_DESKTOP?.focusWindow?.('Terminal tren-terra');
+    else if(command==='windowShowDiagnostics')window.JMRI_TC_DESKTOP?.focusWindow?.('Metge Quiral');
+    else if(command==='windowShowTelemetry')window.JMRI_TC_DESKTOP?.focusWindow?.('Control de locomotora');
+    else if(command==='windowShowTrainDetector')window.jmriDesktop?.openNativeWindow?.({type:'trainDetector',duplicate:true})?.catch?.(error=>log('No s’ha pogut obrir el monitor de detectors: '+error.message));
+    else if(command==='windowShowEmergencies')window.JMRI_TC_DESKTOP?.focusWindow?.('Validació i bloqueig de seguretat');
+    else if(command==='windowShowDrivers')window.JMRI_TC_DESKTOP?.focusWindow?.('Gestió de circulacions');
     else if(command==='helpQuick')showHelp('quick');
     else if(command==='helpContents')showHelp('contents');
     else if(command==='helpShortcuts')showHelp('shortcuts');

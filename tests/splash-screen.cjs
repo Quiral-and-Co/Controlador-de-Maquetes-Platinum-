@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const html=fs.readFileSync(path.join(__dirname,'../electron/splash.html'),'utf8');
+const main=fs.readFileSync(path.join(__dirname,'../electron/main.cjs'),'utf8');
+const preload=fs.readFileSync(path.join(__dirname,'../electron/preload.cjs'),'utf8');
+for(const text of ['Controlador de Maquetes','Platinum','VERSIÓ 1.4.0','Quiral &amp; Co.','BR 24','Velaro','Iniciar','Configuració','Ajuda','Quant a...','Sortir']) assert.ok(html.includes(text),`splash missing ${text}`);
+assert.match(main,/function createSplashWindow\(\)/);
+assert.match(main,/ipcMain\.handle\('splash:start'/);
+assert.match(preload,/startApplication:/);
+console.log('PASS: branded splash screen and startup actions');
