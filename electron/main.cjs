@@ -338,7 +338,7 @@ ipcMain.handle('splash:start', async (_event, command = 'start') => {
   if (splash && !splash.isDestroyed()) splash.close();
   await createWindow();
   if (pendingStartupCommand) {
-    mainWindow.webContents.once('did-finish-load', () => mainWindow?.webContents.send('app:command', pendingStartupCommand));
+    mainWindow.webContents.send('app:command', pendingStartupCommand);
     pendingStartupCommand = null;
   }
   return { started: true };
