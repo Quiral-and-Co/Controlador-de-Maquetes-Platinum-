@@ -1,4 +1,4 @@
-# Controlador de Maquetes by Quiral & Co. Platinum — 1.4.2
+# Controlador de Maquetes by Quiral & Co. Platinum — 1.4.3 (migració nativa en curs)
 
 Aplicació d'escriptori i eines de planificació, diagnòstic i validació per a maquetes Märklin H0. La integració amb serveis externs de control i el pont de circulacions tenen modes i límits de seguretat documentats; les funcions simulades no equivalen a protocols ferroviaris certificats ni a control físic validat.
 
