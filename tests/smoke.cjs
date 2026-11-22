@@ -206,5 +206,21 @@ els.propLevel.value='2';els.moveLevelBtn.onclick();if(els.currentLevelTitle.text
   if(rotatedTracks.find(p=>p.id==='ROT-A').rotation!==90)throw Error('Keyboard-entered 45 degrees in quadrant IV did not apply 315 degrees');
 
   if(!selectionMove||typeof selectionMove.createDrag!=='function')throw Error('Selection movement core is not exposed to the smoke test');
+  // JSON v3 round-trip contract: catalogue-assisted connection metadata is legal,
+  // while references to ports that do not exist on the piece are rejected.
+  const modelApi=window.JMRI_TC_LAYOUT_MODEL;
+  if(!modelApi||typeof modelApi.validateConfig!=='function')throw Error('JSON v3 validator is not exposed');
+  const v3Project={schemaVersion:3,name:'JSON v3 contract',scale:'H0',trackSystem:'Märklin C',room:{widthMm:3000,heightMm:1800},levelSpacingMm:110,levels:Array.from({length:5},(_,i)=>({id:i+1,name:'Nivell '+(i+1),elevationMm:i*110,tracks:[],blocks:[],sensors:[]})),connections:[]};
+  const v3Piece=(id,x)=>({id,type:'straight',name:id,x,y:100,rotation:0,levelId:1,blockId:'',sensorName:'',geometry:{lengthMm:180}});
+  v3Project.levels[0].tracks=[v3Piece('V3-A',100),v3Piece('V3-B',280)];
+  v3Project.connections=[{id:'V3-C1',levelId:1,from:{pieceId:'V3-A',port:'B'},to:{pieceId:'V3-B',port:'A'},verified:false,method:'catalogue-gap-suggestion'}];
+  const normalizedV3=modelApi.validateConfig(JSON.parse(JSON.stringify(v3Project)));
+  if(normalizedV3.schemaVersion!==3||normalizedV3.connections[0].method!=='catalogue-gap-suggestion')throw Error('Valid v3 connection metadata was not preserved');
+  const badPort=JSON.parse(JSON.stringify(v3Project));badPort.connections[0].from.port='Z';
+  let rejectedBadPort=false;try{modelApi.validateConfig(badPort);}catch(error){rejectedBadPort=/port inexistent/.test(error.message);}
+  if(!rejectedBadPort)throw Error('JSON v3 validator accepted a connection to an unknown port');
+  const badRoom=JSON.parse(JSON.stringify(v3Project));badRoom.room.widthMm=2800;
+  let rejectedBadRoom=false;try{modelApi.validateConfig(badRoom);}catch(error){rejectedBadRoom=/3000/.test(error.message);}
+  if(!rejectedBadRoom)throw Error('JSON v3 validator accepted an unsupported board size');
   console.log('PASS: startup, five levels, viewport zoom/pan/fit, insertion, selection, SVG, rotation, editable geometry, duplicate, undo/redo, block/sensor registries, assignment, safe level reassignment, v2 migration, topology audit, duplicate/port-conflict detection, exact manual connection, keyboard activation, multi-selection movement/undo/cancel/bounds and rejection of self/distant/occupied ports');
 })().catch(err=>{console.error(err);process.exitCode=1;});
