@@ -1,6 +1,11 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Quiral.ControladorMaquetes.Core;
+using Quiral.ControladorMaquetes.Projects;
+using Quiral.ControladorMaquetes.Geometry;
+using Quiral.ControladorMaquetes.RollingStock;
+using Quiral.ControladorMaquetes.Maerklin;
+using Quiral.ControladorMaquetes.Modules;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -11,10 +16,15 @@ public sealed class MainForm : Form
     private readonly Label _diagnosticsValue = new();
     private readonly Label _devicesValue = new();
     private readonly Label _dataPathValue = new();
+    private readonly ProjectModule _projects;
+    private readonly RailwayGeometryModule _geometry;
+    private readonly RollingStockModule _rollingStock;
+    private readonly Cs2TcpController _cs2;
 
-    public MainForm(QuiralCore core)
+    public MainForm(QuiralCore core, ProjectModule projects, RailwayGeometryModule geometry, RollingStockModule rollingStock, Cs2TcpController cs2)
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
+        _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2;
         Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.0";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1050, 700);
@@ -22,10 +32,28 @@ public sealed class MainForm : Form
         AutoScaleMode = AutoScaleMode.Dpi;
 
         var menu = new MenuStrip();
-        menu.Items.Add(BuildMenu("Fitxer", "Nou projecte", "Obrir projecte…", "Desar projecte", "Sortir"));
-        menu.Items.Add(BuildMenu("Maqueta", "Disseny de vies", "Material mòbil", "Gestió de circulacions"));
-        menu.Items.Add(BuildMenu("Ferrocarril", "Centrals digitals", "Control de locomotores", "Panells de cabina", "Seguretat del tren"));
-        menu.Items.Add(BuildMenu("Eines", "Validació del sistema", "Diagnòstic", "Preferències"));
+        var fileMenu=new ToolStripMenuItem("Fitxer");
+        fileMenu.DropDownItems.Add(new ToolStripMenuItem("Gestió de projectes…",null,(_,_)=>new ProjectManagerForm(_projects).Show(this)));
+        fileMenu.DropDownItems.Add(new ToolStripMenuItem("Desar projecte",null,async (_,_)=>{ try { await _projects.SaveAsync(); } catch(Exception ex) { MessageBox.Show(this,ex.Message,"Desar projecte",MessageBoxButtons.OK,MessageBoxIcon.Information); } }));
+        fileMenu.DropDownItems.Add(new ToolStripSeparator());
+        fileMenu.DropDownItems.Add(new ToolStripMenuItem("Sortir",null,(_,_)=>Close()));
+        menu.Items.Add(fileMenu);
+        var layoutMenu=new ToolStripMenuItem("Maqueta");
+        layoutMenu.DropDownItems.Add(new ToolStripMenuItem("Geometria ferroviària…",null,(_,_)=>new GeometryWorkbenchForm(_geometry).Show(this)));
+        layoutMenu.DropDownItems.Add(new ToolStripMenuItem("Material mòbil…",null,(_,_)=>new RollingStockForm(_rollingStock).Show(this)));
+        layoutMenu.DropDownItems.Add(new ToolStripMenuItem("Gestió de circulacions") { Enabled=false });
+        menu.Items.Add(layoutMenu);
+        var railwayMenu=new ToolStripMenuItem("Ferrocarril");
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Märklin CS2 60215 · mCAN / S88…",null,(_,_)=>new Cs2ConnectionForm(_cs2).Show(this)));
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Control de locomotores") { Enabled=false });
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Panells de cabina") { Enabled=false });
+        railwayMenu.DropDownItems.Add(new ToolStripMenuItem("Seguretat del tren") { Enabled=false });
+        menu.Items.Add(railwayMenu);
+        var toolsMenu=new ToolStripMenuItem("Eines");
+        toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Validació del sistema") { Enabled=false });
+        toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Diagnòstic") { Enabled=false });
+        toolsMenu.DropDownItems.Add(new ToolStripMenuItem("Preferències") { Enabled=false });
+        menu.Items.Add(toolsMenu);
 
         var statusStrip = new StatusStrip();
         _status.Text = "SORTIDES FÍSIQUES BLOQUEJADES";
@@ -85,7 +113,7 @@ public sealed class MainForm : Form
         _dataPathValue.Text = "Dades locals: " + _core.DataDirectory + Environment.NewLine + Environment.NewLine +
             "Nucli intern inicialitzat correctament." + Environment.NewLine +
             "Sense servidor web, navegador incrustat ni dependència de serveis externs." + Environment.NewLine +
-            "No hi ha cap controlador de maquinari registrat." + Environment.NewLine +
+            "Controlador Märklin CS2 60215 registrat (connexió manual)." + Environment.NewLine +
             "Les ordres que requereixen sortides físiques són rebutjades pel gestor de seguretat.";
         details.Controls.Add(_dataPathValue);
         dashboard.Controls.Add(details, 0, 3);
@@ -121,16 +149,4 @@ public sealed class MainForm : Form
         return panel;
     }
 
-    private static ToolStripMenuItem BuildMenu(string title, params string[] entries)
-    {
-        var menu = new ToolStripMenuItem(title);
-        foreach (var entry in entries)
-        {
-            if (entry == "Sortir")
-                menu.DropDownItems.Add(new ToolStripMenuItem(entry, null, (_, _) => Application.Exit()));
-            else
-                menu.DropDownItems.Add(new ToolStripMenuItem(entry) { Enabled = false });
-        }
-        return menu;
-    }
 }
