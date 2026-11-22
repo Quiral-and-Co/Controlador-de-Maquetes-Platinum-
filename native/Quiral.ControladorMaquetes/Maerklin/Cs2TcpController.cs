@@ -22,6 +22,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
     private CancellationTokenSource? _readerCancellation;
     private Task? _readerTask;
     private ushort _hash;
+    private readonly object _hashLock=new();
     public Cs2ConnectionState State { get; private set; }=Cs2ConnectionState.Disconnected;
     public string? Host { get; private set; }
     public int Port { get; private set; }=DefaultPort;
@@ -70,6 +71,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
 
 
     public bool CanHandle(RailwayCommand command) =>
+        command.DeviceId.Equals("marklin-cs2-60215",StringComparison.OrdinalIgnoreCase) &&
         command.CommandName is "set-speed" or "set-direction" or "set-function";
 
     async Task<CommandDispatchResult> IRailwayCommandHandler.ExecuteAsync(RailwayCommand command,CancellationToken cancellationToken)
@@ -129,7 +131,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
         return SendFrameAsync(S88Feedback.BuildPoll(moduleNumber,QuiralUid),cancellationToken);
     }
 
-    private ushort NextHash() { unchecked { _hash++; if(_hash==0) _hash=1; return _hash; } }
+    private ushort NextHash() { lock(_hashLock) { unchecked { _hash++; if(_hash==0) _hash=1; return _hash; } } }
 
     private async Task SendFrameAsync(McanFrame frame,CancellationToken cancellationToken)
     {
