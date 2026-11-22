@@ -54,7 +54,7 @@ check_legacy_install:
 check_previous_install:
   IfFileExists "$OldInstallDir\Uninstall.exe" 0 no_previous_install
     SetOutPath "$PLUGINSDIR"
-    File /oname=upgrade-preserve-data.ps1 "installer\upgrade-preserve-data.ps1"
+    File /oname=upgrade-preserve-data.ps1 "upgrade-preserve-data.ps1"
     ExecWait '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\upgrade-preserve-data.ps1" -Action Backup -DataDirectory "$LOCALAPPDATA\QuiralCo\ControladorDeMaquetes" -BackupFile "$UpgradeBackup"' $0
     IntCmp $0 0 +2
       Abort "No s'ha pogut verificar la còpia de seguretat. La versió anterior es manté instal·lada."
@@ -69,7 +69,7 @@ no_previous_install:
 
   IfFileExists "$UpgradeBackup" 0 data_restore_done
     SetOutPath "$PLUGINSDIR"
-    File /oname=upgrade-preserve-data.ps1 "installer\upgrade-preserve-data.ps1"
+    File /oname=upgrade-preserve-data.ps1 "upgrade-preserve-data.ps1"
     ExecWait '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\upgrade-preserve-data.ps1" -Action Restore -DataDirectory "$LOCALAPPDATA\QuiralCo\ControladorDeMaquetes" -BackupFile "$UpgradeBackup"' $0
     IntCmp $0 0 +2
       Abort "No s'han pogut restaurar les dades. La còpia s'ha conservat a: $UpgradeBackup"
