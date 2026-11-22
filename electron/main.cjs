@@ -13,7 +13,7 @@ const approvedProjectPaths = createProjectPathPolicy();
 const MAX_PROJECT_BYTES = 25 * 1024 * 1024;
 
 const projectFilters = [
-  { name: 'Projectes JMRI TC', extensions: ['json'] },
+  { name: 'Projectes de maqueta', extensions: ['json'] },
   { name: 'XTrackCAD Layout', extensions: ['xtc', 'xti', 'xtm'] },
   { name: 'Tots els fitxers', extensions: ['*'] }
 ];
@@ -31,7 +31,7 @@ function installProjectHandlers() {
     let filePath = '';
     if (options.saveAs === true || typeof options.filePath !== 'string' || !options.filePath) {
       const result = await dialog.showSaveDialog(mainWindow, {
-        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'JMRI_TC_Gold_Custom_layout.json'),
+        defaultPath: path.basename(typeof options.defaultPath === 'string' ? options.defaultPath : 'Controlador_de_Maquetes_Platinum_layout.json'),
         filters: projectFilters.slice(0, 2)
       });
       if (result.canceled || !result.filePath) return { canceled: true };
@@ -148,7 +148,7 @@ app.whenReady().then(() => { installProjectHandlers(); installApplicationMenu();
   console.error(error);
   await dialog.showMessageBox({
     type: 'error',
-    title: 'JMRI TC Gold Custom',
+    title: 'Controlador de Maquetes Platinum',
     message: 'No s’ha pogut iniciar el pont local.',
     detail: error.message
   });
