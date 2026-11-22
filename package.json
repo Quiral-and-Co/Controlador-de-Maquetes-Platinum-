@@ -64,7 +64,8 @@
         "es_ES",
         "en_US"
       ],
-      "language": "1027"
+      "language": "1027",
+      "warningsAsErrors": false
     }
   }
 }
