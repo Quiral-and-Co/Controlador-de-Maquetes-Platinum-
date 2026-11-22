@@ -43,7 +43,12 @@ FunctionEnd
 
 Section "Aplicació nativa" SEC_APP
   ReadRegStr $OldInstallDir HKLM "Software\Quiral and Co.\Controlador de Maquetes Platinum Edition" "InstallDir"
-  IfFileExists "$OldInstallDir\Uninstall.exe" 0 +5
+  StrCmp $OldInstallDir "" check_legacy_install
+  Goto check_previous_install
+check_legacy_install:
+  ReadRegStr $OldInstallDir HKLM "Software\Quiral & Co.\Controlador de Maquetes Platinum" "InstallDir"
+check_previous_install:
+  IfFileExists "$OldInstallDir\Uninstall.exe" 0 no_previous_install
     SetOutPath "$PLUGINSDIR"
     File /oname=upgrade-preserve-data.ps1 "installer\upgrade-preserve-data.ps1"
     ExecWait '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\upgrade-preserve-data.ps1" -Action Backup -DataDirectory "$LOCALAPPDATA\QuiralCo\ControladorDeMaquetes" -BackupFile "$UpgradeBackup"' $0
@@ -52,6 +57,7 @@ Section "Aplicació nativa" SEC_APP
     ExecWait '"$OldInstallDir\Uninstall.exe" /S' $0
     IntCmp $0 0 +2
       Abort "La desinstal·lació de la versió anterior ha fallat. Actualització aturada."
+no_previous_install:
 
   SetOutPath "$INSTDIR"
   File /r "${PUBLISH_DIR}\*"
