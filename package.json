@@ -1,8 +1,8 @@
 {
-  "name": "jmri-tc-gold-custom",
+  "name": "controlador-de-maquetes-platinum",
   "version": "1.3.0",
   "private": true,
-  "description": "Local JMRI-TC Gold Custom traffic dispatcher, safety interlock and Märklin WiThrottle bridge",
+  "description": "Controlador de Maquetes Platinum: disseny, diagnòstic i gestió segura de maquetes ferroviàries",
   "main": "electron/main.cjs",
   "scripts": {
     "start": "node traffic-bridge.js",
@@ -23,8 +23,8 @@
     "playwright": "^1.56.1"
   },
   "build": {
-    "appId": "cat.jmritc.goldcustom",
-    "productName": "JMRI TC Gold Custom",
+    "appId": "cat.quiral.controladormaquetesplatinum",
+    "productName": "Controlador de Maquetes Platinum",
     "asar": true,
     "directories": {
       "output": "dist"
@@ -46,7 +46,7 @@
           ]
         }
       ],
-      "artifactName": "JMRI-TC-Gold-Custom-Setup-${version}-${arch}.${ext}"
+      "artifactName": "Controlador-de-Maquetes-Platinum-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -54,7 +54,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "JMRI TC Gold Custom",
+      "shortcutName": "Controlador de Maquetes Platinum",
       "deleteAppDataOnUninstall": false
     }
   }
