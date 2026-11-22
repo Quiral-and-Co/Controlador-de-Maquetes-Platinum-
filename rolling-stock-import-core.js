@@ -55,7 +55,7 @@
   function windowlessValidate(input){
     const name=clean(input?.name,100);if(!name)return{ok:false,error:'Vehicle sense nom.'};
     const allowed=['DCC','MFX','M4','MM2','MOTOROLA','RAILCOM','RAILCOMPLUS','OTHER'];let protocol=clean(input.protocol||'DCC',24).toUpperCase();if(!allowed.includes(protocol))protocol='OTHER';
-    return{ok:true,vehicle:{...input,name,protocol,functions:Array.isArray(input.functions)?input.functions.slice(0,69):[],cv:input.cv&&typeof input.cv==='object'?input.cv:{},source:clean(input.source||'IMPORT',64),sourceId:clean(input.sourceId||'',80),identity:clean(input.identity||'',120)}};
+    const rawImage=String(input.image||''),image=/^(https?:\\/\\/|data:image\\/(?:png|jpeg|jpg|webp|gif);base64,)/i.test(rawImage)?rawImage:'';const safeFunctions=(Array.isArray(input.functions)?input.functions:[]).slice(0,69).map((fn,index)=>{const icon=String(fn?.icon||'circle');return{...fn,number:Number(fn?.number??index),label:clean(fn?.label||('F'+index),80),icon:(icon.startsWith('data:image/')||/^https?:/i.test(icon))?icon:clean(icon,80)};});return{ok:true,vehicle:{...input,name,protocol,image,functions:safeFunctions,cv:input.cv&&typeof input.cv==='object'?input.cv:{},source:clean(input.source||'IMPORT',64),sourceId:clean(input.sourceId||'',80),identity:clean(input.identity||'',120)}};
   }
   const api={parseCs2,parseZ21Json,parseJsonLibrary,importText,mergeImport};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;

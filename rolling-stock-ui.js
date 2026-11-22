@@ -43,7 +43,7 @@
   }
   $('rollingStockAdd').addEventListener('click',()=>openEditor(null));
   $('rollingStockRegister').addEventListener('click',()=>{
-    const selected=source().find(v=>v.id===selectedId);const vehicle=db().vehicles.find(v=>v.id===selectedId)||db().vehicles.find(v=>selected&&v.address&&String(v.address)===String(selected.address));
+    const selected=source().find(v=>v.id===selectedId);if(selected?.controlReady){setStatus('Aquesta locomotora ja està registrada al control.');return;}const vehicle=db().vehicles.find(v=>v.id===selectedId)||db().vehicles.find(v=>selected&&v.address&&String(v.address)===String(selected.address));
     if(!vehicle){setStatus('Selecciona primer una locomotora importada.');return;}
     if(String(vehicle.protocol||'').toUpperCase()!=='DCC'){setStatus('El registre directe al control WiThrottle només admet DCC. MFX, M4 i MM2 requereixen l’adaptador específic de la central.');return;}
     const address=Number(vehicle.address);

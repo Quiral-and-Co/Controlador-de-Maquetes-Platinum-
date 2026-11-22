@@ -44,7 +44,7 @@
     for(const item of Array.isArray(locomotives)?locomotives:[]){
       const found=[...byId.values()].find(v=>v.id===String(item.id)|| (v.address&&v.address===String(item.address||item.wiThrottleId||'')));
       const merged={...(found||{}),id:String(item.id||found?.id||''),name:String(found?.name||item.name||'Locomotora sense nom'),kind:'locomotive',type:'LOCOMOTIVE',address:String(found?.address||item.address||item.wiThrottleId||''),protocol:found?.protocol||item.protocol||'DCC',controlReady:true,draggable:true};
-      if(merged.id)byId.set(merged.id,merged);
+      if(merged.id){if(found&&found.id!==merged.id)byId.delete(found.id);byId.set(merged.id,merged);}
     }
     const cars=(Array.isArray(roster?.cars)?roster.cars:[]).map(item=>({id:String(item.id||''),name:String(item.name||'Vehicle sense nom'),kind:'car',type:String(item.type||'PASSENGER'),address:'',draggable:false,attached:!!(item.trainId||item.trainSetId)})).filter(item=>item.id);
     for(const car of cars)if(!byId.has(car.id))byId.set(car.id,car);

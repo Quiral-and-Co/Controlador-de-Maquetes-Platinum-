@@ -66,6 +66,7 @@ const added=core.upsertVehicle(db,{name:'Cotxe 1',kind:'car',protocol:'DCC',func
 assert.equal(added.ok,true);
 assert.equal(core.buildInventory([],{},db).length,3);
 assert.equal(core.createDragPayload({id:'c',kind:'car'}),'');
+assert.equal(core.createDragPayload({id:'unassigned',kind:'locomotive',controlReady:false}),'','imported locomotives must be explicitly registered before DMI drag');
 assert.equal(core.createDragPayload({id:'l',kind:'locomotive'}).length>0,true);
 assert.equal(core.removeVehicle(db,added.vehicle.id,{activeIds:[added.vehicle.id]}).ok,false);
 assert.equal(core.removeVehicle(db,added.vehicle.id).ok,true);
