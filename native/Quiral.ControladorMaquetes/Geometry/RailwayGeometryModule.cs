@@ -9,10 +9,34 @@ public sealed record GeometryIssue(string Code, string Message, string? ElementI
 public sealed class RailwayGeometryModule : IQuiralModule
 {
     private readonly Dictionary<string, TrackSegment> _segments = new(StringComparer.OrdinalIgnoreCase);
+    private QuiralCore? _core;
     public string Name => "RailwayGeometry";
     public IReadOnlyList<TrackSegment> Segments => _segments.Values.ToArray();
-    public Task StartAsync(QuiralCore core, CancellationToken cancellationToken) => Task.CompletedTask;
-    public Task StopAsync(CancellationToken cancellationToken) { _segments.Clear(); return Task.CompletedTask; }
+    public async Task StartAsync(QuiralCore core, CancellationToken cancellationToken)
+    {
+        _core=core;
+        var saved=await core.State.ReadAsync<List<TrackSegment>>("geometry/segments.json",cancellationToken).ConfigureAwait(false)??new();
+        foreach(var segment in saved) _segments[segment.Id]=segment;
+    }
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public async Task<TrackSegment> AddSegmentAsync(Point3 start,Point3 end,double gaugeMm=16.5,CancellationToken cancellationToken=default)
+    {
+        var segment=AddSegment(start,end,gaugeMm);
+        await PersistAsync(cancellationToken).ConfigureAwait(false);
+        return segment;
+    }
+
+    public async Task<bool> RemoveSegmentAsync(string id,CancellationToken cancellationToken=default)
+    {
+        var removed=_segments.Remove(id);
+        if(removed) await PersistAsync(cancellationToken).ConfigureAwait(false);
+        return removed;
+    }
+
+    private Task PersistAsync(CancellationToken cancellationToken) =>
+        (_core??throw new InvalidOperationException("Mòdul no inicialitzat.")).State
+        .WriteAsync("geometry/segments.json",_segments.Values.ToList(),cancellationToken);
 
     public TrackSegment AddSegment(Point3 start, Point3 end, double gaugeMm = 16.5)
     {
