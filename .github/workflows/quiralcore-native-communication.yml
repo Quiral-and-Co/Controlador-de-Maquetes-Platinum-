@@ -1,0 +1,34 @@
+name: QuiralCore native communication
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/QuiralCore.Communication/**'
+      - 'tests/QuiralCore.Communication.Tests/**'
+      - '.github/workflows/quiralcore-native-communication.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/QuiralCore.Communication/**'
+      - 'tests/QuiralCore.Communication.Tests/**'
+      - '.github/workflows/quiralcore-native-communication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-protocol:
+    name: Build and test native QuiralCore MCAN/S88 layer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build communication library
+        run: dotnet build src/QuiralCore.Communication/QuiralCore.Communication.csproj --configuration Release
+      - name: Run protocol and S88 tests
+        run: dotnet run --project tests/QuiralCore.Communication.Tests/QuiralCore.Communication.Tests.csproj --configuration Release
