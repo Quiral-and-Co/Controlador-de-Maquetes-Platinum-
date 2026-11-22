@@ -191,7 +191,7 @@ public sealed class Cs2ConnectionForm : Form
         try { await _controller.PollS88ModuleAsync((byte)_module.Value); Log("Consulta S88 legacy enviada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
-    private void OnParticipant(Cs2Participant e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>{ _status.Text=e.DeviceId==0xFFFF ? $"CS2 identificada · UID {e.DeviceUid:X8} · SW {e.SoftwareVersion}" : $"Dispositiu mCAN 0x{e.DeviceId:X4}"; Log($"Participant mCAN 0x{e.DeviceId:X4} · UID {e.DeviceUid:X8}"); })); }
+    private void OnParticipant(Cs2Participant e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>{ if(e.DeviceId==0xFFFF) _status.Text=$"CS2 identificada · UID {e.DeviceUid:X8} · SW {e.SoftwareVersion}"; Log($"Participant mCAN 0x{e.DeviceId:X4} · UID {e.DeviceUid:X8}"); })); }
     private void OnContact(S88ContactEvent e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"S88 {e.DeviceId}:{e.ContactNumber} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms"))); }
     private void OnModule(S88ModuleSnapshot e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}"))); }
     private void OnDiagnostic(string e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log(e))); }
