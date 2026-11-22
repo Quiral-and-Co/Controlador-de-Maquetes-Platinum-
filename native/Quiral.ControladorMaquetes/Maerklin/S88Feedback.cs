@@ -3,7 +3,7 @@ namespace Quiral.ControladorMaquetes.Maerklin;
 public sealed record S88ContactEvent(uint ContactUid, ushort DeviceId, ushort ContactNumber,
     bool PreviousOccupied, bool IsOccupied, ushort Timestamp10Ms, DateTimeOffset ReceivedAt);
 
-public sealed record S88ModuleSnapshot(ushort DeviceId, byte ModuleNumber, ushort ContactBits,
+public sealed record S88ModuleSnapshot(uint DeviceUid, byte ModuleNumber, ushort ContactBits,
     DateTimeOffset ReceivedAt)
 {
     public bool IsOccupied(int contactOneBased)
@@ -51,7 +51,7 @@ public static class S88Feedback
     public static S88ModuleSnapshot? TryParsePollReply(McanFrame frame)
     {
         if(frame.Command!=PollCommand||!frame.IsResponse||frame.Dlc!=7) return null;
-        var device=(ushort)(System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(0,4))&0xFFFF);
+        var device=System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(0,4));
         var module=frame.Data[4];
         var bits=System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(5,2));
         return new S88ModuleSnapshot(device,module,bits,DateTimeOffset.UtcNow);
