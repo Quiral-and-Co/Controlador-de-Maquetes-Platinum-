@@ -8,6 +8,7 @@ const path = require('node:path');
 const { importZ21Archive } = require('./rolling-stock-import.cjs');
 const { createProjectPathPolicy } = require('./project-path-policy.cjs');
 const { installMultiMonitor } = require('./multimonitor.cjs');
+const { checkLatestRelease } = require('./update-checker.cjs');
 
 let bridge = null;
 let quitting = false;
@@ -25,6 +26,15 @@ const projectFilters = [
 ];
 
 function installProjectHandlers() {
+  ipcMain.handle('updates:check', async () => checkLatestRelease({ currentVersion: app.getVersion() }));
+  ipcMain.handle('updates:open-release', async (_event, releaseUrl) => {
+    const url = new URL(String(releaseUrl || ''));
+    if (url.protocol !== 'https:' || url.hostname !== 'github.com' || !url.pathname.startsWith('/Quiral-and-Co/Controlador-de-Maquetes-Platinum-/releases/')) {
+      throw new Error('L’enllaç de descàrrega no és vàlid.');
+    }
+    await shell.openExternal(url.toString());
+    return { opened: true };
+  });
   ipcMain.handle('rolling-stock:import-z21', async (_event, bytes) => {
     if (!(bytes instanceof Uint8Array) && !ArrayBuffer.isView(bytes)) throw new TypeError('El fitxer Z21 no s’ha rebut en un format binari vàlid.');
     if (bytes.byteLength > 100 * 1024 * 1024) throw new Error('El fitxer Z21 supera el límit de 100 MB.');
