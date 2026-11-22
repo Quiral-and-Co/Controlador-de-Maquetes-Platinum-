@@ -40,3 +40,31 @@ No s'elimina ni es declara substituïda cap funcionalitat de l'aplicació existe
 No es fusionarà a main mentre falli qualsevol prova obligatòria: moviment XYZ, separacions de vies 77/64 mm, geometria de corbes, connexions/topologia, regressió completa, comunicacions, fail-safe i validació física quan pertoqui.
 
 La CI de compilació nativa ha de compilar el projecte Windows. La compilació no equival a validació de maquinari ni a certificació de seguretat.
+
+## Nucli Quiral Control — primera implementació
+
+La primera capa funcional del nucli es troba a `native/Quiral.ControladorMaquetes/Core`:
+
+- `QuiralCore`: cicle de vida, registre de mòduls interns i coordinació de serveis.
+- `IQuiralModule`: contracte d'extensió per a mòduls que s'executen dins del mateix procés Windows; inici seqüencial i aturada en ordre invers.
+- `QuiralEventBus`: publicació/subscripció d'esdeveniments tipats en memòria, sense sockets ni ports.
+- `DeviceRegistry`: inventari tipat de centrals, mòduls de feedback, descodificadors, locomotores i sensors. El registre no inicia comunicacions.
+- `CommandDispatcher`: punt únic d'entrada per a ordres. Rebutja les ordres que requereixen sortides físiques abans d'invocar qualsevol controlador.
+- `PhysicalOutputGate`: interbloqueig conservador. Les sortides físiques continuen deshabilitades.
+- `LocalStateStore`: persistència JSON local amb escriptura temporal i substitució atòmica, i protecció contra rutes que surtin del directori de dades.
+- `DiagnosticsCatalog` i auditoria: registres locals limitats en memòria i fitxer d'auditoria persistent.
+
+Les dades es guarden per defecte a `%LOCALAPPDATA%\\QuiralCo\\ControladorDeMaquetes`, amb carpetes separades per a projectes, còpies de seguretat i registres.
+
+La finestra principal ja crea i inicialitza el nucli, i mostra l'estat, el recompte de dispositius i el recompte de diagnòstics. Encara no hi ha cap controlador ferroviari real registrat, cap detecció de maquinari ni cap ordre enviada a una central.
+
+### Proves del nucli
+
+El projecte `native/Quiral.ControladorMaquetes.CoreTests` conté proves executables sense paquets de tercers per a:
+- subscripció i alliberament del bus d'esdeveniments;
+- registre i cerca de dispositius;
+- persistència i rebuig de path traversal;
+- bloqueig d'ordres físiques abans d'arribar a un controlador;
+- inicialització, auditoria i aturada del nucli.
+
+La CI de Windows executa aquestes proves després de compilar l'aplicació nativa.
