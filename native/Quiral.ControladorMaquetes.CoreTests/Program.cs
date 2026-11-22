@@ -16,6 +16,7 @@ var checks = new List<(string Name, Func<Task> Run)>
     ("Core lifecycle and audit log", TestCoreLifecycle),
     ("Module startup and reverse shutdown order", TestModuleLifecycle),
     ("Project create, open and persistence", TestProjects),
+    ("QuiralCore integrated railway modules", TestQuiralCoreRailwayIntegration),
     ("XYZ geometry, parallel offset and grade", TestGeometry),
     ("Geometry isolation by active project", TestGeometryProjectScope),
     ("Rolling stock uniqueness and train composition", TestRollingStock),
@@ -32,6 +33,68 @@ foreach (var check in checks)
 }
 Console.WriteLine($"Quiral Control core self-tests: {checks.Count - failed}/{checks.Count} passed.");
 return failed == 0 ? 0 : 1;
+
+
+static async Task TestQuiralCoreRailwayIntegration()
+{
+    var root = Temp("QuiralIntegratedRailway");
+    try
+    {
+        var core = new QuiralCore(root);
+        var projects = new ProjectModule();
+        var geometry = new RailwayGeometryModule(projects);
+        var rollingStock = new RollingStockModule();
+        var cs2 = new Cs2TcpController();
+
+        core.RegisterModule(projects);
+        core.RegisterModule(geometry);
+        core.RegisterModule(rollingStock);
+        core.RegisterModule(cs2);
+        await core.InitializeAsync();
+
+        var project = await projects.CreateAsync("Integració QuiralCore", 3000, 1800, 5, 110);
+        var segment = await geometry.AddSegmentAsync(
+            new Point3(0, 0, 0), new Point3(1000, 0, 0));
+        Assert(segment.ProjectId == project.Id && geometry.Segments.Count == 1,
+            "La geometria no queda vinculada al projecte actiu.");
+
+        var now = DateTimeOffset.UtcNow;
+        var locomotive = await rollingStock.AddAsync(new RollingStockItem(
+            "", RollingStockKind.Locomotive, "Märklin", "3003",
+            "Locomotora de vapor Märklin 3003", "H0", "III", "DB",
+            null, DigitalProtocol.None, null, Array.Empty<string>(), null,
+            "Fitxa d'inventari integrada", now, now));
+        Assert((await rollingStock.SearchAsync("3003")).Single().Id == locomotive.Id,
+            "El material mòbil no és accessible des del mòdul integrat.");
+
+        Assert(core.Devices.TryGet("marklin-cs2-60215", out var device) &&
+            device?.Model == "60215",
+            "El controlador CS2 no s'ha registrat al nucli.");
+        Assert(core.StateOfCore == QuiralCoreState.Ready &&
+            !core.SafetyGate.PhysicalOutputsEnabled,
+            "El nucli no ha mantingut les sortides físiques bloquejades.");
+
+        var blocked = await core.Commands.DispatchAsync(new RailwayCommand(
+            "marklin-cs2-60215", "set-speed", true,
+            new Dictionary<string, string>
+            {
+                ["protocol"] = "Dcc",
+                ["address"] = "3",
+                ["speed"] = "10"
+            }));
+        Assert(!blocked.Accepted && blocked.Code == "SAFETY_BLOCKED",
+            "La integració ha permès una ordre física abans de validar-la.");
+
+        var savedGeometry = await core.State.ReadAsync<List<TrackSegment>>("geometry/segments.json");
+        Assert(savedGeometry?.Single().ProjectId == project.Id,
+            "La geometria integrada no s'ha persistit correctament.");
+        await core.DisposeAsync();
+    }
+    finally
+    {
+        Delete(root);
+    }
+}
 
 static Task TestEventBus()
 {
