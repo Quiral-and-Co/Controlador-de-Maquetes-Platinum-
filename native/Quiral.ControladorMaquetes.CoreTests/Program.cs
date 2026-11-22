@@ -172,7 +172,9 @@ static Task TestMcanS88()
 {
     var data=new byte[]{0x00,0x07,0x00,0x01,0x00,0x2A,0x00,0x00};
     var original=new McanFrame(1,S88Feedback.EventCommand,true,0x1234,data);
-    var decoded=McanFrame.Decode(original.Encode());
+    var encoded=original.Encode();
+    Assert(encoded.Length==13,"Longitud de trama mCAN incorrecta.");
+    var decoded=McanFrame.Decode(encoded);
     Assert(decoded.Command==0x11 && decoded.IsResponse && decoded.Priority==1 && decoded.Dlc==8,"mCAN frame no preservat.");
     var evt=S88Feedback.TryParseEvent(decoded);
     Assert(evt is { ContactId:7, PreviousOccupied:false, IsOccupied:true, Timestamp10Ms:42 },"Esdeveniment S88 incorrecte.");
@@ -182,7 +184,7 @@ static Task TestMcanS88()
     var pollRequest=S88Feedback.BuildPoll(2,0x12345678);
     Assert(pollRequest.Priority==0 && pollRequest.Hash==S88Feedback.BroadcastHash && pollRequest.Data.SequenceEqual(new byte[]{0x12,0x34,0x56,0x78,2}),"Consulta S88 incorrecta.");
     var subscription=S88Feedback.BuildSubscribe(7);
-    Assert(subscription.Command==0x11 && subscription.Dlc==5 && subscription.Priority==0 && subscription.Hash==S88Feedback.BroadcastHash,"Registre de contacte S88 incorrecte.");
+    Assert(subscription.Command==0x11 && subscription.Dlc==5 && subscription.Priority==0 && subscription.Hash==S88Feedback.BroadcastHash && subscription.Data.SequenceEqual(new byte[]{0,7,0,0,0}),"Registre de contacte S88 incorrecte.");
     var broadcast=S88Feedback.TryParseBroadcast(new McanFrame(0,S88Feedback.BroadcastCommand,false,S88Feedback.BroadcastHash,new byte[]{2,0x80,0x01}));
     Assert(broadcast is { ModuleNumber:2 } && broadcast.IsOccupied(1) && broadcast.IsOccupied(16),"Broadcast S88 incorrecte.");
     return Task.CompletedTask;
