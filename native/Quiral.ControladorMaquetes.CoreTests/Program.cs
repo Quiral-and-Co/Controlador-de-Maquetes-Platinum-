@@ -242,6 +242,8 @@ static async Task TestCs2TcpFeedback()
     {
         await core.InitializeAsync();
         var received=new TaskCompletionSource<S88ContactEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var identity=new TaskCompletionSource<Cs2Participant>(TaskCreationOptions.RunContinuationsAsynchronously);
+        controller.ParticipantDiscovered+=e=>{ if(e.DeviceId==0xFFFF) identity.TrySetResult(e); };
         controller.S88ContactChanged+=e=>received.TrySetResult(e);
         await controller.ConnectAsync("127.0.0.1",port,timeout.Token);
         using var client=await acceptTask;
@@ -250,6 +252,10 @@ static async Task TestCs2TcpFeedback()
         await stream.ReadExactlyAsync(pingBytes,timeout.Token);
         var ping=McanFrame.Decode(pingBytes);
         Assert(ping.Command==0x18 && ping.Dlc==0,"La primera trama de la CS2 no és el PING esperat.");
+        var identityReply=new McanFrame(0,0x18,true,ping.Hash,new byte[]{0x51,0x43,0x4F,0x31,0x00,0x01,0xFF,0xFF});
+        await stream.WriteAsync(identityReply.Encode(),timeout.Token);
+        var participant=await identity.Task.WaitAsync(timeout.Token);
+        Assert(controller.IdentityVerified && participant.DeviceId==0xFFFF && participant.DeviceUid==0x51434F31,"No s'ha identificat la CS2 a partir del PING.");
         var eventFrame=new McanFrame(0,S88Feedback.EventCommand,false,S88Feedback.BroadcastHash,
             new byte[]{0x12,0x34,0x00,0x2A,0x00,0x01,0x00,0x64});
         await stream.WriteAsync(eventFrame.Encode(),timeout.Token);
