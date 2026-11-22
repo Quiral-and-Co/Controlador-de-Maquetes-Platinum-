@@ -160,6 +160,8 @@ static Task TestMcanS88()
     var pollData=new byte[]{0x00,0x00,0x00,0x00,0x01,0x80,0x01};
     var poll=S88Feedback.TryParsePollReply(new McanFrame(1,S88Feedback.PollCommand,true,0x1234,pollData));
     Assert(poll is { ModuleNumber:1 } && poll.IsOccupied(1) && poll.IsOccupied(16),"Resposta de consulta S88 incorrecta.");
+    var pollRequest=S88Feedback.BuildPoll(2,0x12345678);
+    Assert(pollRequest.Priority==0 && pollRequest.Hash==S88Feedback.BroadcastHash && pollRequest.Data.SequenceEqual(new byte[]{0x12,0x34,0x56,0x78,2}),"Consulta S88 incorrecta.");
     var subscription=S88Feedback.BuildSubscribe(7);
     Assert(subscription.Command==0x11 && subscription.Dlc==5 && subscription.Priority==0 && subscription.Hash==S88Feedback.BroadcastHash,"Registre de contacte S88 incorrecte.");
     var broadcast=S88Feedback.TryParseBroadcast(new McanFrame(0,S88Feedback.BroadcastCommand,false,S88Feedback.BroadcastHash,new byte[]{2,0x80,0x01}));
