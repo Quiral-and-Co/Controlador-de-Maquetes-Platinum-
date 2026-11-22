@@ -57,7 +57,14 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Controlador de Maquetes by Quiral & Co. Platinum",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "ca_ES",
+        "es_ES",
+        "en_US"
+      ],
+      "language": "ca_ES"
     }
   }
 }
