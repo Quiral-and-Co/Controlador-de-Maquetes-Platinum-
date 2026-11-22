@@ -3,15 +3,20 @@ using Quiral.ControladorMaquetes.Core;
 namespace Quiral.ControladorMaquetes.Geometry;
 
 public readonly record struct Point3(double X, double Y, double Z);
-public sealed record TrackSegment(string Id, Point3 Start, Point3 End, double GaugeMm = 16.5);
+public sealed record TrackSegment(string Id, string ProjectId, Point3 Start, Point3 End, double GaugeMm = 16.5);
 public sealed record GeometryIssue(string Code, string Message, string? ElementId = null);
 
 public sealed class RailwayGeometryModule : IQuiralModule
 {
     private readonly Dictionary<string, TrackSegment> _segments = new(StringComparer.OrdinalIgnoreCase);
     private QuiralCore? _core;
+    private readonly ProjectModule? _projects;
+
+    public RailwayGeometryModule(ProjectModule? projects = null) => _projects=projects;
     public string Name => "RailwayGeometry";
-    public IReadOnlyList<TrackSegment> Segments => _segments.Values.ToArray();
+    public IReadOnlyList<TrackSegment> Segments => _projects is null ? _segments.Values.ToArray() :
+        _projects.ActiveProject is null ? Array.Empty<TrackSegment>() :
+        _segments.Values.Where(x=>x.ProjectId==_projects.ActiveProject.Id).ToArray();
     public async Task StartAsync(QuiralCore core, CancellationToken cancellationToken)
     {
         _core=core;
@@ -22,6 +27,8 @@ public sealed class RailwayGeometryModule : IQuiralModule
 
     public async Task<TrackSegment> AddSegmentAsync(Point3 start,Point3 end,double gaugeMm=16.5,CancellationToken cancellationToken=default)
     {
+        if(_projects is not null && _projects.ActiveProject is null)
+            throw new InvalidOperationException("Obre o crea un projecte abans d'editar-ne la geometria.");
         var segment=AddSegment(start,end,gaugeMm);
         await PersistAsync(cancellationToken).ConfigureAwait(false);
         return segment;
@@ -43,7 +50,10 @@ public sealed class RailwayGeometryModule : IQuiralModule
         ValidatePoint(start); ValidatePoint(end);
         if (!double.IsFinite(gaugeMm) || gaugeMm <= 0) throw new ArgumentOutOfRangeException(nameof(gaugeMm));
         if (Distance(start, end) < 0.01) throw new ArgumentException("El tram ha de tenir longitud.");
-        var segment = new TrackSegment(Guid.NewGuid().ToString("N"), start, end, gaugeMm);
+        if(_projects is not null && _projects.ActiveProject is null)
+            throw new InvalidOperationException("Obre o crea un projecte abans d'editar-ne la geometria.");
+        var projectId=_projects?.ActiveProject?.Id ?? string.Empty;
+        var segment = new TrackSegment(Guid.NewGuid().ToString("N"), projectId, start, end, gaugeMm);
         _segments.Add(segment.Id, segment);
         return segment;
     }
