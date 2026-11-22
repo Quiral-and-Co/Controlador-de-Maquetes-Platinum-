@@ -20,8 +20,9 @@
     const functions=normalizeFunctions(input.functions);
     if(new Set(functions.map(fn=>fn.number)).size!==functions.length||functions.some(fn=>fn.number<0||fn.number>68))return{ok:false,error:'Les funcions han de tenir números únics entre F0 i F68.'};
     const address=String(input.address??'').trim();
+    const imageRaw=String(input.image||''),image=/^(https?:\\/\\/|data:image\\/(?:png|jpeg|jpg|webp|gif);base64,)/i.test(imageRaw)?imageRaw:'';
     const cv=input.cv&&typeof input.cv==='object'&&!Array.isArray(input.cv)?clone(input.cv):{};
-    return{ok:true,vehicle:{id:String(input.id||''),name,kind,manufacturer:String(input.manufacturer||'').slice(0,80),model:String(input.model||'').slice(0,100),article:String(input.article||'').slice(0,80),protocol,address,addressType:String(input.addressType||'auto'),decoder:String(input.decoder||'').slice(0,100),maxKmh,image:String(input.image||''),drawing:String(input.drawing||''),functions,cv,source:String(input.source||'MANUAL'),sourceId:String(input.sourceId||''),identity:String(input.identity||''),metadata:input.metadata&&typeof input.metadata==='object'?clone(input.metadata):{},updatedAt:Number(input.updatedAt)||Date.now()}};}
+    return{ok:true,vehicle:{id:String(input.id||''),name,kind,manufacturer:String(input.manufacturer||'').slice(0,80),model:String(input.model||'').slice(0,100),article:String(input.article||'').slice(0,80),protocol,address,addressType:String(input.addressType||'auto'),decoder:String(input.decoder||'').slice(0,100),maxKmh,image,drawing:String(input.drawing||''),functions,cv,source:String(input.source||'MANUAL'),sourceId:String(input.sourceId||''),identity:String(input.identity||''),metadata:input.metadata&&typeof input.metadata==='object'?clone(input.metadata):{},updatedAt:Number(input.updatedAt)||Date.now()}};}
   function upsertVehicle(database,input){
     const db=ensureDatabase(database),valid=validateVehicle(input);if(!valid.ok)return valid;
     const v=valid.vehicle;if(!v.id)v.id='RS-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);

@@ -44,6 +44,8 @@ assert.equal(rows[0].protocol,'MFX');
 assert.equal(rows[0].address,'1000');
 assert.equal(rows[0].functions.length,2);
 assert.equal(rows[1].protocol,'DCC');
+const mm2=importer.parseCs2(cs2.replace('.typ=dcc','.typ=mm2'));
+assert.equal(mm2[1].protocol,'MM2','CS2 MM2 decoders must not be misclassified as DCC');
 assert.equal(importer.importText('backup.cs2',cs2).vehicles.length,2);
 const z21={layout:{locomotives:[{id:'z1',name:'Railjet',address:12,format:'DCC',functions:[{number:0,name:'Llums',icon:'light'}],image:'railjet.png',articleNumber:'73220'}]}};
 const z=importer.parseZ21Json(JSON.stringify(z21));
