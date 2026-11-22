@@ -28,7 +28,7 @@ public sealed class MainForm : Form
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
         _projects=projects; _geometry=geometry; _rollingStock=rollingStock; _cs2=cs2; _accessories=accessories;
-        Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.0";
+        Text = "Controlador de Maquetes by Quiral & Co. Platinum — 1.4.2";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1050, 700);
         Size = new Size(1280, 820);
