@@ -22,6 +22,8 @@ public sealed class S88FeedbackModule : IQuiralModule
     private readonly Dictionary<uint, S88ContactState> _contacts = new();
     private QuiralCore? _core;
     private readonly SemaphoreSlim _persistLock = new(1, 1);
+    private readonly object _persistSync = new();
+    private Task _pendingPersist = Task.CompletedTask;
 
     public string Name => "S88Feedback";
     public IReadOnlyList<S88ContactState> Snapshot
@@ -65,7 +67,7 @@ public sealed class S88FeedbackModule : IQuiralModule
         _core?.Events.Publish(state);
         _core?.Events.Publish(new QuiralEvent(value.ReceivedAt, "s88.contact.changed",
             $"S88 {value.DeviceId}:{value.ContactNumber} = {(value.IsOccupied ? "OCUPAT" : "LLIURE")}"));
-        _ = PersistSafelyAsync();
+        lock (_persistSync) _pendingPersist = PersistSafelyAsync();
     }
 
     private void OnModuleRead(S88ModuleSnapshot value)
@@ -82,6 +84,11 @@ public sealed class S88FeedbackModule : IQuiralModule
             $"S88 {contact.DeviceId:X4}:{contact.ContactNumber}",
             RailwayDeviceKind.Sensor, state, "Märklin", "S88",
             "Märklin CS2 60215 / mCAN", contact.LastChangedAt));
+    }
+
+    public Task FlushAsync()
+    {
+        lock (_persistSync) return _pendingPersist;
     }
 
     private async Task PersistSafelyAsync()
@@ -107,6 +114,7 @@ public sealed class S88FeedbackModule : IQuiralModule
     {
         _controller.S88ContactChanged -= OnContactChanged;
         _controller.S88ModuleRead -= OnModuleRead;
+        await FlushAsync().ConfigureAwait(false);
         if (_core is not null)
         {
             await _persistLock.WaitAsync(cancellationToken).ConfigureAwait(false);
