@@ -67,7 +67,7 @@ no_previous_install:
     SetOutPath "$PLUGINSDIR"
     File /oname=upgrade-preserve-data.ps1 "installer\upgrade-preserve-data.ps1"
     ExecWait '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\upgrade-preserve-data.ps1" -Action Restore -DataDirectory "$LOCALAPPDATA\QuiralCo\ControladorDeMaquetes" -BackupFile "$UpgradeBackup"' $0
-    IntCmp $0 0 data_restore_done
+    IntCmp $0 0 +2
       Abort "No s'han pogut restaurar les dades. La còpia s'ha conservat a: $UpgradeBackup"
     Delete "$UpgradeBackup"
   data_restore_done:
