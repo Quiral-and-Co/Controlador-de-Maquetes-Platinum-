@@ -6,5 +6,6 @@ const nsis=pkg.build?.nsis;
 assert.equal(nsis?.oneClick,false,'installer must keep assisted installation');
 assert.equal(nsis?.displayLanguageSelector,true,'NSIS language selector must be visible');
 assert.equal(nsis?.language,'1027','Catalan LCID 1027 is the default NSIS version-resource language');
+assert.equal(nsis?.warningsAsErrors,false,'NSIS translation fallback warnings must not abort the installer build');
 assert.deepEqual([...nsis?.installerLanguages||[]].sort(),['ca_ES','en_US','es_ES'].sort());
-console.log('PASS: NSIS offers Catalan, Spanish and English with Catalan (LCID 1027) default');
+console.log('PASS: NSIS offers Catalan, Spanish and English with Catalan (LCID 1027) default and tolerates missing optional translations');
