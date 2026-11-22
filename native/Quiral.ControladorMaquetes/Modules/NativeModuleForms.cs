@@ -146,7 +146,7 @@ public sealed class RollingStockForm : Form
 public sealed class Cs2ConnectionForm : Form
 {
     private readonly Cs2TcpController _controller;
-    private readonly TextBox _host=new() { Width=180,Text="192.168.1.100" };
+    private readonly TextBox _host=new() { Width=180 };
     private readonly NumericUpDown _port=FormLayout.Number(15731,1,65535,0);
     private readonly NumericUpDown _contactId=FormLayout.Number(1,1,65535,0);
     private readonly NumericUpDown _module=FormLayout.Number(1,1,255,0);
@@ -189,8 +189,8 @@ public sealed class Cs2ConnectionForm : Form
         try { await _controller.PollS88ModuleAsync((byte)_module.Value); Log("Consulta S88 legacy enviada."); }
         catch(Exception ex) { Log(ex.Message); }
     }
-    private void OnContact(S88ContactEvent e)=>BeginInvoke(new Action(()=>Log($"S88 contacte {e.ContactId} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms")));
-    private void OnModule(S88ModuleSnapshot e)=>BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}")));
-    private void OnDiagnostic(string e)=>BeginInvoke(new Action(()=>Log(e)));
+    private void OnContact(S88ContactEvent e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"S88 contacte {e.ContactId} {(e.IsOccupied?"OCUPAT":"LLIURE")} · {e.Timestamp10Ms*10} ms"))); }
+    private void OnModule(S88ModuleSnapshot e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log($"Mòdul {e.ModuleNumber}: 0x{e.ContactBits:X4}"))); }
+    private void OnDiagnostic(string e) { if(!IsDisposed && IsHandleCreated) BeginInvoke(new Action(()=>Log(e))); }
     private void Log(string value) { if(!IsDisposed) _log.Items.Insert(0,$"{DateTime.Now:HH:mm:ss}  {value}"); }
 }
