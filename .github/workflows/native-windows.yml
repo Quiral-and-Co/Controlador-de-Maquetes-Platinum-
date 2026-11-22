@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   build-native-windows:
-    name: Build native Windows desktop app
+    name: Build and test native Quiral Control core
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -33,8 +33,14 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore
+      - name: Restore native application
         run: dotnet restore native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj
 
-      - name: Build
+      - name: Build native application
         run: dotnet build native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj --configuration Release --no-restore
+
+      - name: Restore core self-tests
+        run: dotnet restore native/Quiral.ControladorMaquetes.CoreTests/Quiral.ControladorMaquetes.CoreTests.csproj
+
+      - name: Run core self-tests
+        run: dotnet run --project native/Quiral.ControladorMaquetes.CoreTests/Quiral.ControladorMaquetes.CoreTests.csproj --configuration Release
