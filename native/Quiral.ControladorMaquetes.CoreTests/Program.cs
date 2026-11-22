@@ -328,8 +328,9 @@ static async Task TestCs2TcpFeedback()
         var saved=feedback.Snapshot.Single();
         Assert(saved.ContactUid==0x1234002A && saved.IsOccupied,"El mòdul S88 no ha actualitzat l'estat tipat del contacte.");
         await feedback.FlushAsync();
-        Assert(core.Devices.TryGet("s88-1234-0042",out var sensor) && sensor?.Kind==RailwayDeviceKind.Sensor &&
-            sensor.State==RailwayDeviceState.Connected,"El feedback S88 no s'ha integrat al registre central de dispositius.");
+        Assert(core.Devices.TryGet("s88-1234-0042",out var sensor) &&
+            sensor is { Kind: RailwayDeviceKind.Sensor, State: RailwayDeviceState.Connected },
+            "El feedback S88 no s'ha integrat al registre central de dispositius.");
         var persisted=await core.State.ReadAsync<List<S88ContactState>>("feedback/s88-contacts.json",timeout.Token);
         Assert(persisted?.Single().ContactUid==0x1234002A,"L'estat S88 no s'ha persistit al nucli.");
         await controller.DisconnectAsync();
