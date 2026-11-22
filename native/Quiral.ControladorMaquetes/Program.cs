@@ -5,6 +5,7 @@ using Quiral.ControladorMaquetes.Projects;
 using Quiral.ControladorMaquetes.Geometry;
 using Quiral.ControladorMaquetes.RollingStock;
 using Quiral.ControladorMaquetes.Maerklin;
+using Quiral.ControladorMaquetes.Accessories;
 
 namespace Quiral.ControladorMaquetes;
 
@@ -18,17 +19,19 @@ internal static class Program
         var projects = new ProjectModule();
         var geometry = new RailwayGeometryModule(projects);
         var rollingStock = new RollingStockModule();
+        var accessories = new AccessoryModule();
         var cs2 = new Cs2TcpController();
         var s88Feedback = new S88FeedbackModule(cs2);
         core.RegisterModule(projects);
         core.RegisterModule(geometry);
         core.RegisterModule(rollingStock);
+        core.RegisterModule(accessories);
         core.RegisterModule(cs2);
         core.RegisterModule(s88Feedback);
         try
         {
             core.InitializeAsync().GetAwaiter().GetResult();
-            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2));
+            Application.Run(new MainForm(core, projects, geometry, rollingStock, cs2, accessories));
         }
         catch (Exception exception)
         {

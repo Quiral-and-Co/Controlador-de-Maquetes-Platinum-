@@ -2,7 +2,7 @@ Unicode true
 ManifestDPIAware true
 RequestExecutionLevel admin
 !ifndef VERSION
-  !define VERSION "1.4.0"
+  !define VERSION "1.4.2"
 !endif
 !ifndef PUBLISH_DIR
   !define PUBLISH_DIR "..\publish"
