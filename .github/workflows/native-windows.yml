@@ -1,0 +1,39 @@
+name: Native Windows foundation
+
+on:
+  push:
+    branches:
+      - feature/native-windows-architecture
+    paths:
+      - "native/**"
+      - ".github/workflows/native-windows.yml"
+  pull_request:
+    branches:
+      - feature/native-windows-architecture
+      - main
+    paths:
+      - "native/**"
+      - ".github/workflows/native-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-native-windows:
+    name: Build native Windows desktop app
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj
+
+      - name: Build
+        run: dotnet build native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj --configuration Release --no-restore
