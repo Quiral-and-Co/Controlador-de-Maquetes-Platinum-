@@ -60,7 +60,7 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule
             _hash=(ushort)((QuiralUid>>16)^(QuiralUid&0xFFFF));
             State=Cs2ConnectionState.Connected;
             _core?.Devices.Upsert(new RailwayDevice("marklin-cs2-60215","Märklin Central Station 2",
-                RailwayDeviceKind.CommandStation,RailwayDeviceState.Connected,"Märklin","60215",$"{host}:{port}",DateTimeOffset.UtcNow));
+                RailwayDeviceKind.CommandStation,RailwayDeviceState.Degraded,"Märklin","60215",$"{host}:{port}",DateTimeOffset.UtcNow));
             _readerCancellation=new CancellationTokenSource();
             _readerTask=ReadLoopAsync(_readerCancellation.Token);
             Diagnostic?.Invoke($"Connexió TCP establerta amb CS2 a {host}:{port}.");
