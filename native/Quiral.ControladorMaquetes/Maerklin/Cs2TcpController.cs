@@ -176,15 +176,15 @@ public sealed class Cs2TcpController : IAsyncDisposable, IQuiralModule, IRailway
                             RailwayDeviceKind.CommandStation,RailwayDeviceState.Connected,"Märklin","60215",$"{Host}:{Port}",participant.SeenAt));
                     }
                 }
-                var contact=S88Feedback.TryParseEvent(frame);
-                if(contact is not null)
+                // No acceptem ni publiquem feedback fins que la central hagi respost
+                // al PING i el participant de la CS2 hagi estat identificat.
+                if (IdentityVerified)
                 {
-                    S88ContactChanged?.Invoke(contact);
-                    _core?.Events.Publish(new QuiralEvent(contact.ReceivedAt,"s88.contact.changed",
-                        $"S88 {contact.DeviceId}:{contact.ContactNumber} = {(contact.IsOccupied ? "OCUPAT" : "LLIURE")}"));
+                    var contact=S88Feedback.TryParseEvent(frame);
+                    if(contact is not null) S88ContactChanged?.Invoke(contact);
+                    var module=S88Feedback.TryParsePollReply(frame) ?? S88Feedback.TryParseBroadcast(frame);
+                    if(module is not null) S88ModuleRead?.Invoke(module);
                 }
-                var module=S88Feedback.TryParsePollReply(frame) ?? S88Feedback.TryParseBroadcast(frame);
-                if(module is not null) S88ModuleRead?.Invoke(module);
             }
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested) { }
