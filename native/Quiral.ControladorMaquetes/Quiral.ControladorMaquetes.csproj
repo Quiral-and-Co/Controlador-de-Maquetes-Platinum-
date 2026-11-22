@@ -8,9 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Quiral.ControladorMaquetes</AssemblyName>
     <RootNamespace>Quiral.ControladorMaquetes</RootNamespace>
-    <Version>1.4.0</Version>
-    <Product>Controlador de Maquetes by Quiral &amp; Co. Platinum</Product>
-    <Company>Quiral &amp; Co.</Company>
-    <Description>Aplicació ferroviària nativa per a Windows.</Description>
+    <Version>1.4.1</Version>
+    <Product>Controlador de Maquetes Platinum Edition</Product>
+    <Company>Quiral and Co.</Company>
+    <Description>Aplicació ferroviària nativa per a Windows, desenvolupada per Quiral and Co.</Description>
   </PropertyGroup>
 </Project>

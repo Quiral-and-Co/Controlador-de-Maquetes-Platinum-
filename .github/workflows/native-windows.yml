@@ -6,16 +6,17 @@ on:
       - feature/native-windows-architecture
     paths:
       - "native/**"
-      - "installer/native-quiral.nsi"
+      - "installer/**"
       - ".github/workflows/native-windows.yml"
   pull_request:
     branches:
       - feature/railway-cab-panels-windows
       - feature/native-windows-architecture
+      - feature/native-accessories-dcc-mm2-mfx
       - main
     paths:
       - "native/**"
-      - "installer/native-quiral.nsi"
+      - "installer/**"
       - ".github/workflows/native-windows.yml"
   workflow_dispatch:
 
@@ -30,31 +31,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install .NET 10 SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
-
       - name: Restore native application
         run: dotnet restore native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj
-
       - name: Build native application
         run: dotnet build native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj --configuration Release --no-restore
-
       - name: Restore core self-tests
         run: dotnet restore native/Quiral.ControladorMaquetes.CoreTests/Quiral.ControladorMaquetes.CoreTests.csproj
-
       - name: Run native core self-tests
         run: dotnet run --project native/Quiral.ControladorMaquetes.CoreTests/Quiral.ControladorMaquetes.CoreTests.csproj --configuration Release
-
       - name: Publish self-contained Windows x64 application
         run: dotnet publish native/Quiral.ControladorMaquetes/Quiral.ControladorMaquetes.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
-
       - name: Install NSIS
         shell: pwsh
         run: choco install nsis --yes --no-progress
-
       - name: Build native NSIS installer
         shell: pwsh
         run: |
@@ -63,41 +56,42 @@ jobs:
           $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish'
           $distDir = Join-Path $env:GITHUB_WORKSPACE 'dist'
           $application = Join-Path $publishDir 'Quiral.ControladorMaquetes.exe'
-          $output = Join-Path $distDir 'Controlador-de-Maquetes-Quiral-Platinum-Setup-1.4.0.exe'
-          if (-not (Test-Path -LiteralPath $application -PathType Leaf)) {
-            throw "Published application was not found: $application"
-          }
+          $output = Join-Path $distDir 'ControladorDeMaquetes_Platinum_Edition_Setup_1.4.1.exe'
+          if (-not (Test-Path -LiteralPath $application -PathType Leaf)) { throw "Published application missing: $application" }
           New-Item -ItemType Directory -Force -Path $distDir | Out-Null
           $makensis = Join-Path $env:ProgramFiles 'NSIS\makensis.exe'
-          if (-not (Test-Path -LiteralPath $makensis)) {
-            $makensis = Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe'
-          }
-          if (-not (Test-Path -LiteralPath $makensis)) {
-            throw 'makensis.exe was not found after installing NSIS.'
-          }
-          & $makensis "/DVERSION=1.4.0" "/DPUBLISH_DIR=$publishDir" "/DOUTPUT_FILE=$output" 'installer/native-quiral.nsi'
+          if (-not (Test-Path -LiteralPath $makensis)) { $makensis = Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe' }
+          if (-not (Test-Path -LiteralPath $makensis)) { throw 'makensis.exe was not found.' }
+          & $makensis "/DVERSION=1.4.1" "/DPUBLISH_DIR=$publishDir" "/DOUTPUT_FILE=$output" 'installer/native-quiral.nsi'
           if ($LASTEXITCODE -ne 0) { throw "NSIS failed with exit code $LASTEXITCODE." }
-          if (-not (Test-Path -LiteralPath $output -PathType Leaf)) {
-            throw "NSIS completed without producing the installer: $output"
-          }
-
-      - name: Smoke test NSIS installation and uninstallation
+          if (-not (Test-Path -LiteralPath $output -PathType Leaf)) { throw "Installer missing: $output" }
+      - name: Smoke test installation, data preservation and uninstallation
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $installer = Get-ChildItem -Path dist -Filter '*.exe' -File | Select-Object -First 1
           if (-not $installer) { throw 'Native NSIS installer was not generated.' }
+          $dataDir = Join-Path $env:LOCALAPPDATA 'QuiralCo\ControladorDeMaquetes'
+          New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
+          $sentinel = Join-Path $dataDir 'upgrade-preservation-smoke-test.txt'
+          Set-Content -LiteralPath $sentinel -Value 'Quiral upgrade preservation test' -Encoding utf8
           $installDir = Join-Path $env:RUNNER_TEMP 'QuiralNativeSmoke'
-          $process = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Installer returned $($process.ExitCode)." }
+          $firstInstall = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
+          if ($firstInstall.ExitCode -ne 0) { throw "Initial installer returned $($firstInstall.ExitCode)." }
           $application = Join-Path $installDir 'Quiral.ControladorMaquetes.exe'
           $uninstaller = Join-Path $installDir 'Uninstall.exe'
           if (-not (Test-Path $application)) { throw 'Installed native application executable is missing.' }
           if (-not (Test-Path $uninstaller)) { throw 'Uninstaller executable is missing.' }
+          Set-Content -LiteralPath $sentinel -Value 'Quiral upgrade preservation test' -Encoding utf8
+          $upgrade = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
+          if ($upgrade.ExitCode -ne 0) { throw "Upgrade installer returned $($upgrade.ExitCode)." }
+          if (-not (Test-Path $sentinel)) { throw 'Upgrade did not restore the user data backup.' }
+          $uninstaller = Join-Path $installDir 'Uninstall.exe'
           $remove = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
           if ($remove.ExitCode -ne 0) { throw "Uninstaller returned $($remove.ExitCode)." }
-          if (Test-Path $installDir) { throw 'NSIS uninstallation left the application directory behind.' }
-
+          if (Test-Path $installDir) { throw 'Uninstallation left the application directory behind.' }
+          if (-not (Test-Path -LiteralPath $sentinel)) { throw 'Uninstallation deleted user data.' }
+          Remove-Item -LiteralPath $dataDir -Recurse -Force
       - name: Generate SHA-256 manifest
         shell: pwsh
         run: |
@@ -105,16 +99,13 @@ jobs:
           $installer = Get-ChildItem -Path dist -Filter '*.exe' -File | Select-Object -First 1
           $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           Set-Content -LiteralPath "$($installer.FullName).sha256" -Value "$hash  $($installer.Name)" -Encoding ascii
-          if ((Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
-            throw 'SHA-256 verification mismatch.'
-          }
+          if ((Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) { throw 'SHA-256 verification mismatch.' }
           Write-Host "Installer: $($installer.Name)"
           Write-Host "SHA-256: $hash"
-
       - name: Upload native installer
         uses: actions/upload-artifact@v4
         with:
-          name: Quiral-Control-Native-Windows-11-x64
+          name: Controlador-de-Maquetes-Platinum-Edition-Windows-x64
           path: |
             dist/*.exe
             dist/*.exe.sha256
